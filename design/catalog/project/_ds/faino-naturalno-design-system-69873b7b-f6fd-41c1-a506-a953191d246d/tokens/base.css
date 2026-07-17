@@ -1,0 +1,57 @@
+/* Faino Naturalno — base element defaults. Applied globally by consumers. */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--lh-normal);
+  color: var(--text-body);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-strong);
+  margin: 0 0 var(--space-4);
+  text-wrap: balance;
+}
+h1 { font-size: var(--text-3xl); }
+h2 { font-size: var(--text-2xl); }
+h3 { font-size: var(--text-xl); font-weight: var(--fw-bold); }
+h4 { font-size: var(--text-lg); font-weight: var(--fw-bold); }
+
+p { margin: 0 0 var(--space-4); text-wrap: pretty; }
+
+a {
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color var(--dur) var(--ease-out);
+}
+a:hover { color: var(--text-link-hover); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Eyebrow / logo-echo uppercase label */
+.fn-eyebrow {
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-xs);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--cinnamon-700);
+}
+
+/* Hand-drawn accent (prices, notes) */
+.fn-hand {
+  font-family: var(--font-accent);
+  font-weight: 700;
+  color: var(--cinnamon-700);
+}
+
+::selection { background: var(--marigold-200); color: var(--espresso-900); }
+
+:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--radius-sm); }

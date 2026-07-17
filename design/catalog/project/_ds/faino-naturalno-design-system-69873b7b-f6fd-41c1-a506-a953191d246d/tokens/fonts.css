@@ -1,0 +1,4 @@
+/* Faino Naturalno — Webfonts
+   Google-hosted (no local binaries were provided). Full Cyrillic coverage.
+   Consumers get these @font-face rules via Google's CSS import. */
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap&subset=cyrillic,latin');

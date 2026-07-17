@@ -1,0 +1,118 @@
+@import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap&subset=cyrillic,latin");
+@import "tailwindcss";
+
+:root {
+  --marigold-100: #fdeeb0;
+  --marigold-200: #fbe075;
+  --marigold-400: #f5b800;
+  --marigold-500: #e4a600;
+  --marigold-600: #c48a00;
+  --espresso-900: #2a1a0d;
+  --espresso-800: #3b2412;
+  --espresso-700: #4e301a;
+  --cinnamon-700: #7a3e18;
+  --kraft-50: #fbf6ea;
+  --kraft-100: #f5ecd8;
+  --kraft-200: #eadcc0;
+  --kraft-300: #dac7a2;
+  --kraft-400: #c2ab80;
+  --kraft-500: #9c8461;
+  --garden-500: #5b7a3a;
+  --garden-700: #3e5626;
+  --chili-100: #f5dcd3;
+  --chili-500: #b23a2e;
+  --chili-700: #8a2a20;
+  --bg-page: var(--kraft-50);
+  --surface-card: #fff;
+  --text-strong: var(--espresso-900);
+  --text-body: var(--espresso-800);
+  --text-muted: var(--kraft-500);
+  --border-subtle: var(--kraft-300);
+  --border-strong: var(--kraft-400);
+  --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-accent: "Caveat", "Comic Sans MS", cursive;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-xs: 0 1px 2px rgb(59 36 18 / 8%);
+  --shadow-md: 0 6px 18px rgb(59 36 18 / 12%);
+  --shadow-lg: 0 16px 40px rgb(59 36 18 / 16%);
+  --shadow-focus: 0 0 0 3px rgb(245 184 0 / 45%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--text-body);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-focus);
+  outline: none;
+}
+
+.fn-eyebrow {
+  color: var(--cinnamon-700);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+::selection {
+  background: var(--marigold-200);
+  color: var(--espresso-900);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

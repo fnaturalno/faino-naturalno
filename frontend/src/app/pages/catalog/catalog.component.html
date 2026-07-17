@@ -1,0 +1,377 @@
+<app-navbar />
+
+<main class="min-h-[calc(100vh-60px)] bg-[var(--bg-page)] px-3 pb-28 pt-4 sm:px-6 sm:pb-12 sm:pt-5 lg:px-8 lg:py-7">
+  <div class="mx-auto max-w-[1216px]">
+    <section class="mb-4 hidden sm:block lg:hidden" aria-label="Фільтри товарів">
+      <button
+        type="button"
+        class="flex min-h-12 w-full items-center justify-between rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white px-4 font-bold shadow-[var(--shadow-xs)]"
+        [attr.aria-expanded]="tabletFiltersOpen()"
+        aria-controls="tablet-filters"
+        (click)="tabletFiltersOpen.update((open) => !open)"
+      >
+        <span class="flex items-center gap-2"><app-icon name="filter" [size]="18" /> Фільтри</span>
+        <app-icon name="chevron-down" [size]="18" />
+      </button>
+      @if (tabletFiltersOpen()) {
+        <div id="tablet-filters" class="mt-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white p-4 shadow-[var(--shadow-xs)]">
+          <div class="flex flex-wrap items-center gap-2">
+            @if (store.categoryError()) {
+              <span class="text-sm text-[var(--chili-700)]">Категорії тимчасово недоступні</span>
+            } @else {
+              @for (category of store.categories(); track category.id) {
+                <button
+                  type="button"
+                  class="rounded-full border px-4 py-2 text-sm font-semibold"
+                  [class.border-[var(--espresso-800)]]="store.filters().categories.includes(category.slug)"
+                  [class.bg-[var(--espresso-800)]]="store.filters().categories.includes(category.slug)"
+                  [class.text-[var(--kraft-50)]]="store.filters().categories.includes(category.slug)"
+                  [class.border-[var(--border-subtle)]]="!store.filters().categories.includes(category.slug)"
+                  [class.bg-[var(--kraft-100)]]="!store.filters().categories.includes(category.slug)"
+                  [attr.aria-pressed]="store.filters().categories.includes(category.slug)"
+                  (click)="toggleAppliedCategory(category.slug)"
+                >{{ category.name }}</button>
+              }
+            }
+            <span class="ml-auto text-sm text-[var(--text-muted)]">
+              {{ store.filters().minPrice ?? store.page()?.priceMin ?? 0 }}–{{ store.filters().maxPrice ?? store.page()?.priceMax ?? 0 }} ₴
+            </span>
+          </div>
+          <div class="mt-4 flex max-w-sm items-end gap-2">
+            <label class="flex-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              від
+              <input
+                type="number"
+                min="0"
+                class="mt-1 min-h-11 w-full rounded-lg border border-[var(--border-strong)] bg-white px-3 text-base"
+                [value]="store.filters().minPrice ?? ''"
+                (input)="updateAppliedPrice('min', $any($event.target).value)"
+              />
+            </label>
+            <span class="pb-3 text-[var(--kraft-500)]">–</span>
+            <label class="flex-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              до
+              <input
+                type="number"
+                min="0"
+                class="mt-1 min-h-11 w-full rounded-lg border border-[var(--border-strong)] bg-white px-3 text-base"
+                [value]="store.filters().maxPrice ?? ''"
+                (input)="updateAppliedPrice('max', $any($event.target).value)"
+              />
+            </label>
+            <button type="button" class="min-h-11 rounded-lg px-3 font-semibold text-[var(--cinnamon-700)]" (click)="store.reset()">Скинути</button>
+          </div>
+        </div>
+      }
+    </section>
+
+    <div class="flex items-start gap-8">
+      <aside
+        class="sticky top-[104px] hidden w-[260px] shrink-0 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white p-5 shadow-[var(--shadow-xs)] lg:block"
+        aria-label="Фільтри товарів"
+      >
+        <div class="mb-5 flex items-center justify-between">
+          <h2 class="m-0 text-xl">Фільтри</h2>
+          <button type="button" class="text-sm font-semibold text-[var(--cinnamon-700)]" (click)="store.reset()">Скинути</button>
+        </div>
+        <div class="mb-5 border-t border-[var(--border-subtle)] pt-4">
+          <h3 class="fn-eyebrow mb-3">Категорії</h3>
+          @if (store.categoryError()) {
+            <p class="text-sm text-[var(--chili-700)]">Не вдалося завантажити категорії.</p>
+          } @else if (!store.categories().length) {
+            <div class="space-y-3" aria-label="Завантаження категорій">
+              <div class="h-6 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+              <div class="h-6 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+              <div class="h-6 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+            </div>
+          } @else {
+            <div class="space-y-2">
+              @for (category of store.categories(); track category.id) {
+                <button
+                  type="button"
+                  class="flex min-h-10 w-full items-center gap-3 rounded-lg text-left"
+                  [attr.aria-pressed]="store.filters().categories.includes(category.slug)"
+                  (click)="toggleAppliedCategory(category.slug)"
+                >
+                  <span
+                    class="grid size-[22px] shrink-0 place-items-center rounded-md border border-[var(--border-strong)]"
+                    [class.bg-[var(--marigold-400)]]="store.filters().categories.includes(category.slug)"
+                  >
+                    @if (store.filters().categories.includes(category.slug)) {
+                      <app-icon name="check" [size]="15" />
+                    }
+                  </span>
+                  <span class="flex-1 font-medium">{{ category.name }}</span>
+                  <span class="text-sm text-[var(--text-muted)]">{{ category.activeProductCount }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="border-t border-[var(--border-subtle)] pt-4">
+          <h3 class="fn-eyebrow mb-4">Ціна, ₴</h3>
+          <div class="relative mx-1 mb-5 h-1.5 rounded-full bg-[var(--kraft-200)]">
+            <div class="absolute inset-y-0 left-[12%] right-[12%] rounded-full bg-[var(--marigold-400)]"></div>
+            <span class="absolute left-[12%] top-1/2 size-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--espresso-800)] bg-white shadow"></span>
+            <span class="absolute right-[12%] top-1/2 size-[18px] translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--espresso-800)] bg-white shadow"></span>
+          </div>
+          <div class="flex items-end gap-2">
+            <label class="min-w-0 flex-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              від
+              <input
+                type="number"
+                min="0"
+                class="mt-1 w-full rounded-lg border border-[var(--border-strong)] px-2.5 py-2 text-base"
+                [value]="store.filters().minPrice ?? ''"
+                (input)="updateAppliedPrice('min', $any($event.target).value)"
+              />
+            </label>
+            <span class="pb-2.5 text-[var(--kraft-500)]">–</span>
+            <label class="min-w-0 flex-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              до
+              <input
+                type="number"
+                min="0"
+                class="mt-1 w-full rounded-lg border border-[var(--border-strong)] px-2.5 py-2 text-base"
+                [value]="store.filters().maxPrice ?? ''"
+                (input)="updateAppliedPrice('max', $any($event.target).value)"
+              />
+            </label>
+          </div>
+          <button
+            type="button"
+            class="mt-6 min-h-11 w-full rounded-lg border border-[var(--espresso-800)] font-bold"
+            (click)="store.reset()"
+          >Скинути фільтри</button>
+        </div>
+      </aside>
+
+      <section class="min-w-0 flex-1" aria-labelledby="catalog-heading">
+        <h1 id="catalog-heading" class="sr-only">Каталог товарів</h1>
+        <div class="mb-4 flex items-center justify-between gap-3 sm:mb-5">
+          <p class="m-0 text-sm text-[var(--espresso-700)] sm:text-base" aria-live="polite">
+            <strong class="text-[var(--espresso-900)]">{{ store.page()?.totalCount ?? 0 }} товари</strong>
+          </p>
+          <label class="flex items-center gap-2">
+            <span class="hidden text-sm text-[var(--text-muted)] lg:inline">Сортувати:</span>
+            <span class="relative">
+              <select
+                class="min-h-10 appearance-none rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white py-2 pl-3 pr-9 text-sm font-semibold"
+                aria-label="Сортування товарів"
+                [value]="store.filters().sortBy"
+                (change)="updateSort($any($event.target).value)"
+              >
+                @for (option of sortOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+              <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"><app-icon name="chevron-down" [size]="15" /></span>
+            </span>
+          </label>
+        </div>
+
+        <div aria-live="polite" aria-atomic="true" class="sr-only">
+          @if (store.initialLoading()) { Завантаження товарів }
+          @else if (store.refetching()) { Оновлення товарів }
+          @else if (store.error()) { Помилка завантаження товарів }
+          @else { Показано {{ store.page()?.totalCount ?? 0 }} товарів }
+        </div>
+
+        @if (store.initialLoading()) {
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:gap-[22px]" aria-label="Завантаження товарів">
+            @for (skeleton of skeletons; track skeleton) {
+              <div class="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white">
+                <div class="aspect-square animate-pulse bg-[var(--kraft-200)]"></div>
+                <div class="space-y-2.5 p-3 sm:p-4">
+                  <div class="h-2.5 w-2/5 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+                  <div class="h-4 w-5/6 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+                  <div class="h-4 w-3/5 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+                  <div class="flex justify-between pt-2">
+                    <div class="h-6 w-16 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+                    <div class="h-9 w-20 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (store.error()) {
+          <div class="rounded-[var(--radius-lg)] border border-[var(--chili-100)] bg-white px-6 py-14 text-center" role="alert">
+            <h2 class="mb-3 text-xl">Щось пішло не так</h2>
+            <p class="mx-auto mb-6 max-w-md text-[var(--espresso-700)]">{{ store.error() }}</p>
+            <button type="button" class="rounded-lg bg-[var(--marigold-400)] px-5 py-3 font-extrabold" (click)="store.retry()">Спробувати ще</button>
+          </div>
+        } @else if (!store.page()?.items?.length) {
+          <div class="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white px-6 py-14 text-center shadow-[var(--shadow-xs)]">
+            <div class="mx-auto mb-6 grid size-[120px] place-items-center rounded-full border border-[var(--border-subtle)] bg-[var(--kraft-100)] text-[var(--kraft-500)]">
+              <app-icon name="package" [size]="56" />
+            </div>
+            <h2 class="mb-2 text-xl">Товарів не знайдено</h2>
+            <p class="mx-auto mb-6 max-w-md text-[var(--espresso-700)]">Спробуйте змінити фільтри або розширити діапазон ціни — ми зібрали для вас багато смачного.</p>
+            <button type="button" class="rounded-lg bg-[var(--marigold-400)] px-5 py-3 font-extrabold" (click)="store.reset()">Скинути фільтри</button>
+          </div>
+        } @else {
+          <div
+            class="grid grid-cols-2 gap-3 transition-opacity sm:grid-cols-3 sm:gap-4 lg:gap-[22px]"
+            [class.opacity-55]="store.refetching()"
+            [attr.aria-busy]="store.refetching()"
+          >
+            @for (product of store.page()!.items; track product.id) {
+              <app-product-card [product]="product" [status]="cartStatus(product.id)" (add)="addToCart($event)" />
+            }
+          </div>
+
+          @if ((store.page()?.totalPages ?? 0) > 1) {
+            <nav class="mt-8 flex items-center justify-center gap-1.5 sm:gap-2" aria-label="Сторінки каталогу">
+              <button
+                type="button"
+                class="grid size-11 place-items-center rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Попередня сторінка"
+                [disabled]="store.page()!.page <= 1"
+                (click)="store.updatePage(store.page()!.page - 1)"
+              ><app-icon name="chevron-left" [size]="18" /></button>
+              @for (item of pagination(); track $index) {
+                @if (item === 'ellipsis') {
+                  <span class="grid size-9 place-items-center sm:size-11" aria-hidden="true">…</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="size-11 rounded-[var(--radius-md)] border font-bold"
+                    [class.border-[var(--espresso-800)]]="item === store.page()!.page"
+                    [class.bg-[var(--espresso-800)]]="item === store.page()!.page"
+                    [class.text-[var(--kraft-50)]]="item === store.page()!.page"
+                    [class.border-[var(--border-subtle)]]="item !== store.page()!.page"
+                    [class.bg-white]="item !== store.page()!.page"
+                    [attr.aria-current]="item === store.page()!.page ? 'page' : null"
+                    [attr.aria-label]="'Сторінка ' + item"
+                    (click)="store.updatePage(item)"
+                  >{{ item }}</button>
+                }
+              }
+              <button
+                type="button"
+                class="grid size-11 place-items-center rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Наступна сторінка"
+                [disabled]="store.page()!.page >= store.page()!.totalPages"
+                (click)="store.updatePage(store.page()!.page + 1)"
+              ><app-icon name="chevron-right" [size]="18" /></button>
+            </nav>
+          }
+        }
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="fixed inset-x-0 bottom-0 z-20 bg-gradient-to-t from-[var(--bg-page)] via-[var(--bg-page)] to-transparent px-4 pb-[calc(14px+env(safe-area-inset-bottom))] pt-6 sm:hidden">
+  <button
+    #mobileFilterButton
+    type="button"
+    class="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[var(--espresso-800)] px-5 font-extrabold text-[var(--kraft-50)] shadow-[var(--shadow-md)]"
+    [attr.aria-expanded]="sheetOpen()"
+    aria-controls="mobile-filter-sheet"
+    (click)="openSheet()"
+  >
+    <app-icon name="filter" [size]="20" />
+    Фільтри
+    @if (activeFilterCount() > 0) {
+      <span class="rounded-full bg-[var(--marigold-400)] px-2 py-0.5 text-xs text-[var(--espresso-900)]">{{ activeFilterCount() }}</span>
+    }
+  </button>
+</div>
+
+@if (sheetOpen() && pendingFilters(); as pending) {
+  <div
+    class="fixed inset-0 z-50 bg-[rgba(42,26,13,.48)] sm:hidden"
+    role="presentation"
+    (click)="closeSheet()"
+    (keydown.escape)="closeSheet()"
+  >
+    <section
+      id="mobile-filter-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="filter-sheet-title"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      class="absolute inset-x-0 bottom-0 max-h-[90dvh] overflow-y-auto rounded-t-[24px] bg-white px-5 pb-[calc(24px+env(safe-area-inset-bottom))] pt-3 shadow-[var(--shadow-lg)]"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="closeSheet()"
+    >
+      <div class="mx-auto mb-3 h-1.5 w-11 rounded-full bg-[var(--kraft-300)]"></div>
+      <div class="mb-4 flex items-center justify-between">
+        <h2 id="filter-sheet-title" class="m-0 text-xl">Фільтри</h2>
+        <button type="button" class="grid size-11 place-items-center rounded-lg" aria-label="Закрити фільтри" (click)="closeSheet()">
+          <app-icon name="close" [size]="21" />
+        </button>
+      </div>
+
+      <h3 class="fn-eyebrow mb-2">Категорії</h3>
+      @if (store.categoryError()) {
+        <p class="text-sm text-[var(--chili-700)]">Категорії тимчасово недоступні.</p>
+      } @else {
+        <div class="mb-5">
+          @for (category of store.categories(); track category.id) {
+            <button
+              type="button"
+              class="flex min-h-12 w-full items-center gap-3 rounded-lg px-1 text-left"
+              [attr.aria-pressed]="pending.categories.includes(category.slug)"
+              (click)="togglePendingCategory(category.slug)"
+            >
+              <span
+                class="grid size-[26px] shrink-0 place-items-center rounded-lg border border-[var(--border-strong)]"
+                [class.bg-[var(--marigold-400)]]="pending.categories.includes(category.slug)"
+              >
+                @if (pending.categories.includes(category.slug)) { <app-icon name="check" [size]="17" /> }
+              </span>
+              <span class="flex-1 text-lg font-medium">{{ category.name }}</span>
+              <span class="text-sm text-[var(--text-muted)]">{{ category.activeProductCount }}</span>
+            </button>
+          }
+        </div>
+      }
+
+      <h3 class="fn-eyebrow mb-3">Ціна, ₴</h3>
+      <div class="mb-6 flex items-end gap-3">
+        <label class="min-w-0 flex-1 text-xs font-bold text-[var(--text-muted)]">
+          від
+          <input
+            type="number"
+            min="0"
+            class="mt-1 min-h-12 w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] px-3 text-base text-[var(--espresso-800)]"
+            [value]="pending.minPrice ?? ''"
+            (input)="updatePendingPrice('min', $any($event.target).value)"
+          />
+        </label>
+        <span class="pb-3 text-[var(--kraft-500)]">–</span>
+        <label class="min-w-0 flex-1 text-xs font-bold text-[var(--text-muted)]">
+          до
+          <input
+            type="number"
+            min="0"
+            class="mt-1 min-h-12 w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] px-3 text-base text-[var(--espresso-800)]"
+            [value]="pending.maxPrice ?? ''"
+            (input)="updatePendingPrice('max', $any($event.target).value)"
+          />
+        </label>
+      </div>
+
+      <div class="flex gap-3">
+        <button type="button" class="min-h-[52px] rounded-[var(--radius-md)] border border-[var(--espresso-800)] px-4 font-bold" (click)="resetPending()">Скинути</button>
+        <button type="button" class="min-h-[52px] flex-1 rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-4 font-extrabold" (click)="applyPending()">
+          Показати {{ store.previewCount() ?? '…' }} товарів
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (toast(); as toastMessage) {
+  <div
+    class="fixed right-4 top-20 z-[60] rounded-[var(--radius-md)] px-5 py-3 font-bold text-white shadow-[var(--shadow-lg)]"
+    [class.bg-[var(--garden-700)]]="!toastMessage.error"
+    [class.bg-[var(--chili-700)]]="toastMessage.error"
+    role="status"
+    aria-live="polite"
+  >{{ toastMessage.message }}</div>
+}

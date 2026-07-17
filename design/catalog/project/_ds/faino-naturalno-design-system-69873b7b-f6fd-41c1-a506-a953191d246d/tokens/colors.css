@@ -1,0 +1,78 @@
+/* Faino Naturalno — Color tokens
+   Palette sampled from the marigold star-anise logo + spice-border business card.
+   Warm, earthy, rustic: marigold + espresso + kraft, with garden green & chili red accents. */
+:root {
+  /* — Marigold (primary brand yellow) — */
+  --marigold-50:  #FEF8E0;
+  --marigold-100: #FDEEB0;
+  --marigold-200: #FBE075;
+  --marigold-300: #F9CF3B;
+  --marigold-400: #F5B800; /* core brand marigold */
+  --marigold-500: #E4A600;
+  --marigold-600: #C48A00;
+  --marigold-700: #9C6D06;
+  --sun-300:      #FBD200; /* bright lemon petal highlight */
+
+  /* — Espresso (primary text / ink brown) — */
+  --espresso-900: #2A1A0D;
+  --espresso-800: #3B2412; /* core ink brown */
+  --espresso-700: #4E301A;
+  --espresso-600: #6A4425;
+  --espresso-500: #8A5E33;
+
+  /* — Cinnamon / anise (secondary warm brown) — */
+  --cinnamon-700: #7A3E18;
+  --cinnamon-500: #A0562A;
+  --amber-500:    #A96A2C;
+  --amber-300:    #CF9A5A;
+
+  /* — Kraft neutrals (warm paper) — */
+  --kraft-50:  #FBF6EA; /* page cream */
+  --kraft-100: #F5ECD8; /* card surface */
+  --kraft-200: #EADCC0; /* muted surface / rule */
+  --kraft-300: #DAC7A2; /* border */
+  --kraft-400: #C2AB80; /* strong border */
+  --kraft-500: #9C8461; /* muted text on cream */
+
+  /* — Garden green (fresh / eco accent) — */
+  --garden-100: #E4EBCF;
+  --garden-500: #5B7A3A;
+  --garden-700: #3E5626;
+
+  /* — Chili red (sale / alert accent) — */
+  --chili-100: #F5DCD3;
+  --chili-500: #B23A2E;
+  --chili-700: #8A2A20;
+
+  /* — Pure — */
+  --white: #FFFFFF;
+  --black: #1C1006;
+
+  /* ————— Semantic aliases ————— */
+  --brand-primary:      var(--marigold-400);
+  --brand-primary-ink:  var(--espresso-800);
+  --brand-secondary:    var(--cinnamon-700);
+
+  --bg-page:            var(--kraft-50);
+  --surface-card:       var(--white);
+  --surface-cream:      var(--kraft-100);
+  --surface-muted:      var(--kraft-200);
+  --surface-ink:        var(--espresso-800); /* dark section bg */
+
+  --text-strong:        var(--espresso-900);
+  --text-body:          var(--espresso-800);
+  --text-muted:         var(--kraft-500);
+  --text-on-marigold:   var(--espresso-900);
+  --text-on-ink:        var(--kraft-50);
+  --text-link:          var(--cinnamon-700);
+  --text-link-hover:    var(--espresso-900);
+
+  --border-subtle:      var(--kraft-300);
+  --border-strong:      var(--kraft-400);
+  --border-ink:         var(--espresso-800);
+
+  --accent-fresh:       var(--garden-500);
+  --accent-sale:        var(--chili-500);
+
+  --focus-ring:         var(--marigold-500);
+}

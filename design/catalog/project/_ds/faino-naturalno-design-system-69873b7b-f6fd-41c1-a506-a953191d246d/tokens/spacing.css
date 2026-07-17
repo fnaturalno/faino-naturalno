@@ -1,0 +1,46 @@
+/* Faino Naturalno — Spacing, radius, shadow, layout tokens
+   Rustic-warm: generous soft rounding, warm brown-tinted shadows (never cool grey). */
+:root {
+  /* Spacing (4px base) */
+  --space-0: 0;
+  --space-1: 0.25rem; /* 4 */
+  --space-2: 0.5rem;  /* 8 */
+  --space-3: 0.75rem; /* 12 */
+  --space-4: 1rem;    /* 16 */
+  --space-5: 1.5rem;  /* 24 */
+  --space-6: 2rem;    /* 32 */
+  --space-7: 3rem;    /* 48 */
+  --space-8: 4rem;    /* 64 */
+  --space-9: 6rem;    /* 96 */
+
+  /* Radius — soft, hand-made feel */
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-pill: 999px;
+
+  /* Shadows — warm espresso-tinted, low & soft (kraft-paper depth) */
+  --shadow-xs: 0 1px 2px rgba(59, 36, 18, 0.08);
+  --shadow-sm: 0 2px 6px rgba(59, 36, 18, 0.10);
+  --shadow-md: 0 6px 18px rgba(59, 36, 18, 0.12);
+  --shadow-lg: 0 16px 40px rgba(59, 36, 18, 0.16);
+  --shadow-focus: 0 0 0 3px rgba(245, 184, 0, 0.45);
+
+  /* Borders */
+  --border-width: 1.5px; /* @kind other */ /* slightly heavier, crafted line */
+  --border-width-bold: 2.5px; /* @kind other */
+
+  /* Layout */
+  --container-max: 1200px; /* @kind other */
+  --container-pad: var(--space-5); /* @kind other */
+  --header-h: 76px; /* @kind other */
+
+  /* Motion — gentle warmth, subtle ease, no bounce by default */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1); /* @kind other */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* @kind other */
+  --dur-fast: 120ms; /* @kind other */
+  --dur: 200ms; /* @kind other */
+  --dur-slow: 340ms; /* @kind other */
+}
