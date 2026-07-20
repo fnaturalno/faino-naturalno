@@ -1,6 +1,6 @@
 # Feature: Адмін-панель
 
-**Status:** Ready for implementation  
+**Status:** Implemented  
 **Priority:** 6  
 **Agent:** requirements-planner → backend + database + frontend → tester → plan-verifier → code-reviewer → security-reviewer
 
@@ -74,18 +74,20 @@ Every endpoint returns:
 
 | Method | Route | Auth | Purpose |
 |--------|-------|------|---------|
-| GET | `/api/products` | — / Admin | List products (admin list includes inactive when requested / authorized) |
-| GET | `/api/products/:slug` or by id | Admin | Load one product for the edit form |
+| GET | `/api/products` | — / Admin | List products (`includeInactive=true` honored only for Admin; `category` = slug) |
+| GET | `/api/products/:id` | Admin | Load one product for the edit form |
 | POST | `/api/products` | Admin | Create product |
-| PUT | `/api/products/:id` | Admin | Update product |
+| PUT | `/api/products/:id` | Admin | Full update product |
+| PUT | `/api/products/:id/active` | Admin | Toggle `isActive` only (list quick toggle) |
 | DELETE | `/api/products/:id` | Admin | Delete product |
-| GET | `/api/categories` | — | List categories (reuse for selects and categories screen) |
+| GET | `/api/categories` | — / Admin | List categories (product count; admin includes inactive) |
 | POST | `/api/categories` | Admin | Create category |
 | PUT | `/api/categories/:id` | Admin | Update category |
 | DELETE | `/api/categories/:id` | Admin | Delete category |
 | GET | `/api/admin/orders` | Admin | All orders (paginated / filterable) |
 | GET | `/api/admin/orders/:id` | Admin | Order detail for the drawer (lines + customer + delivery) |
 | PUT | `/api/admin/orders/:id/status` | Admin | Update order status |
+| POST | `/api/admin/uploads/images` | Admin | Upload product image (multipart `file`) → relative `/uploads/products/...` URL |
 
 Existing auth endpoints reused, not redefined:
 
@@ -99,9 +101,9 @@ Existing auth endpoints reused, not redefined:
 Query (aligned with catalog + admin needs):
 
 - `search` — name / slug text search
-- `category` — category slug or id filter («Усі категорії» = omit)
+- `category` — category **slug** filter («Усі категорії» = omit); UI sends slug, not id
 - `page`, `pageSize` — pagination (default page size sensible for the table, e.g. 10–12)
-- Admin-authorized requests must be able to see **inactive** products (e.g. `includeInactive=true` honored only for Admin, or admin default includes inactive)
+- Admin-authorized requests must be able to see **inactive** products via `includeInactive=true` (ignored / forced false for non-admin)
 
 Each row exposes at least:
 
@@ -125,6 +127,13 @@ Request body fields matching the Product model:
 - `imageUrl` (primary) and `imageUrls` (gallery); first / primary is the main catalog image
 - `isActive`, `isFeatured`
 
+Images are uploaded separately before save:
+
+- `POST /api/admin/uploads/images` with multipart field `file`
+- Allowed: JPG / PNG; max **5 MB**; magic-byte validated on the server
+- Response `data.url` is a relative path `/uploads/products/{file}` stored on the product and served as a static file from the API `wwwroot`
+- Clients resolve `/uploads/...` against the API base URL when rendering `<img>`
+
 Server rules:
 
 - Unique slug; conflict → clear Ukrainian-facing error.
@@ -138,7 +147,7 @@ Server rules:
 
 ### 1.7 Quick toggle active
 
-- Updating only `isActive` (from the list toggle) uses `PUT /api/products/:id` (or an equivalent partial update) and does not require opening the form.
+- Updating only `isActive` (from the list toggle) uses `PUT /api/products/:id/active` with body `{ isActive: bool }` — does **not** send a full product payload (avoids clearing description / gallery).
 - No confirmation dialog for activate / hide.
 
 ### 1.8 Categories
@@ -243,11 +252,15 @@ Left column sections:
 
 Right column:
 
-- **Зображення** — drop zone copy «Перетягніть фото сюди» / «або натисніть, щоб обрати · JPG, PNG до 5 МБ»; gallery thumbs with «головне» on the first; hint «Перетягніть, щоб змінити порядок. Перше — головне.» Images are stored as URL(s) (upload producing a URL, or equivalent URL management that matches the gallery UX).
+- **Зображення** — drop zone «Перетягніть фото сюди» / «або натисніть, щоб обрати · JPG, PNG до 5 МБ»; uploads via `POST /api/admin/uploads/images`; gallery thumbs with «головне» on the first; drag to reorder (first = primary `imageUrl`); remove control per thumb. Wrong type / over 5 MB rejected with a clear Ukrainian message.
 - **Налаштування** — toggles «Активний» («Показувати в каталозі»), «Рекомендований» («Виділити на головній»)
 - Actions: «Зберегти», «Скасувати»
 
-### 2.6 Orders list
+### 2.6 Shop chrome entry
+
+- Public navbar shows «Адмін» linking to `/admin` only when the signed-in user has `IsAdmin` (desktop + mobile menu). Non-admins never see the link.
+
+### 2.7 Orders list
 
 Toolbar:
 
@@ -256,7 +269,7 @@ Toolbar:
 
 Table columns: «№», «Дата», «Клієнт», «Телефон», «Місто», «Сума», «Статус» (badge). Rows are clickable.
 
-### 2.7 Order detail drawer
+### 2.8 Order detail drawer
 
 - Header: order number + date; close control.
 - Status badge row.
@@ -265,14 +278,14 @@ Table columns: «№», «Дата», «Клієнт», «Телефон», «М
 - Footer: «Змінити статус», «Закрити».
 - «Змінити статус» opens a status picker (select / sheet) constrained to allowed transitions; on success the badge updates.
 
-### 2.8 Categories
+### 2.9 Categories
 
 - Count line with Ukrainian plural («N категорія / категорії / категорій»).
 - CTA «+ Додати категорію».
 - Table: icon/accent, «Назва», «URL (slug)», «Товарів», edit / delete.
 - Drawer: «Нова категорія» / «Редагувати категорію»; fields name, auto slug preview (`/catalog?category=`), optional description; «Зберегти» / «Скасувати».
 
-### 2.9 Visual language and copy
+### 2.10 Visual language and copy
 
 - Warm kraft / espresso / marigold language from the design system.
 - Currency: ₴.
@@ -403,12 +416,14 @@ Table columns: «№», «Дата», «Клієнт», «Телефон», «М
 - [ ] `/admin/*` requires JWT with `IsAdmin`; guests redirect to login; non-admins are forbidden / redirected without admin data.
 - [ ] Sidebar «Вихід» logs out and leaves the admin area.
 - [ ] Top bar shows the current admin’s name (and initials) from auth/me.
+- [ ] Public navbar «Адмін» is visible only to `IsAdmin` users and links to `/admin`.
 
 ### Products
 
-- [ ] Admin can list products (including inactive) with search, category filter, pagination, and «Показано A–B з N».
+- [ ] Admin can list products (including inactive) with search, category **slug** filter, pagination, and «Показано A–B з N».
 - [ ] Admin can create and edit products with fields from the Product model (name, slug, category, descriptions, price/oldPrice, weight/unit, stock, images, isActive, isFeatured).
-- [ ] List toggle updates `isActive` without confirmation; delete requires confirmation.
+- [ ] Product images are uploaded via `POST /api/admin/uploads/images` (JPG/PNG ≤ 5 MB); gallery supports reorder and remove; first image is primary.
+- [ ] List toggle updates `isActive` via `PUT /api/products/:id/active` without confirmation; delete requires confirmation.
 - [ ] `POST` / `PUT` / `DELETE` `/api/products` (Admin) use the common API envelope; slug uniqueness and validation errors are clear.
 - [ ] Ukrainian copy and layout match the products list + form design (desktop) and mobile product list.
 

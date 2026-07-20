@@ -16,13 +16,19 @@
 | /checkout | CheckoutComponent | Order form |
 | /order/:id | OrderConfirmComponent | Order confirmation |
 | /profile | ProfileComponent | User profile + orders |
-| /auth | AuthComponent | Login / register modal |
-| /admin | AdminComponent | Admin dashboard |
-| /admin/products | AdminProductsComponent | Product management |
-| /admin/orders | AdminOrdersComponent | Order management |
+| /auth/login | LoginComponent | Login |
+| /auth/register | RegisterComponent | Register |
+| /admin | → redirect | Redirects to `/admin/products` |
+| /admin/products | AdminProductsComponent | Product list (admin shell) |
+| /admin/products/new | AdminProductFormComponent | Create product |
+| /admin/products/:id/edit | AdminProductFormComponent | Edit product |
+| /admin/orders | AdminOrdersComponent | Orders list + detail drawer |
+| /admin/categories | AdminCategoriesComponent | Categories list + drawer |
+
+All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`).
 
 ## Shared Components
-- `NavbarComponent` — logo, nav, cart icon, auth
+- `NavbarComponent` — logo, nav, cart icon, auth; shows «Адмін» → `/admin` when `currentUser.isAdmin`
 - `FooterComponent`
 - `ProductCardComponent` — used in catalog and featured
 - `CartDrawerComponent` — slide-in cart preview
@@ -35,9 +41,10 @@
 - `CartService` — cart CRUD + signal for item count
 - `OrderService` — POST /orders, GET /orders/:id
 - `AuthService` — login, register, token management
+- `AdminService` — admin product/category/order CRUD + image upload
 
 ## State (Signals)
 - `CartService.itemCount` — navbar badge
 - `CartService.items` — cart contents
-- `AuthService.currentUser` — logged-in user
+- `AuthService.currentUser` — logged-in user (`isAdmin` for navbar / guard)
 - `CatalogComponent.filters` — active filters

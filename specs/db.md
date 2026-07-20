@@ -242,7 +242,7 @@ Realistic Ukrainian natural products covering catalog UI states:
 | Out of stock | `stock_quantity = 0` (still active, visible, not addable) |
 | Inactive | 1 product with `is_active = false` (excluded from public catalog) |
 
-Prices in UAH (`numeric`). Placeholder images under `/assets/demo/...`.
+Prices in UAH (`numeric`). Seed placeholder images under `/assets/demo/...` (frontend). Admin-uploaded images are files under API `wwwroot/uploads/products/`; DB stores relative paths `/uploads/products/{file}`.
 
 #### Demo user (auth / profile)
 | Field | Value |
