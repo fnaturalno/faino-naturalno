@@ -13,16 +13,13 @@ public sealed class ExceptionHandlingMiddleware
 
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-    private readonly IHostEnvironment _env;
 
     public ExceptionHandlingMiddleware(
         RequestDelegate next,
-        ILogger<ExceptionHandlingMiddleware> logger,
-        IHostEnvironment env)
+        ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
-        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -44,10 +41,11 @@ public sealed class ExceptionHandlingMiddleware
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception");
-            var message = _env.IsDevelopment()
-                ? ex.Message
-                : "Сталася внутрішня помилка сервера.";
-            await WriteErrorAsync(context, StatusCodes.Status500InternalServerError, message);
+            // Never expose stack traces or internal details to clients.
+            await WriteErrorAsync(
+                context,
+                StatusCodes.Status500InternalServerError,
+                "Сталася внутрішня помилка сервера.");
         }
     }
 

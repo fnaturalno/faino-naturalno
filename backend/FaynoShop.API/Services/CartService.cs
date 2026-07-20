@@ -17,6 +17,96 @@ public sealed class CartService : ICartService
         _db = db;
     }
 
+    public async Task<MergeCartResponse> MergeGuestCartAsync(
+        int userId,
+        string sessionId,
+        CancellationToken cancellationToken)
+    {
+        ValidateSessionId(sessionId);
+
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+
+        var guestCart = await _db.Carts
+            .Include(c => c.Items)
+            .FirstOrDefaultAsync(c => c.SessionId == sessionId, cancellationToken);
+
+        var userCart = await _db.Carts
+            .Include(c => c.Items)
+            .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
+
+        if (guestCart is null)
+        {
+            var countOnly = userCart is null
+                ? 0
+                : userCart.Items.Sum(i => i.Quantity);
+            await transaction.CommitAsync(cancellationToken);
+            return new MergeCartResponse(countOnly);
+        }
+
+        // Guest cart already belongs to this user — just ensure link and return.
+        if (guestCart.UserId == userId)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return new MergeCartResponse(guestCart.Items.Sum(i => i.Quantity));
+        }
+
+        // No existing user cart: claim the guest cart.
+        if (userCart is null || userCart.Id == guestCart.Id)
+        {
+            guestCart.UserId = userId;
+            guestCart.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return new MergeCartResponse(guestCart.Items.Sum(i => i.Quantity));
+        }
+
+        // Merge guest lines into user cart, then remove guest cart.
+        var productIds = guestCart.Items.Select(i => i.ProductId).Distinct().ToList();
+        var stocks = await _db.Products
+            .AsNoTracking()
+            .Where(p => productIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, p => p.StockQuantity, cancellationToken);
+
+        foreach (var guestLine in guestCart.Items.ToList())
+        {
+            var stock = stocks.GetValueOrDefault(guestLine.ProductId, 0);
+            var userLine = userCart.Items.FirstOrDefault(i => i.ProductId == guestLine.ProductId);
+
+            if (userLine is null)
+            {
+                var qty = Math.Min(guestLine.Quantity, Math.Max(stock, 0));
+                if (qty <= 0)
+                {
+                    continue;
+                }
+
+                userCart.Items.Add(new CartItem
+                {
+                    CartId = userCart.Id,
+                    ProductId = guestLine.ProductId,
+                    Quantity = qty
+                });
+            }
+            else
+            {
+                var merged = userLine.Quantity + guestLine.Quantity;
+                userLine.Quantity = stock > 0 ? Math.Min(merged, stock) : merged;
+            }
+        }
+
+        _db.CartItems.RemoveRange(guestCart.Items);
+        _db.Carts.Remove(guestCart);
+        userCart.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+
+        var itemCount = await _db.CartItems
+            .Where(i => i.CartId == userCart.Id)
+            .SumAsync(i => i.Quantity, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+        return new MergeCartResponse(itemCount);
+    }
+
     public async Task<AddCartItemResponse> AddItemAsync(
         string sessionId,
         AddCartItemRequest request,

@@ -1,0 +1,331 @@
+<app-navbar />
+
+<main class="min-h-[calc(100vh-60px)] bg-[var(--bg-page)] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+  <div class="mx-auto max-w-[920px]">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[340px_1fr] lg:gap-6 lg:items-start">
+      <!-- Identity column -->
+      <div class="flex flex-col gap-6">
+        <section
+          class="flex flex-col items-center rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-8 text-center shadow-[var(--shadow-xs)]"
+          aria-label="Профіль"
+        >
+          @if (profileLoading()) {
+            <div class="mb-4 size-[104px] animate-pulse rounded-full bg-[var(--kraft-200)]"></div>
+            <div class="mb-2 h-6 w-40 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+            <div class="mb-2 h-4 w-48 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+            <div class="h-5 w-28 animate-pulse rounded bg-[var(--kraft-200)]"></div>
+          } @else if (profileError()) {
+            <p class="mb-3 text-sm text-[var(--chili-700)]" role="alert">{{ profileError() }}</p>
+            <button type="button" class="font-semibold text-[var(--cinnamon-700)] hover:underline" (click)="loadProfile()">
+              Спробувати ще
+            </button>
+          } @else if (user(); as u) {
+            <div
+              class="mb-4 grid size-[88px] place-items-center rounded-full border border-[var(--marigold-600)] bg-[var(--marigold-400)] sm:size-[104px]"
+              aria-hidden="true"
+            >
+              <span class="font-[family-name:var(--font-display)] text-[32px] font-extrabold text-[var(--espresso-900)] sm:text-[38px]">
+                {{ initials() }}
+              </span>
+            </div>
+            <h1 class="mb-1 truncate text-lg sm:text-xl" [title]="u.firstName + ' ' + u.lastName">
+              {{ u.firstName }} {{ u.lastName }}
+            </h1>
+            <p class="mb-1 truncate text-[var(--espresso-700)]" [title]="u.email">{{ u.email }}</p>
+            <span class="font-[family-name:var(--font-accent)] text-lg text-[var(--cinnamon-700)]">
+              з нами від {{ memberYear() }}
+            </span>
+          }
+        </section>
+
+        <button
+          type="button"
+          class="hidden items-center justify-center gap-2 py-3 text-sm font-semibold text-[var(--chili-500)] hover:text-[var(--chili-700)] lg:inline-flex"
+          aria-label="Вийти з акаунту"
+          [disabled]="loggingOut()"
+          (click)="logout()"
+        >
+          <app-icon name="log-out" [size]="17" />
+          Вийти
+        </button>
+      </div>
+
+      <!-- Right column -->
+      <div class="flex flex-col gap-6">
+        <!-- Personal data -->
+        <section class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-xs)] sm:p-8">
+          <span class="fn-eyebrow mb-1.5 block">Особисті дані</span>
+          <h2 class="mb-5 text-lg">Редагувати профіль</h2>
+
+          @if (profileLoading()) {
+            <div class="space-y-4">
+              <div class="h-12 animate-pulse rounded-[var(--radius-md)] bg-[var(--kraft-200)]"></div>
+              <div class="h-12 animate-pulse rounded-[var(--radius-md)] bg-[var(--kraft-200)]"></div>
+              <div class="h-12 animate-pulse rounded-[var(--radius-md)] bg-[var(--kraft-200)]"></div>
+            </div>
+          } @else {
+            <form class="flex flex-col gap-4" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+              @if (profileFormError()) {
+                <p role="alert" [class]="errorClasses">{{ profileFormError() }}</p>
+              }
+              <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                <div>
+                  <label for="profile-first" [class]="labelClasses">Ім'я</label>
+                  <input id="profile-first" type="text" formControlName="firstName" [class]="fieldClasses" />
+                </div>
+                <div>
+                  <label for="profile-last" [class]="labelClasses">Прізвище</label>
+                  <input id="profile-last" type="text" formControlName="lastName" [class]="fieldClasses" />
+                </div>
+              </div>
+              <div>
+                <label for="profile-phone" [class]="labelClasses">Телефон</label>
+                <input
+                  id="profile-phone"
+                  type="tel"
+                  formControlName="phone"
+                  placeholder="+380XXXXXXXXX"
+                  [class]="fieldClasses"
+                />
+                @if (phoneInvalid()) {
+                  <p [class]="errorClasses">Телефон має бути у форматі +380…</p>
+                }
+              </div>
+              <div>
+                <button
+                  type="submit"
+                  class="inline-flex min-h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)] disabled:cursor-not-allowed disabled:opacity-60"
+                  [disabled]="profileSaving()"
+                >
+                  @if (profileSaving()) {
+                    <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
+                    Зачекайте…
+                  } @else {
+                    Зберегти зміни
+                  }
+                </button>
+              </div>
+            </form>
+          }
+        </section>
+
+        <!-- Delivery address -->
+        <section class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-xs)] sm:p-8">
+          <div class="mb-5 flex items-start justify-between gap-3">
+            <div>
+              <span class="fn-eyebrow mb-1.5 block">Доставка</span>
+              <h2 class="text-lg">Адреса доставки</h2>
+            </div>
+            @if (savedAddress() && !editingAddress()) {
+              <button type="button" [class]="linkClasses + ' text-sm whitespace-nowrap'" (click)="startEditAddress()">
+                Змінити
+              </button>
+            }
+          </div>
+
+          @if (addressLoading()) {
+            <div class="h-20 animate-pulse rounded-[var(--radius-md)] bg-[var(--kraft-200)]"></div>
+          } @else if (addressError()) {
+            <p class="mb-3 text-sm text-[var(--chili-700)]" role="alert">{{ addressError() }}</p>
+            <button type="button" class="font-semibold text-[var(--cinnamon-700)] hover:underline" (click)="loadAddress()">
+              Спробувати ще
+            </button>
+          } @else {
+            @if (showSavedAddressCard()) {
+              <div class="flex items-start gap-3.5 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--kraft-100)] p-4">
+                <div class="grid size-[42px] shrink-0 place-items-center rounded-[var(--radius-sm)] bg-[var(--marigold-100)] text-[var(--cinnamon-700)]">
+                  <app-icon name="truck" [size]="20" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <span class="mb-0.5 block font-bold text-[var(--espresso-900)]">Нова Пошта</span>
+                  <span class="line-clamp-3 text-sm text-[var(--espresso-700)]">{{ savedAddress()!.summary }}</span>
+                </div>
+              </div>
+            }
+
+            @if (showAddressForm()) {
+              <div class="flex flex-col gap-4">
+                @if (addressFormError()) {
+                  <p role="alert" [class]="errorClasses">{{ addressFormError() }}</p>
+                }
+
+                <div class="relative flex flex-col gap-1.5">
+                  <label for="city-search" [class]="labelClasses">Місто</label>
+                  <div class="relative">
+                    <span class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--kraft-500)]">
+                      <app-icon name="search" [size]="17" />
+                    </span>
+                    <input
+                      id="city-search"
+                      type="text"
+                      autocomplete="off"
+                      placeholder="Почніть вводити місто…"
+                      class="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white py-3 pr-3.5 pl-[42px] text-[var(--espresso-800)] outline-none focus-visible:border-[var(--marigold-400)]"
+                      [value]="cityQuery()"
+                      (input)="onCityInput($any($event.target).value)"
+                    />
+                  </div>
+
+                  @if (showCityList()) {
+                    <ul
+                      class="absolute top-full right-0 left-0 z-20 mt-1.5 max-h-[220px] overflow-y-auto rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white shadow-[var(--shadow-lg)]"
+                      role="listbox"
+                      aria-label="Знайдені міста"
+                    >
+                      @for (city of cityMatches(); track city.cityId) {
+                        <li>
+                          <button
+                            type="button"
+                            role="option"
+                            class="flex min-h-12 w-full items-center gap-2.5 border-b border-[var(--border-subtle)] px-4 py-3 text-left last:border-b-0 hover:bg-[var(--kraft-100)]"
+                            (click)="pickCity(city)"
+                          >
+                            <app-icon name="map-pin" [size]="16" class="text-[var(--kraft-500)]" />
+                            <span class="min-w-0 flex-1 truncate">{{ city.cityName }}</span>
+                            @if (city.region) {
+                              <span class="hidden shrink-0 text-xs text-[var(--text-muted)] sm:inline">{{ city.region }}</span>
+                            }
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+
+                  @if (showCityEmpty()) {
+                    <span class="text-sm text-[var(--text-muted)]">
+                      <span class="sm:hidden">Нічого не знайдено</span>
+                      <span class="hidden sm:inline">Нічого не знайдено — перевірте написання</span>
+                    </span>
+                  }
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                  <label
+                    for="branch-select"
+                    class="text-sm font-semibold"
+                    [class.text-[var(--kraft-500)]]="!selectedCity()"
+                    [class.text-[var(--espresso-800)]]="!!selectedCity()"
+                  >Відділення</label>
+                  <div class="relative">
+                    <select
+                      id="branch-select"
+                      class="w-full appearance-none rounded-[var(--radius-md)] border border-[var(--border-strong)] py-3 pr-10 pl-4 outline-none focus-visible:border-[var(--marigold-400)] disabled:cursor-not-allowed disabled:bg-[var(--kraft-100)] disabled:text-[var(--kraft-500)]"
+                      [disabled]="!selectedCity() || branchesLoading()"
+                      [value]="selectedBranchId()"
+                      (change)="onBranchChange($any($event.target).value)"
+                    >
+                      <option value="">
+                        {{ selectedCity() ? 'Оберіть відділення' : 'Спочатку оберіть місто' }}
+                      </option>
+                      @for (branch of branches(); track branch.branchId) {
+                        <option [value]="branch.branchId">{{ branch.label }}</option>
+                      }
+                    </select>
+                    <span class="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-[var(--espresso-700)]">
+                      <app-icon name="chevron-down" [size]="16" />
+                    </span>
+                  </div>
+                </div>
+
+                <div class="mt-1 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    class="inline-flex min-h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)] disabled:cursor-not-allowed disabled:opacity-60"
+                    [disabled]="!canSaveAddress() || addressSaving()"
+                    (click)="saveAddress()"
+                  >
+                    @if (addressSaving()) {
+                      <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
+                      Зачекайте…
+                    } @else {
+                      Зберегти адресу
+                    }
+                  </button>
+                  @if (savedAddress()) {
+                    <button
+                      type="button"
+                      class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] px-5 font-semibold text-[var(--espresso-800)] hover:bg-[var(--kraft-100)]"
+                      (click)="cancelAddressEdit()"
+                    >
+                      Скасувати
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </section>
+
+        <!-- Orders -->
+        <section class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-xs)] sm:p-8">
+          <span class="fn-eyebrow mb-1.5 block">Історія</span>
+          <h2 class="mb-5 text-lg">Мої замовлення</h2>
+
+          @if (ordersLoading()) {
+            <div class="flex flex-col gap-3">
+              @for (i of [1, 2, 3]; track i) {
+                <div class="h-16 animate-pulse rounded-[var(--radius-md)] bg-[var(--kraft-200)]"></div>
+              }
+            </div>
+          } @else if (ordersError()) {
+            <p class="mb-3 text-sm text-[var(--chili-700)]" role="alert">{{ ordersError() }}</p>
+            <button type="button" class="font-semibold text-[var(--cinnamon-700)] hover:underline" (click)="loadOrders()">
+              Спробувати ще
+            </button>
+          } @else if (orders().length === 0) {
+            <p class="text-[var(--espresso-700)]">Поки немає замовлень</p>
+          } @else {
+            <ul class="flex flex-col gap-3">
+              @for (order of orders(); track order.id) {
+                <li>
+                  <a
+                    [routerLink]="['/order', order.id]"
+                    class="flex items-center gap-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--kraft-100)] px-3.5 py-3 transition hover:border-[var(--kraft-400)] sm:gap-4 sm:px-[18px] sm:py-4"
+                  >
+                    <div class="hidden size-[42px] shrink-0 place-items-center rounded-[var(--radius-sm)] bg-[var(--kraft-200)] text-[var(--cinnamon-700)] sm:grid">
+                      <app-icon name="package" [size]="20" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <span class="block truncate font-bold text-[var(--espresso-900)]">
+                        Замовлення №{{ order.orderNumber }}
+                      </span>
+                      <span class="hidden text-sm text-[var(--text-muted)] sm:block">{{ orderMeta(order) }}</span>
+                      <span class="text-xs text-[var(--text-muted)] sm:hidden">{{ orderTotal(order) }}</span>
+                    </div>
+                    <span class="hidden font-[family-name:var(--font-accent)] text-lg whitespace-nowrap text-[var(--espresso-800)] sm:inline">
+                      {{ orderTotal(order) }}
+                    </span>
+                    <span
+                      class="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold"
+                      [class.bg-[var(--garden-100)]]="statusTone(order) === 'fresh'"
+                      [class.text-[var(--garden-700)]]="statusTone(order) === 'fresh'"
+                      [class.bg-[var(--marigold-100)]]="statusTone(order) === 'marigold'"
+                      [class.text-[var(--cinnamon-700)]]="statusTone(order) === 'marigold'"
+                      [class.bg-[var(--kraft-200)]]="statusTone(order) === 'ink'"
+                      [class.text-[var(--espresso-800)]]="statusTone(order) === 'ink'"
+                      [class.bg-[var(--chili-100)]]="statusTone(order) === 'chili'"
+                      [class.text-[var(--chili-700)]]="statusTone(order) === 'chili'"
+                    >{{ statusLabel(order) }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <button
+          type="button"
+          class="inline-flex min-h-11 items-center justify-center gap-2 py-3 text-sm font-semibold text-[var(--chili-500)] hover:text-[var(--chili-700)] lg:hidden"
+          aria-label="Вийти з акаунту"
+          [disabled]="loggingOut()"
+          (click)="logout()"
+        >
+          <app-icon name="log-out" [size]="17" />
+          Вийти
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<app-toast-host />

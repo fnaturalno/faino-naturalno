@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 
+import { authGuard, guestGuard } from './guards/auth.guard';
+
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'catalog' },
   {
@@ -12,6 +14,48 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/product-placeholder/product-placeholder.component').then(
         (module) => module.ProductPlaceholderComponent,
+      ),
+  },
+  {
+    path: 'auth/login',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./pages/auth/login.component').then((module) => module.LoginComponent),
+  },
+  {
+    path: 'auth/register',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./pages/auth/register.component').then((module) => module.RegisterComponent),
+  },
+  {
+    path: 'auth/forgot-password',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./pages/auth/forgot-password.component').then(
+        (module) => module.ForgotPasswordComponent,
+      ),
+  },
+  {
+    path: 'auth/reset-password',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./pages/auth/reset-password.component').then(
+        (module) => module.ResetPasswordComponent,
+      ),
+  },
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/profile/profile.component').then((module) => module.ProfileComponent),
+  },
+  {
+    path: 'order/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/order-placeholder/order-placeholder.component').then(
+        (module) => module.OrderPlaceholderComponent,
       ),
   },
   { path: '**', redirectTo: 'catalog' },

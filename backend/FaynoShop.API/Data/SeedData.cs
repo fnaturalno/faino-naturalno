@@ -1,4 +1,5 @@
 using FaynoShop.API.Models;
+using FaynoShop.API.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace FaynoShop.API.Data;
@@ -7,6 +8,13 @@ public static class SeedData
 {
     // Fixed reference time so "Новинка" and demo inventory stay deterministic across runs.
     private static readonly DateTime SeedReferenceUtc = new(2026, 7, 17, 12, 0, 0, DateTimeKind.Utc);
+
+    /// <summary>
+    /// Local-only demo password for <c>demo@fayno.local</c>. Never use in production.
+    /// </summary>
+    public const string DemoUserPassword = "Demo1234!";
+
+    public const string DemoUserEmail = "demo@fayno.local";
 
     public static async Task SeedAsync(AppDbContext context, IConfiguration config, CancellationToken ct = default)
     {
@@ -19,16 +27,142 @@ public static class SeedData
         if (!seedEnabled)
             return;
 
-        if (await context.Categories.AnyAsync(ct))
+        if (!await context.Categories.AnyAsync(ct))
+        {
+            var categories = CreateCategories();
+            context.Categories.AddRange(categories);
+            await context.SaveChangesAsync(ct);
+
+            context.Products.AddRange(CreateProducts(categories));
+            await context.SaveChangesAsync(ct);
+        }
+
+        await SeedDemoAuthAsync(context, ct);
+    }
+
+    private static async Task SeedDemoAuthAsync(AppDbContext context, CancellationToken ct)
+    {
+        var existingDemo = await context.Users
+            .FirstOrDefaultAsync(u => u.Email == DemoUserEmail, ct);
+
+        if (existingDemo is not null)
+        {
+            // Keep local demo password usable; upgrade hash to current work factor when needed.
+            if (!PasswordHasher.Verify(DemoUserPassword, existingDemo.PasswordHash)
+                || !IsCurrentWorkFactor(existingDemo.PasswordHash))
+            {
+                existingDemo.PasswordHash = PasswordHasher.Hash(DemoUserPassword);
+                existingDemo.UpdatedAt = DateTime.UtcNow;
+                await context.SaveChangesAsync(ct);
+            }
+
+            return;
+        }
+
+        var now = SeedReferenceUtc;
+        var user = new User
+        {
+            Email = DemoUserEmail,
+            PasswordHash = PasswordHasher.Hash(DemoUserPassword),
+            FirstName = "Олена",
+            LastName = "Коваль",
+            Phone = "+380501112233",
+            IsAdmin = false,
+            CreatedAt = now.AddMonths(-8),
+            UpdatedAt = now,
+            DeliveryAddress = new UserDeliveryAddress
+            {
+                CityId = "db5c88f5-391c-11dd-90d9-001a92567626",
+                CityName = "Київ",
+                CityRegion = "Київська",
+                BranchId = "1ec09d88-e1c2-11e3-8c4a-0050568002cf",
+                BranchLabel = "Відділення №1: вул. Пирогівський шлях, 135",
+                Summary = "Київ, Відділення №1: вул. Пирогівський шлях, 135",
+                UpdatedAt = now
+            }
+        };
+
+        context.Users.Add(user);
+        await context.SaveChangesAsync(ct);
+
+        var products = await context.Products
+            .AsNoTracking()
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.Id)
+            .Take(3)
+            .ToListAsync(ct);
+
+        if (products.Count == 0)
             return;
 
-        var categories = CreateCategories();
-        context.Categories.AddRange(categories);
-        await context.SaveChangesAsync(ct);
+        var order1Items = new List<OrderItem>
+        {
+            new()
+            {
+                ProductId = products[0].Id,
+                Quantity = 2,
+                UnitPrice = products[0].Price
+            }
+        };
+        if (products.Count > 1)
+        {
+            order1Items.Add(new OrderItem
+            {
+                ProductId = products[1].Id,
+                Quantity = 1,
+                UnitPrice = products[1].Price
+            });
+        }
 
-        context.Products.AddRange(CreateProducts(categories));
+        var order1Total = order1Items.Sum(i => i.UnitPrice * i.Quantity);
+        var order2Product = products[^1];
+        var order2Total = order2Product.Price * 1;
+
+        context.Orders.AddRange(
+            new Order
+            {
+                OrderNumber = "FN-2026-0001",
+                Status = OrderStatus.Delivered,
+                TotalAmount = order1Total,
+                RecipientName = "Олена Коваль",
+                Phone = "+380501112233",
+                Email = DemoUserEmail,
+                DeliveryAddress = "Київ, Відділення №1: вул. Пирогівський шлях, 135",
+                UserId = user.Id,
+                CreatedAt = now.AddDays(-45),
+                UpdatedAt = now.AddDays(-40),
+                Items = order1Items
+            },
+            new Order
+            {
+                OrderNumber = "FN-2026-0002",
+                Status = OrderStatus.Shipped,
+                TotalAmount = order2Total,
+                RecipientName = "Олена Коваль",
+                Phone = "+380501112233",
+                Email = DemoUserEmail,
+                DeliveryAddress = "Київ, Відділення №1: вул. Пирогівський шлях, 135",
+                UserId = user.Id,
+                CreatedAt = now.AddDays(-5),
+                UpdatedAt = now.AddDays(-3),
+                Items =
+                [
+                    new OrderItem
+                    {
+                        ProductId = order2Product.Id,
+                        Quantity = 1,
+                        UnitPrice = order2Product.Price
+                    }
+                ]
+            });
+
         await context.SaveChangesAsync(ct);
     }
+
+    private static bool IsCurrentWorkFactor(string passwordHash) =>
+        passwordHash.Contains($"$2a${PasswordHasher.WorkFactor:D2}$", StringComparison.Ordinal)
+        || passwordHash.Contains($"$2b${PasswordHasher.WorkFactor:D2}$", StringComparison.Ordinal)
+        || passwordHash.Contains($"$2y${PasswordHasher.WorkFactor:D2}$", StringComparison.Ordinal);
 
     private static List<Category> CreateCategories() =>
     [

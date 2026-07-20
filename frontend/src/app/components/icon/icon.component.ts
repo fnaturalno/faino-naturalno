@@ -8,8 +8,13 @@ export type IconName =
   | 'chevron-right'
   | 'close'
   | 'filter'
+  | 'log-out'
+  | 'map-pin'
   | 'menu'
-  | 'package';
+  | 'package'
+  | 'search'
+  | 'truck'
+  | 'user';
 
 @Component({
   selector: 'app-icon',
@@ -37,12 +42,34 @@ export type IconName =
         @case ('chevron-right') { <path d="m9 18 6-6-6-6" /> }
         @case ('close') { <path d="M18 6 6 18M6 6l12 12" /> }
         @case ('filter') { <path d="M4 6h16M7 12h10M10 18h4" /> }
+        @case ('log-out') {
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="m16 17 5-5-5-5" />
+          <path d="M21 12H9" />
+        }
+        @case ('map-pin') {
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+          <circle cx="12" cy="10" r="3" />
+        }
         @case ('menu') { <path d="M4 7h16M4 12h16M4 17h16" /> }
         @case ('package') {
           <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" />
-          <path d="m4.5 7.5 7.5 4 7.5-4M12 11.5V21M16 4.8 8.5 9" />
-          <circle cx="18" cy="18" r="3" fill="var(--kraft-100)" />
-          <path d="m20.2 20.2 1.8 1.8" />
+          <path d="m4.5 7.5 7.5 4 7.5-4M12 11.5V21" />
+        }
+        @case ('search') {
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        }
+        @case ('truck') {
+          <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+          <path d="M15 18H9" />
+          <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
+          <circle cx="17" cy="18" r="2" />
+          <circle cx="7" cy="18" r="2" />
+        }
+        @case ('user') {
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20a8 8 0 0 1 16 0" />
         }
       }
     </svg>

@@ -3,6 +3,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { CartMergeResponse } from '../models/auth.models';
 import { AddCartItemResponse, ApiResponse } from '../models/catalog.models';
 
 const SESSION_KEY = 'fayno.cart.session-id';
@@ -12,28 +13,53 @@ const SESSION_HEADER = 'X-Cart-Session-Id';
 export class CartService {
   private readonly http = inject(HttpClient);
   private readonly count = signal(0);
-  private readonly sessionId = this.getSessionId();
+  private readonly sessionId = this.resolveSessionId();
 
   readonly itemCount = this.count.asReadonly();
   readonly hasItems = computed(() => this.count() > 0);
+
+  getSessionId(): string {
+    return this.sessionId;
+  }
 
   addItem(productId: number): Observable<ApiResponse<AddCartItemResponse>> {
     return this.http
       .post<ApiResponse<AddCartItemResponse>>(
         `${environment.apiBaseUrl}/api/cart/items`,
         { productId, quantity: 1 },
-        { headers: new HttpHeaders().set(SESSION_HEADER, this.sessionId) },
+        { headers: this.sessionHeaders() },
       )
       .pipe(
         tap((response) => {
-          if (response.success) {
+          if (response.success && response.data) {
             this.count.set(response.data.itemCount);
           }
         }),
       );
   }
 
-  private getSessionId(): string {
+  /** Merge guest cart into authenticated user cart after login/register. */
+  mergeGuestCart(): Observable<ApiResponse<CartMergeResponse>> {
+    return this.http
+      .post<ApiResponse<CartMergeResponse>>(
+        `${environment.apiBaseUrl}/api/cart/merge`,
+        {},
+        { headers: this.sessionHeaders() },
+      )
+      .pipe(
+        tap((response) => {
+          if (response.success && response.data) {
+            this.count.set(response.data.itemCount);
+          }
+        }),
+      );
+  }
+
+  private sessionHeaders(): HttpHeaders {
+    return new HttpHeaders().set(SESSION_HEADER, this.sessionId);
+  }
+
+  private resolveSessionId(): string {
     const existing = localStorage.getItem(SESSION_KEY);
     if (existing && isUuid(existing)) {
       return existing;

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
+import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
 import { IconComponent } from '../icon/icon.component';
 
@@ -35,19 +36,44 @@ import { IconComponent } from '../icon/icon.component';
           <a href="#contacts" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">Контакти</a>
         </nav>
 
-        <button
-          type="button"
-          aria-label="Кошик"
-          class="relative grid size-10 place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)]"
-        >
-          <app-icon name="bag" [size]="20" />
-          @if (cart.itemCount() > 0) {
-            <span
-              class="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-white bg-[var(--chili-500)] px-1 text-[10px] font-extrabold text-white"
-              aria-label="{{ cart.itemCount() }} товарів у кошику"
-            >{{ cart.itemCount() }}</span>
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          @if (auth.isAuthenticated()) {
+            <a
+              routerLink="/profile"
+              class="grid size-10 place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)] hover:bg-[var(--kraft-200)]"
+              [attr.aria-label]="'Профіль: ' + (auth.currentUser()?.firstName ?? 'користувач')"
+              [title]="auth.currentUser()?.firstName + ' ' + auth.currentUser()?.lastName"
+            >
+              <app-icon name="user" [size]="20" />
+            </a>
+          } @else {
+            <a
+              routerLink="/auth/login"
+              class="hidden rounded-xl px-3 py-2 text-sm font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)] sm:inline"
+            >Увійти</a>
+            <a
+              routerLink="/auth/login"
+              class="grid size-10 place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)] sm:hidden"
+              aria-label="Увійти"
+            >
+              <app-icon name="user" [size]="20" />
+            </a>
           }
-        </button>
+
+          <button
+            type="button"
+            aria-label="Кошик"
+            class="relative grid size-10 place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)]"
+          >
+            <app-icon name="bag" [size]="20" />
+            @if (cart.itemCount() > 0) {
+              <span
+                class="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-white bg-[var(--chili-500)] px-1 text-[10px] font-extrabold text-white"
+                aria-label="{{ cart.itemCount() }} товарів у кошику"
+              >{{ cart.itemCount() }}</span>
+            }
+          </button>
+        </div>
       </div>
 
       @if (menuOpen()) {
@@ -55,6 +81,11 @@ import { IconComponent } from '../icon/icon.component';
           <a routerLink="/catalog" class="rounded-lg px-3 py-3 font-bold text-[var(--cinnamon-700)]">Каталог</a>
           <a href="#about" class="rounded-lg px-3 py-3 font-semibold">Про нас</a>
           <a href="#contacts" class="rounded-lg px-3 py-3 font-semibold">Контакти</a>
+          @if (auth.isAuthenticated()) {
+            <a routerLink="/profile" class="rounded-lg px-3 py-3 font-semibold">Профіль</a>
+          } @else {
+            <a routerLink="/auth/login" class="rounded-lg px-3 py-3 font-semibold">Увійти</a>
+          }
         </nav>
       }
     </header>
@@ -62,5 +93,6 @@ import { IconComponent } from '../icon/icon.component';
 })
 export class NavbarComponent {
   protected readonly cart = inject(CartService);
+  protected readonly auth = inject(AuthService);
   protected readonly menuOpen = signal(false);
 }

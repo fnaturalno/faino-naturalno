@@ -7,6 +7,7 @@
   --marigold-400: #f5b800;
   --marigold-500: #e4a600;
   --marigold-600: #c48a00;
+  --garden-100: #e4ebcf;
   --espresso-900: #2a1a0d;
   --espresso-800: #3b2412;
   --espresso-700: #4e301a;
@@ -24,6 +25,7 @@
   --chili-700: #8a2a20;
   --bg-page: var(--kraft-50);
   --surface-card: #fff;
+  --surface-cream: var(--kraft-100);
   --text-strong: var(--espresso-900);
   --text-body: var(--espresso-800);
   --text-muted: var(--kraft-500);
@@ -35,6 +37,7 @@
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
+  --radius-xl: 28px;
   --shadow-xs: 0 1px 2px rgb(59 36 18 / 8%);
   --shadow-md: 0 6px 18px rgb(59 36 18 / 12%);
   --shadow-lg: 0 16px 40px rgb(59 36 18 / 16%);

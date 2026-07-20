@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddCatalogServices();
+builder.Services.AddAuthServices(builder.Configuration, builder.Environment);
+builder.Services.AddAuthRateLimiting();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options
@@ -22,8 +24,8 @@ builder.Services.AddCors(options =>
             .WithOrigins(
                 "http://localhost:4200",
                 "https://localhost:4200")
-            .WithHeaders("Content-Type", "X-Cart-Session-Id")
-            .WithMethods("GET", "POST", "OPTIONS");
+            .WithHeaders("Content-Type", "Authorization", "X-Cart-Session-Id")
+            .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
     });
 });
 
@@ -38,6 +40,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())

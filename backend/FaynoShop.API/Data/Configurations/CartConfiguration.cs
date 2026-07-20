@@ -26,6 +26,11 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
             .IsRequired()
             .HasDefaultValueSql("now()");
 
+        builder.HasOne(c => c.User)
+            .WithMany(u => u.Carts)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(c => c.SessionId)
             .IsUnique()
             .HasDatabaseName("idx_carts_session_id");
