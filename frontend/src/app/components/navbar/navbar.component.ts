@@ -34,6 +34,13 @@ import { IconComponent } from '../icon/icon.component';
           >Каталог</a>
           <a href="#about" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">Про нас</a>
           <a href="#contacts" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">Контакти</a>
+          @if (auth.currentUser()?.isAdmin) {
+            <a
+              routerLink="/admin"
+              routerLinkActive="text-[var(--cinnamon-700)]"
+              class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
+            >Адмін</a>
+          }
         </nav>
 
         <div class="flex items-center gap-1.5 sm:gap-2">
@@ -82,6 +89,9 @@ import { IconComponent } from '../icon/icon.component';
           <a routerLink="/catalog" class="rounded-lg px-3 py-3 font-bold text-[var(--cinnamon-700)]">Каталог</a>
           <a href="#about" class="rounded-lg px-3 py-3 font-semibold">Про нас</a>
           <a href="#contacts" class="rounded-lg px-3 py-3 font-semibold">Контакти</a>
+          @if (auth.currentUser()?.isAdmin) {
+            <a routerLink="/admin" class="rounded-lg px-3 py-3 font-semibold">Адмін</a>
+          }
           @if (auth.isAuthenticated()) {
             <a routerLink="/profile" class="rounded-lg px-3 py-3 font-semibold">Профіль</a>
           } @else {
