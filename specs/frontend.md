@@ -19,13 +19,13 @@
 | /auth/login | LoginComponent | Login |
 | /auth/register | RegisterComponent | Register |
 | /admin | → redirect | Redirects to `/admin/products` |
-| /admin/products | AdminProductsComponent | Product list (admin shell) |
+| /admin/products | AdminProductsComponent | Product list (admin shell + public navbar) |
 | /admin/products/new | AdminProductFormComponent | Create product |
 | /admin/products/:id/edit | AdminProductFormComponent | Edit product |
 | /admin/orders | AdminOrdersComponent | Orders list + detail drawer |
 | /admin/categories | AdminCategoriesComponent | Categories list + drawer |
 
-All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`).
+All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the shared shop navbar for main-menu navigation.
 
 ## Shared Components
 - `NavbarComponent` — logo, nav, cart icon, auth; shows «Адмін» → `/admin` when `currentUser.isAdmin`

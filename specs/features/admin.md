@@ -210,21 +210,23 @@ Badge tones follow the design language (e.g. ink / marigold / fresh / sale).
 | `/admin/orders` | Orders table + detail drawer |
 | `/admin/categories` | Categories table + create/edit drawer |
 
-All routes are admin-only. Public shop chrome (catalog navbar / cart) is not the primary chrome here — the admin shell replaces it.
+All routes are admin-only. The **admin shell** (sidebar + top bar) is the primary chrome for admin screens, but the **public main navbar** remains visible above it so the admin can navigate to the shop (Каталог, Про нас, Контакти, Кошик, Профіль) without leaving via «Вихід».
 
 ### 2.2 Shell (desktop)
 
-- Left sidebar (~240px), espresso background: logo, nav items «Товари», «Замовлення», «Категорії», bottom «Вихід».
-- Active nav item highlighted (marigold) as in the design.
+- Above the admin layout: the shared shop `NavbarComponent` (same as catalog) — including «Адмін» as the active-area entry when already in admin.
+- Left sidebar (~240px), espresso background: logo, nav items «Товари», «Замовлення», «Категорії», link «Магазин» → `/catalog`, bottom «Вихід».
+- Active admin nav item highlighted (marigold) as in the design.
 - Top bar: page title; admin display name + «Адміністратор» + initials avatar.
 - Main content scrolls independently.
 
 ### 2.3 Shell (mobile — products)
 
-- Compact top bar (espresso): menu control, title «Товари», initials avatar.
+- Shared shop navbar remains at the top (main menu via its hamburger).
+- Compact admin top bar: menu control for admin sections, title «Товари», initials avatar.
 - Search + «+» add button.
 - Vertical list of product cards: thumbnail, name, «категорія · ціна ₴», active toggle.
-- Menu opens navigation to Orders / Categories / Logout (same destinations as sidebar).
+- Admin menu opens navigation to Orders / Categories / Logout (same destinations as sidebar).
 
 ### 2.4 Products list (desktop)
 
@@ -256,9 +258,10 @@ Right column:
 - **Налаштування** — toggles «Активний» («Показувати в каталозі»), «Рекомендований» («Виділити на головній»)
 - Actions: «Зберегти», «Скасувати»
 
-### 2.6 Shop chrome entry
+### 2.6 Shop chrome
 
 - Public navbar shows «Адмін» linking to `/admin` only when the signed-in user has `IsAdmin` (desktop + mobile menu). Non-admins never see the link.
+- Inside `/admin/*`, the same public navbar stays visible so the admin can open Каталог / Профіль / Кошик without logging out.
 
 ### 2.7 Orders list
 
@@ -333,6 +336,7 @@ Table columns: «№», «Дата», «Клієнт», «Телефон», «М
 ### 3.6 Navigation
 
 - Sidebar switches between products, orders, categories; product form keeps «Товари» nav active.
+- Public main navbar on admin pages navigates to Каталог / Профіль / Кошик; sidebar «← Магазин» also goes to `/catalog`.
 - Deep links to edit / new work when the user is an admin.
 
 ---
@@ -417,6 +421,7 @@ Table columns: «№», «Дата», «Клієнт», «Телефон», «М
 - [ ] Sidebar «Вихід» logs out and leaves the admin area.
 - [ ] Top bar shows the current admin’s name (and initials) from auth/me.
 - [ ] Public navbar «Адмін» is visible only to `IsAdmin` users and links to `/admin`.
+- [ ] On `/admin/*` the public main navbar remains visible for shop navigation (Каталог and other main links).
 
 ### Products
 
