@@ -49,6 +49,18 @@ export const routes: Routes = [
       import('./pages/profile/profile.component').then((module) => module.ProfileComponent),
   },
   {
+    path: 'cart',
+    loadComponent: () =>
+      import('./pages/cart/cart.component').then((module) => module.CartComponent),
+  },
+  {
+    path: 'checkout',
+    loadComponent: () =>
+      import('./pages/checkout-placeholder/checkout-placeholder.component').then(
+        (module) => module.CheckoutPlaceholderComponent,
+      ),
+  },
+  {
     path: 'order/:id',
     canActivate: [authGuard],
     loadComponent: () =>

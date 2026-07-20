@@ -169,6 +169,9 @@ export class AuthService {
     this.accessTokenSignal.set(null);
     this.refreshTokenSignal.set(null);
     this.userSignal.set(null);
+    // Detach from any user-claimed cart session; start a fresh guest cart id.
+    this.cart.rotateSessionId();
+    this.cart.resetLocalState();
   }
 
   private afterAuthSuccess(response: ApiResponse<AuthSession>): Observable<ApiResponse<AuthSession>> {

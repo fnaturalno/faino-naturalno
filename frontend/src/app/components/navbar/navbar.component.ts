@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
@@ -64,6 +64,7 @@ import { IconComponent } from '../icon/icon.component';
             type="button"
             aria-label="Кошик"
             class="relative grid size-10 place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)]"
+            (click)="onCartClick()"
           >
             <app-icon name="bag" [size]="20" />
             @if (cart.itemCount() > 0) {
@@ -94,5 +95,15 @@ import { IconComponent } from '../icon/icon.component';
 export class NavbarComponent {
   protected readonly cart = inject(CartService);
   protected readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   protected readonly menuOpen = signal(false);
+
+  /** Desktop: open drawer. Mobile: navigate to /cart. */
+  protected onCartClick(): void {
+    if (typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches) {
+      this.cart.openDrawer();
+      return;
+    }
+    void this.router.navigate(['/cart']);
+  }
 }

@@ -1,3 +1,4 @@
+using FaynoShop.API.Constants;
 using FaynoShop.API.DTOs.Cart;
 using FluentValidation;
 
@@ -12,7 +13,7 @@ public sealed class AddCartItemRequestValidator : AbstractValidator<AddCartItemR
             .WithMessage("Ідентифікатор товару є обов'язковим.");
 
         RuleFor(x => x.Quantity)
-            .Must(q => q is null or (>= 1 and <= 12))
-            .WithMessage("Кількість має бути від 1 до 12.");
+            .Must(q => q is null or (>= 1 and <= CartLimits.MaxLineQuantity))
+            .WithMessage($"Кількість має бути від 1 до {CartLimits.MaxLineQuantity}.");
     }
 }

@@ -16,6 +16,8 @@ export type IconName =
   | 'menu'
   | 'package'
   | 'search'
+  | 'shopping-basket'
+  | 'trash'
   | 'truck'
   | 'user'
   | 'x-circle';
@@ -78,6 +80,19 @@ export type IconName =
         @case ('search') {
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" />
+        }
+        @case ('shopping-basket') {
+          <path d="m5 11 1.5 9h11L19 11" />
+          <path d="M3 11h18" />
+          <path d="M12 5v2" />
+          <path d="m8.5 7 1-3h5l1 3" />
+          <path d="M9 15v2M15 15v2" />
+        }
+        @case ('trash') {
+          <path d="M3 6h18" />
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          <path d="m19 6-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+          <path d="M10 11v6M14 11v6" />
         }
         @case ('truck') {
           <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />

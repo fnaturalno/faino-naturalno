@@ -1,0 +1,108 @@
+<div class="flex min-h-dvh flex-col bg-[var(--bg-page)]">
+  <app-navbar />
+
+  <header
+    class="sticky top-[60px] z-20 flex h-14 items-center gap-3 border-b border-[var(--border-subtle)] bg-white px-3.5 sm:top-[68px] lg:top-[76px]"
+  >
+    <button
+      type="button"
+      class="grid size-[34px] place-items-center rounded-lg text-[var(--espresso-800)] hover:bg-[var(--kraft-100)]"
+      aria-label="Назад"
+      (click)="goBack()"
+    >
+      <app-icon name="chevron-left" [size]="22" />
+    </button>
+    <div class="flex items-baseline gap-2">
+      <h1 class="m-0 text-lg">Кошик</h1>
+      @if (cart.loadStatus() === 'ready' && cart.items().length > 0) {
+        <span class="text-sm text-[var(--text-muted)]">{{ countLabel() }}</span>
+      }
+    </div>
+  </header>
+
+  <main
+    class="mx-auto flex w-full max-w-lg flex-1 flex-col"
+    [class.pb-[150px]]="cart.loadStatus() === 'ready' && cart.items().length > 0"
+  >
+    @if (cart.loadStatus() === 'loading') {
+      <div class="space-y-3 px-4 py-2" aria-busy="true" aria-label="Завантаження кошика">
+        @for (_ of skeletonSlots; track $index) {
+          <div class="flex gap-3 border-b border-[var(--border-subtle)] py-4">
+            <div class="fn-cart-sk size-[72px] shrink-0 rounded-[var(--radius-md)]"></div>
+            <div class="flex flex-1 flex-col gap-2 py-1">
+              <div class="fn-cart-sk h-4 w-2/3 rounded-full"></div>
+              <div class="fn-cart-sk h-3 w-1/3 rounded-full"></div>
+              <div class="mt-auto flex justify-between pt-2">
+                <div class="fn-cart-sk h-8 w-[110px] rounded-full"></div>
+                <div class="fn-cart-sk h-4 w-14 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (cart.loadStatus() === 'error') {
+      <div class="flex flex-1 flex-col items-center justify-center gap-4 px-8 py-16 text-center">
+        <p class="m-0 text-[var(--espresso-700)]">{{ cart.loadError() }}</p>
+        <button
+          type="button"
+          class="rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 py-3 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
+          (click)="retry()"
+        >
+          Спробувати ще
+        </button>
+      </div>
+    } @else if (cart.isEmpty()) {
+      <div class="flex flex-1 flex-col items-center justify-center px-8 py-16 text-center">
+        <div
+          class="mb-[26px] grid size-[132px] place-items-center rounded-full border border-[var(--border-subtle)] bg-[var(--kraft-100)] text-[var(--kraft-500)]"
+        >
+          <app-icon name="shopping-basket" [size]="60" />
+        </div>
+        <h2 class="mb-2 text-xl">Кошик порожній</h2>
+        <p class="mb-[26px] max-w-[280px] text-[var(--espresso-700)]">
+          Ще нічого не додали. Загляньте до каталогу — ми зібрали для вас багато смачного.
+        </p>
+        <a
+          routerLink="/catalog"
+          class="inline-flex h-[54px] items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
+        >
+          Перейти до каталогу
+        </a>
+      </div>
+    } @else {
+      <div class="px-4 py-2">
+        @for (item of cart.items(); track item.cartItemId) {
+          <app-cart-line
+            [line]="item"
+            [compact]="true"
+            [pending]="cart.isLinePending(item.cartItemId)"
+            (quantityChange)="cart.updateQuantity(item.cartItemId, $event)"
+            (remove)="cart.removeItem(item.cartItemId)"
+            (productClick)="goToProduct(item.slug)"
+          />
+        }
+      </div>
+    }
+  </main>
+
+  @if (cart.loadStatus() === 'ready' && cart.items().length > 0) {
+    <footer
+      class="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--border-subtle)] bg-white px-4 pt-4 pb-[calc(16px+env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(59,36,18,0.08)]"
+    >
+      <div class="mx-auto mb-3 flex max-w-lg items-baseline justify-between">
+        <span class="font-[var(--font-display)] text-base font-extrabold text-[var(--espresso-900)]"
+          >Разом</span
+        >
+        <span class="font-[var(--font-accent)] text-xl font-bold text-[var(--espresso-900)]"
+          >{{ cart.subtotal() | number: '1.0-2' }} ₴</span
+        >
+      </div>
+      <a
+        routerLink="/checkout"
+        class="mx-auto flex h-[54px] w-full max-w-lg items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
+      >
+        Оформити замовлення
+      </a>
+    </footer>
+  }
+</div>
