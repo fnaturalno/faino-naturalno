@@ -160,6 +160,7 @@ public static class SeedData
                 Email = DemoUserEmail,
                 DeliveryAddress = "Київ, Відділення №1: вул. Пирогівський шлях, 135",
                 UserId = user.Id,
+                ConfirmationTokenHash = TokenHash.Sha256Hex(TokenHash.CreateOpaqueToken()),
                 CreatedAt = now.AddDays(-45),
                 UpdatedAt = now.AddDays(-40),
                 Items = order1Items
@@ -174,6 +175,7 @@ public static class SeedData
                 Email = DemoUserEmail,
                 DeliveryAddress = "Київ, Відділення №1: вул. Пирогівський шлях, 135",
                 UserId = user.Id,
+                ConfirmationTokenHash = TokenHash.Sha256Hex(TokenHash.CreateOpaqueToken()),
                 CreatedAt = now.AddDays(-5),
                 UpdatedAt = now.AddDays(-3),
                 Items =

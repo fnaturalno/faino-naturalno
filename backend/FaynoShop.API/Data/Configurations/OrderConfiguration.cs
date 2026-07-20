@@ -44,6 +44,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.Comment)
             .HasMaxLength(1000);
 
+        builder.Property(o => o.ConfirmationTokenHash)
+            .HasMaxLength(128)
+            .IsRequired();
+
         builder.Property(o => o.CreatedAt)
             .HasColumnType("timestamptz")
             .IsRequired()
@@ -62,6 +66,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(o => o.OrderNumber)
             .IsUnique()
             .HasDatabaseName("idx_orders_order_number");
+
+        builder.HasIndex(o => o.ConfirmationTokenHash)
+            .IsUnique()
+            .HasDatabaseName("idx_orders_confirmation_token_hash");
 
         builder.HasIndex(o => o.UserId)
             .HasDatabaseName("idx_orders_user_id");

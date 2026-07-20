@@ -87,6 +87,11 @@ export function isValidUaPhone(value: string): boolean {
   return /^\+380\d{9}$/.test(normalized);
 }
 
+/** Required UA mobile for checkout: +380XXXXXXXXX after normalizing spaces/parens. */
+export function isRequiredUaPhone(value: string): boolean {
+  return /^\+380\d{9}$/.test(normalizePhone(value));
+}
+
 export type OrderBadgeTone = 'fresh' | 'marigold' | 'ink' | 'chili';
 
 export function orderStatusLabel(status: string | number): string {
@@ -94,7 +99,7 @@ export function orderStatusLabel(status: string | number): string {
   switch (key) {
     case 'Pending':
     case '0':
-      return 'Новий';
+      return 'Очікує підтвердження';
     case 'Confirmed':
     case '1':
       return 'В обробці';

@@ -34,8 +34,8 @@ All responses: `{ success: bool, data: T, error: string? }`
 ## Orders
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| POST | /orders | — | Place order |
-| GET | /orders/:id | — | Get order status |
+| POST | /orders | — | Place order (returns confirmationToken) |
+| GET | /orders/:id | — (token or owner) | Get order confirmation (`?token=` or JWT owner) |
 | GET | /orders | User | User's orders |
 | GET | /admin/orders | Admin | All orders |
 | PUT | /admin/orders/:id/status | Admin | Update status |

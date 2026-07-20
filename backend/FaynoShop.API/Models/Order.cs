@@ -12,6 +12,8 @@ public class Order
     public required string DeliveryAddress { get; set; }
     public string? Comment { get; set; }
     public int? UserId { get; set; }
+    /// <summary>SHA-256 hex of the opaque confirmation token returned once from POST /api/orders.</summary>
+    public required string ConfirmationTokenHash { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

@@ -56,16 +56,13 @@ export const routes: Routes = [
   {
     path: 'checkout',
     loadComponent: () =>
-      import('./pages/checkout-placeholder/checkout-placeholder.component').then(
-        (module) => module.CheckoutPlaceholderComponent,
-      ),
+      import('./pages/checkout/checkout.component').then((module) => module.CheckoutComponent),
   },
   {
     path: 'order/:id',
-    canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/order-placeholder/order-placeholder.component').then(
-        (module) => module.OrderPlaceholderComponent,
+      import('./pages/order-confirm/order-confirm.component').then(
+        (module) => module.OrderConfirmComponent,
       ),
   },
   { path: '**', redirectTo: 'catalog' },

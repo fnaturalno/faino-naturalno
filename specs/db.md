@@ -149,7 +149,7 @@ Separate 1:1 table (not columns on `users`) so “never saved” = no row; repla
 - `idx_user_delivery_addresses_user_id` — UNIQUE (one saved NP address per user; GET/PUT profile address)
 
 #### orders
-Minimal schema for profile `GET /api/orders` (item count via `order_items`; full checkout UI out of scope).
+Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /api/orders/:id` with capability token).
 
 | Column | Type | Constraints |
 |--------|------|-------------|
@@ -163,11 +163,13 @@ Minimal schema for profile `GET /api/orders` (item count via `order_items`; full
 | delivery_address | varchar(500) | NOT NULL |
 | comment | varchar(1000) | nullable |
 | user_id | int | nullable; FK → users (ON DELETE SET NULL) — null = guest order |
+| confirmation_token_hash | varchar(128) | UNIQUE NOT NULL — SHA-256 hex of opaque confirmation token (plain returned once from POST) |
 | created_at | timestamptz | NOT NULL DEFAULT now() |
 | updated_at | timestamptz | NOT NULL DEFAULT now() |
 
 **Indexes:**
 - `idx_orders_order_number` — UNIQUE (human-readable lookup)
+- `idx_orders_confirmation_token_hash` — UNIQUE (capability lookup / integrity)
 - `idx_orders_user_id` — FK + profile orders list
 - `idx_orders_created_at` — newest-first ordering
 - `idx_orders_user_id_created_at` — composite for `GET /api/orders` (user filter + newest first, top 20)
@@ -192,6 +194,7 @@ Minimal schema for profile `GET /api/orders` (item count via `order_items`; full
 | `CatalogSchema` (`20260717155921_CatalogSchema`) | categories, products, carts, cart_items + indexes |
 | `AuthSchema` (`20260719170451_AuthSchema`) | users, refresh_tokens, password_reset_tokens, user_delivery_addresses, orders, order_items; FK `carts.user_id` → users |
 | `RefreshTokenFamily` (`20260719172227_RefreshTokenFamily`) | `refresh_tokens.token_family` + index for reuse detection |
+| `OrderConfirmationToken` | `orders.confirmation_token_hash` UNIQUE — guest confirmation capability (hashed) |
 
 ### Connection String
 ```

@@ -10,6 +10,8 @@ public static class RateLimitingExtensions
     public const string AuthStrictPolicy = "auth-strict";
     public const string AuthForgotPolicy = "auth-forgot";
     public const string CartMutationPolicy = "cart-mutation";
+    public const string PlaceOrderPolicy = "place-order";
+    public const string OrderConfirmPolicy = "order-confirm";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -55,6 +57,28 @@ public static class RateLimitingExtensions
 
             // Guest cart mutations — blunt cart-stuffing / DoS from a single IP.
             options.AddPolicy(CartMutationPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientKey(httpContext),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 60,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    }));
+
+            // Place order — stricter than cart mutations (spam / inventory thrash).
+            options.AddPolicy(PlaceOrderPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientKey(httpContext),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    }));
+
+            // Public order confirmation GET — blunt ID enumeration / token guessing noise.
+            options.AddPolicy(OrderConfirmPolicy, httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     GetClientKey(httpContext),
                     _ => new FixedWindowRateLimiterOptions

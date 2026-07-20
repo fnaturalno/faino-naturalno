@@ -1,0 +1,457 @@
+<app-navbar />
+
+<main class="min-h-[calc(100vh-76px)] bg-[var(--bg-page)] pb-16">
+  <!-- Mobile top bar -->
+  <div
+    class="sticky top-[76px] z-20 flex h-14 items-center gap-3 border-b border-[var(--border-subtle)] bg-white px-3.5 lg:hidden"
+  >
+    <button
+      type="button"
+      class="grid size-[34px] place-items-center rounded-[var(--radius-md)] text-[var(--espresso-800)] hover:bg-[var(--kraft-100)]"
+      aria-label="Назад"
+      (click)="goBack()"
+    >
+      <app-icon name="chevron-left" [size]="22" />
+    </button>
+    <h1 class="m-0 text-lg">Оформлення</h1>
+  </div>
+
+  <div class="mx-auto max-w-[1200px] px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
+    <!-- Desktop header -->
+    <header class="mb-6 hidden max-w-[1000px] lg:block">
+      <span class="fn-eyebrow">Файно натурально — оформлення</span>
+      <h1 class="mt-2 mb-1.5 text-3xl">Оформлення замовлення</h1>
+      <p class="m-0 max-w-xl text-[var(--espresso-700)]">
+        Форма замовлення ліворуч, підсумок праворуч. Доставка Новою Поштою.
+      </p>
+    </header>
+
+    <div class="grid items-start gap-7 lg:grid-cols-[1fr_400px]">
+      <!-- LEFT: form (desktop order) / after summary on mobile via CSS order -->
+      <div class="order-2 flex flex-col gap-4 lg:order-1 lg:gap-5" [formGroup]="form">
+        <!-- Contact -->
+        <section
+          class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-[18px] shadow-[var(--shadow-xs)] sm:p-8"
+        >
+          <div class="mb-4 flex items-center gap-3 sm:mb-5">
+            <span
+              class="grid size-[30px] shrink-0 place-items-center rounded-full bg-[var(--espresso-800)] text-sm font-extrabold text-[var(--kraft-50)]"
+              >1</span
+            >
+            <h2 class="m-0 text-base sm:text-lg">Контактні дані</h2>
+          </div>
+
+          <div class="flex flex-col gap-3 sm:gap-4">
+            <div class="grid grid-cols-2 gap-2.5 sm:gap-3.5">
+              <div>
+                <label for="co-first" [class]="labelClasses">Імʼя</label>
+                <input
+                  id="co-first"
+                  type="text"
+                  autocomplete="given-name"
+                  formControlName="firstName"
+                  [class]="fieldClasses"
+                  [attr.aria-invalid]="fieldInvalid('firstName')"
+                />
+                @if (fieldInvalid('firstName')) {
+                  <p role="alert" [class]="errorClasses">{{ fieldError('firstName') }}</p>
+                }
+              </div>
+              <div>
+                <label for="co-last" [class]="labelClasses">Прізвище</label>
+                <input
+                  id="co-last"
+                  type="text"
+                  autocomplete="family-name"
+                  formControlName="lastName"
+                  [class]="fieldClasses"
+                  [attr.aria-invalid]="fieldInvalid('lastName')"
+                />
+                @if (fieldInvalid('lastName')) {
+                  <p role="alert" [class]="errorClasses">{{ fieldError('lastName') }}</p>
+                }
+              </div>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2 sm:gap-3.5">
+              <div>
+                <label for="co-phone" [class]="labelClasses">Телефон</label>
+                <input
+                  id="co-phone"
+                  type="tel"
+                  autocomplete="tel"
+                  placeholder="+380…"
+                  formControlName="phone"
+                  [class]="fieldClasses"
+                  [attr.aria-invalid]="fieldInvalid('phone')"
+                />
+                @if (fieldInvalid('phone')) {
+                  <p role="alert" [class]="errorClasses">{{ fieldError('phone') }}</p>
+                }
+              </div>
+              <div>
+                <label for="co-email" [class]="labelClasses">Ел. пошта</label>
+                <input
+                  id="co-email"
+                  type="email"
+                  autocomplete="email"
+                  formControlName="email"
+                  [class]="fieldClasses"
+                  [attr.aria-invalid]="fieldInvalid('email')"
+                />
+                @if (fieldInvalid('email')) {
+                  <p role="alert" [class]="errorClasses">{{ fieldError('email') }}</p>
+                }
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Delivery -->
+        <section
+          class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-[18px] shadow-[var(--shadow-xs)] sm:p-8"
+        >
+          <div class="mb-4 flex items-center justify-between gap-3 sm:mb-5">
+            <div class="flex items-center gap-3">
+              <span
+                class="grid size-[30px] shrink-0 place-items-center rounded-full bg-[var(--espresso-800)] text-sm font-extrabold text-[var(--kraft-50)]"
+                >2</span
+              >
+              <h2 class="m-0 text-base sm:text-lg">
+                <span class="sm:hidden">Нова Пошта</span>
+                <span class="hidden sm:inline">Доставка Новою Поштою</span>
+              </h2>
+            </div>
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full bg-[#DA291C] px-2.5 py-1.5 sm:gap-1.5 sm:px-3 sm:py-1.5"
+            >
+              <span
+                class="grid size-3.5 place-items-center rounded-[3px] bg-white text-[10px] font-black text-[#DA291C] sm:size-4 sm:text-xs"
+                >Н</span
+              >
+              <span class="text-[11px] font-extrabold tracking-wide text-white sm:text-xs"
+                >Нова Пошта</span
+              >
+            </span>
+          </div>
+
+          @if (showSavedBanner()) {
+            <div
+              class="mb-4 flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--marigold-300)] bg-[var(--marigold-50)] px-4 py-3.5"
+            >
+              <span class="mt-0.5 text-[var(--cinnamon-700)]">
+                <app-icon name="truck" [size]="18" />
+              </span>
+              <div class="min-w-0 flex-1">
+                <span class="mb-0.5 block text-sm font-bold text-[var(--espresso-900)]"
+                  >Збережена адреса підставлена</span
+                >
+                <span class="text-sm text-[var(--espresso-700)]">{{ savedAddress()!.summary }}</span>
+              </div>
+              <button
+                type="button"
+                [class]="linkClasses + ' shrink-0 text-sm whitespace-nowrap'"
+                [disabled]="formLocked()"
+                (click)="changeSavedAddress()"
+              >
+                Змінити
+              </button>
+            </div>
+          }
+
+          @if (showDeliveryEditors()) {
+            <div class="flex flex-col gap-4">
+              <div class="relative flex flex-col gap-1.5">
+                <label for="co-city" [class]="labelClasses">Місто</label>
+                <div class="relative">
+                  <span
+                    class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--kraft-500)]"
+                  >
+                    <app-icon name="search" [size]="17" />
+                  </span>
+                  <input
+                    #cityInput
+                    id="co-city"
+                    type="text"
+                    role="combobox"
+                    autocomplete="off"
+                    placeholder="Почніть вводити місто…"
+                    class="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white py-3 pr-3.5 pl-[42px] text-[var(--espresso-800)] outline-none focus-visible:border-[var(--marigold-400)] disabled:cursor-not-allowed disabled:opacity-60"
+                    [value]="cityQuery()"
+                    [disabled]="formLocked()"
+                    [attr.aria-expanded]="showCityList()"
+                    [attr.aria-controls]="showCityList() ? 'co-city-list' : null"
+                    [attr.aria-invalid]="!!cityError()"
+                    (input)="onCityInput($any($event.target).value)"
+                  />
+                </div>
+
+                @if (showCityList()) {
+                  <ul
+                    id="co-city-list"
+                    class="absolute top-full right-0 left-0 z-20 mt-1.5 max-h-[230px] overflow-y-auto rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white shadow-[var(--shadow-lg)]"
+                    role="listbox"
+                    aria-label="Знайдені міста"
+                  >
+                    @for (city of cityMatches(); track city.cityId) {
+                      <li>
+                        <button
+                          type="button"
+                          role="option"
+                          class="flex min-h-12 w-full items-center gap-2.5 border-b border-[var(--border-subtle)] px-4 py-3 text-left last:border-b-0 hover:bg-[var(--kraft-100)]"
+                          (click)="pickCity(city)"
+                        >
+                          <app-icon name="map-pin" [size]="16" class="text-[var(--kraft-500)]" />
+                          <span class="min-w-0 flex-1 truncate">{{ city.cityName }}</span>
+                          @if (city.region) {
+                            <span class="hidden shrink-0 text-xs text-[var(--text-muted)] sm:inline">{{
+                              city.region
+                            }}</span>
+                          }
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+
+                @if (showCityEmpty()) {
+                  <span class="text-sm text-[var(--text-muted)]"
+                    >Нічого не знайдено — перевірте написання</span
+                  >
+                }
+                @if (cityError()) {
+                  <p role="alert" [class]="errorClasses">{{ cityError() }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label
+                  for="co-branch"
+                  class="text-sm font-semibold"
+                  [class.text-[var(--kraft-500)]]="!selectedCity()"
+                  [class.text-[var(--espresso-800)]]="!!selectedCity()"
+                  >Відділення</label
+                >
+
+                @if (branchesLoading()) {
+                  <div
+                    class="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--kraft-100)] px-4 py-3 text-sm text-[var(--text-muted)]"
+                    aria-live="polite"
+                  >
+                    <span class="fn-co-spin" aria-hidden="true"></span>
+                    Завантажуємо відділення…
+                  </div>
+                } @else {
+                  <div class="relative">
+                    <select
+                      id="co-branch"
+                      class="w-full appearance-none rounded-[var(--radius-md)] border border-[var(--border-strong)] py-3 pr-10 pl-4 outline-none focus-visible:border-[var(--marigold-400)] disabled:cursor-not-allowed disabled:bg-[var(--kraft-100)] disabled:text-[var(--kraft-500)]"
+                      [disabled]="!selectedCity() || formLocked()"
+                      [value]="selectedBranchId()"
+                      [attr.aria-invalid]="!!branchError()"
+                      (change)="onBranchChange($any($event.target).value)"
+                    >
+                      <option value="">
+                        {{ selectedCity() ? 'Оберіть відділення' : 'Спочатку оберіть місто' }}
+                      </option>
+                      @for (branch of branches(); track branch.branchId) {
+                        <option [value]="branch.branchId">{{ branch.label }}</option>
+                      }
+                    </select>
+                    <span
+                      class="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-[var(--espresso-700)]"
+                    >
+                      <app-icon name="chevron-down" [size]="16" />
+                    </span>
+                  </div>
+                }
+                @if (branchError()) {
+                  <p role="alert" [class]="errorClasses">{{ branchError() }}</p>
+                }
+              </div>
+
+              <div class="inline-flex items-center gap-2 text-sm text-[var(--garden-700)]">
+                <app-icon name="clock" [size]="16" />
+                Орієнтовно: 2–3 робочі дні
+              </div>
+            </div>
+          } @else {
+            <div class="inline-flex items-center gap-2 text-sm text-[var(--garden-700)]">
+              <app-icon name="clock" [size]="16" />
+              Орієнтовно: 2–3 робочі дні
+            </div>
+          }
+        </section>
+
+        <!-- Comment -->
+        <section
+          class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-[18px] shadow-[var(--shadow-xs)] sm:p-8"
+        >
+          <div class="mb-3.5 flex items-center gap-3 sm:mb-4">
+            <span
+              class="grid size-[30px] shrink-0 place-items-center rounded-full bg-[var(--espresso-800)] text-sm font-extrabold text-[var(--kraft-50)]"
+              >3</span
+            >
+            <h2 id="co-comment-heading" class="m-0 text-base sm:text-lg">
+              <span class="sm:hidden"
+                >Коментар
+                <span class="text-sm font-normal text-[var(--text-muted)]">— необовʼязково</span></span
+              >
+              <span class="hidden sm:inline"
+                >Коментар до замовлення
+                <span class="text-sm font-normal text-[var(--text-muted)]">— необовʼязково</span></span
+              >
+            </h2>
+          </div>
+          <textarea
+            id="co-comment"
+            rows="3"
+            formControlName="comment"
+            placeholder="Побажання щодо замовлення чи доставки…"
+            class="min-h-[72px] w-full resize-y rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white px-3.5 py-3 text-[var(--espresso-800)] outline-none placeholder:text-[var(--kraft-500)] focus-visible:border-[var(--marigold-400)] sm:min-h-24"
+            aria-labelledby="co-comment-heading"
+            [attr.aria-invalid]="fieldInvalid('comment')"
+          ></textarea>
+          @if (fieldInvalid('comment')) {
+            <p role="alert" [class]="errorClasses">{{ fieldError('comment') }}</p>
+          }
+        </section>
+
+        <button
+          type="button"
+          class="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 text-base font-extrabold text-[var(--espresso-900)] transition hover:bg-[var(--marigold-500)] disabled:cursor-not-allowed disabled:opacity-60"
+          [disabled]="submitBlocked()"
+          [attr.aria-busy]="submitting() || null"
+          (click)="placeOrder()"
+        >
+          @if (submitting()) {
+            <span
+              class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent"
+              aria-hidden="true"
+            ></span>
+            Оформлюємо…
+          } @else {
+            Оформити замовлення
+          }
+        </button>
+      </div>
+
+      <!-- RIGHT: summary (sticky desktop; compact on top for mobile) -->
+      <aside class="order-1 lg:sticky lg:top-24 lg:order-2 lg:self-start">
+        <!-- Mobile compact -->
+        <div
+          class="mb-0 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-cream)] p-4 lg:hidden"
+        >
+          @if (loadStatus() === 'loading' || loadStatus() === 'idle') {
+            <div class="fn-co-sk h-14 rounded-[var(--radius-sm)]"></div>
+          } @else if (loadStatus() === 'error') {
+            <p class="mb-2 text-sm text-[var(--chili-700)]" role="alert">{{ loadError() }}</p>
+            <button type="button" [class]="linkClasses + ' text-sm'" (click)="retryCart()">
+              Спробувати ще
+            </button>
+          } @else {
+            <div class="mb-2.5 flex items-center justify-between">
+              <span class="font-bold text-[var(--espresso-900)]">Замовлення · {{ countLabel() }}</span>
+              <a routerLink="/cart" [class]="linkClasses + ' text-sm'">Редагувати</a>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <span class="text-sm text-[var(--espresso-700)]">Разом</span>
+              <span
+                class="font-[var(--font-accent)] text-xl font-bold text-[var(--espresso-900)]"
+                >{{ subtotal() | number: '1.0-0' }} ₴</span
+              >
+            </div>
+          }
+        </div>
+
+        <!-- Desktop full summary -->
+        <div
+          class="hidden rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-cream)] p-7 shadow-[var(--shadow-xs)] lg:block"
+        >
+          <div class="mb-5 flex items-center justify-between">
+            <h2 class="m-0 text-lg">Ваше замовлення</h2>
+            <a routerLink="/cart" [class]="linkClasses + ' text-sm'">Редагувати</a>
+          </div>
+
+          @if (loadStatus() === 'loading' || loadStatus() === 'idle') {
+            <div class="mb-5 flex flex-col gap-3.5">
+              @for (slot of skeletonSlots; track slot) {
+                <div class="flex items-center gap-3">
+                  <div class="fn-co-sk size-14 shrink-0 rounded-[var(--radius-sm)]"></div>
+                  <div class="min-w-0 flex-1 space-y-2">
+                    <div class="fn-co-sk h-3.5 w-3/4 rounded"></div>
+                    <div class="fn-co-sk h-3 w-1/3 rounded"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else if (loadStatus() === 'error') {
+            <div class="mb-5" role="alert">
+              <p class="mb-2 text-sm text-[var(--chili-700)]">{{ loadError() }}</p>
+              <button type="button" [class]="linkClasses + ' text-sm'" (click)="retryCart()">
+                Спробувати ще
+              </button>
+            </div>
+          } @else {
+            <ul class="mb-5 flex max-h-[360px] flex-col gap-3.5 overflow-y-auto">
+              @for (line of items(); track line.cartItemId) {
+                <li class="flex items-center gap-3">
+                  <div
+                    class="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--kraft-100)]"
+                  >
+                    @if (lineImage(line.imageUrl); as src) {
+                      <img [src]="src" [alt]="line.name" class="size-full object-cover" />
+                    } @else {
+                      <span class="font-[var(--font-accent)] text-[10px] text-[var(--kraft-400)]"
+                        >фото</span
+                      >
+                    }
+                    <span
+                      class="absolute -top-1.5 -right-1.5 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-[var(--surface-cream)] bg-[var(--espresso-800)] px-1 text-[11px] font-extrabold text-[var(--kraft-50)]"
+                      >{{ line.quantity }}</span
+                    >
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <span
+                      class="line-clamp-2 block text-sm leading-tight font-semibold text-[var(--espresso-900)]"
+                      [title]="line.name"
+                      >{{ line.name }}</span
+                    >
+                    <span class="text-xs text-[var(--text-muted)]">{{ line.category }}</span>
+                  </div>
+                  <span
+                    class="shrink-0 font-[var(--font-accent)] text-base font-bold whitespace-nowrap text-[var(--espresso-900)]"
+                    >{{ line.lineTotal | number: '1.0-0' }} ₴</span
+                  >
+                </li>
+              }
+            </ul>
+          }
+
+          <div class="mb-4 h-px bg-[var(--border-subtle)]"></div>
+          <div class="mb-2 flex items-center justify-between">
+            <span class="text-[var(--espresso-700)]">Сума товарів</span>
+            <span class="text-[var(--espresso-800)]"
+              >{{ loadStatus() === 'ready' ? (subtotal() | number: '1.0-0') : '—' }} ₴</span
+            >
+          </div>
+          <div class="mb-4 flex items-start justify-between gap-3">
+            <span class="text-[var(--espresso-700)]">Доставка</span>
+            <span class="text-right text-sm text-[var(--text-muted)]">за тарифами Нової Пошти</span>
+          </div>
+          <div
+            class="flex items-baseline justify-between border-t border-[var(--border-subtle)] pt-4"
+          >
+            <span class="font-[var(--font-display)] text-lg font-extrabold text-[var(--espresso-900)]"
+              >Разом</span
+            >
+            <span
+              class="font-[var(--font-accent)] text-2xl font-bold text-[var(--espresso-900)]"
+              >{{ loadStatus() === 'ready' ? (subtotal() | number: '1.0-0') : '—' }} ₴</span
+            >
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
