@@ -10,6 +10,7 @@ import {
 import { RouterLink } from '@angular/router';
 
 import { CatalogProduct } from '../../models/catalog.models';
+import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 
 @Component({
   selector: 'app-product-card',
@@ -98,24 +99,11 @@ export class ProductCardComponent {
   readonly add = output<number>();
   protected readonly imageFailed = signal(false);
 
-  /** Allow only relative paths or http(s) URLs — blocks javascript:/data: schemes. */
   protected readonly safeImageUrl = computed(() => {
     if (this.imageFailed()) {
       return null;
     }
-    const url = this.product().imageUrl?.trim();
-    if (!url) {
-      return null;
-    }
-    if (url.startsWith('/') && !url.startsWith('//')) {
-      return url;
-    }
-    try {
-      const parsed = new URL(url);
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? url : null;
-    } catch {
-      return null;
-    }
+    return sanitizeImageUrl(this.product().imageUrl);
   });
 
   protected readonly badge = computed(() => {

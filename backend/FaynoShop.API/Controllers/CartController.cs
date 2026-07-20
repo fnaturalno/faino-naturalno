@@ -6,6 +6,7 @@ using FaynoShop.API.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FaynoShop.API.Controllers;
 
@@ -24,14 +25,17 @@ public sealed class CartController : ControllerBase
     }
 
     /// <summary>
-    /// Adds exactly one unit of a product to the anonymous browser cart.
+    /// Adds one or more units of a product to the anonymous browser cart.
     /// Send a stable UUID in header <c>X-Cart-Session-Id</c> (format 8-4-4-4-12).
-    /// Frontend should generate and persist this id (e.g. localStorage) across catalog visits.
+    /// Quantity defaults to 1 when omitted; catalog adds 1, product page may send stepper quantity.
+    /// Out-of-stock and overselling (beyond remaining stock capacity) are rejected.
     /// </summary>
     [HttpPost("items")]
+    [EnableRateLimiting(RateLimitingExtensions.CartMutationPolicy)]
     [ProducesResponseType(typeof(ApiResponse<AddCartItemResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<ApiResponse<AddCartItemResponse>>> AddItem(
         [FromBody] AddCartItemRequest request,
         [FromHeader(Name = CartSessionHeaders.SessionId)] string? sessionId,

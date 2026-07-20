@@ -1,0 +1,432 @@
+<app-navbar />
+
+<main class="min-h-[calc(100vh-76px)] bg-[var(--bg-page)] pb-28 md:pb-16">
+  <div class="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+    @if (status() === 'loading') {
+      <div
+        class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-lg)] sm:p-8"
+        aria-busy="true"
+        aria-label="Завантаження товару"
+      >
+        <div class="grid gap-6 md:grid-cols-[minmax(0,240px)_1fr] lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10">
+          <div class="flex flex-col gap-3">
+            <div class="fn-sk aspect-square rounded-[var(--radius-lg)]"></div>
+            <div class="grid grid-cols-4 gap-2">
+              <div class="fn-sk aspect-square"></div>
+              <div class="fn-sk aspect-square"></div>
+              <div class="fn-sk aspect-square"></div>
+              <div class="fn-sk aspect-square"></div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div class="fn-sk h-3 w-1/2"></div>
+            <div class="fn-sk h-7 w-[90%]"></div>
+            <div class="fn-sk h-4 w-[70%]"></div>
+            <div class="fn-sk mb-2 h-4 w-2/5"></div>
+            <div class="fn-sk h-9 w-[55%]"></div>
+            <div class="mt-2 flex gap-3">
+              <div class="fn-sk h-11 w-[120px] rounded-full"></div>
+              <div class="fn-sk h-11 flex-1 rounded-[var(--radius-md)]"></div>
+            </div>
+            <div class="mt-2 flex flex-col gap-2">
+              <div class="fn-sk h-3 w-full"></div>
+              <div class="fn-sk h-3 w-[95%]"></div>
+              <div class="fn-sk h-3 w-4/5"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else if (status() === 'not-found') {
+      <div class="grid min-h-[50vh] place-items-center text-center">
+        <div class="max-w-md">
+          <p class="fn-eyebrow mb-3">Товар</p>
+          <h1 class="mb-3 text-2xl sm:text-3xl">Товар не знайдено</h1>
+          <p class="mb-6 text-[var(--espresso-700)]">
+            Цього товару немає в каталозі або він більше недоступний.
+          </p>
+          <a
+            routerLink="/catalog"
+            class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
+          >
+            Повернутися до каталогу
+          </a>
+        </div>
+      </div>
+    } @else if (status() === 'error') {
+      <div class="grid min-h-[50vh] place-items-center text-center">
+        <div class="max-w-md">
+          <p class="fn-eyebrow mb-3">Помилка</p>
+          <h1 class="mb-3 text-2xl sm:text-3xl">Не вдалося завантажити товар</h1>
+          <p class="mb-6 text-[var(--espresso-700)]">
+            Перевірте з’єднання та спробуйте ще раз.
+          </p>
+          <button
+            type="button"
+            class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
+            (click)="retry()"
+          >
+            Спробувати ще
+          </button>
+        </div>
+      </div>
+    } @else if (product(); as detail) {
+      <!-- Mobile back -->
+      <button
+        type="button"
+        class="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-[var(--cinnamon-700)] hover:text-[var(--espresso-800)] md:hidden"
+        (click)="goBack()"
+      >
+        <app-icon name="chevron-left" [size]="18" />
+        Назад
+      </button>
+
+      <div
+        class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-lg)] sm:p-8 lg:p-10"
+      >
+        <!-- Breadcrumb -->
+        <nav
+          aria-label="Навігаційний шлях"
+          class="mb-5 flex flex-wrap items-center gap-2 text-sm md:mb-6"
+        >
+          <a
+            routerLink="/catalog"
+            class="font-[var(--font-body)] text-[var(--cinnamon-700)] hover:text-[var(--espresso-800)] hover:underline"
+          >Каталог</a>
+          <span class="text-[var(--kraft-400)]" aria-hidden="true">›</span>
+          <a
+            routerLink="/catalog"
+            [queryParams]="{ category: detail.categorySlug }"
+            class="font-[var(--font-body)] text-[var(--cinnamon-700)] hover:text-[var(--espresso-800)] hover:underline"
+          >{{ detail.categoryName }}</a>
+          <span class="hidden text-[var(--kraft-400)] sm:inline" aria-hidden="true">›</span>
+          <span class="hidden text-[var(--text-muted)] sm:inline">{{ detail.name }}</span>
+        </nav>
+
+        <div class="grid items-start gap-8 lg:grid-cols-[minmax(0,520px)_1fr] lg:gap-12">
+          <!-- Gallery -->
+          <div class="flex flex-col gap-3.5">
+            <div
+              class="relative flex aspect-square items-center justify-center overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--kraft-100)]"
+              [class.saturate-50]="!inStock()"
+            >
+              @if (safeActiveImage(); as imageUrl) {
+                <img
+                  [src]="imageUrl"
+                  [alt]="detail.name"
+                  class="h-full w-full object-cover"
+                  (error)="onMainImageError()"
+                />
+              } @else {
+                <span class="font-[var(--font-accent)] text-2xl text-[var(--kraft-400)]">фото товару</span>
+              }
+
+              @if (!inStock()) {
+                <div class="absolute left-4 top-4">
+                  <span
+                    class="rounded-full border border-[var(--border-strong)] bg-white px-2.5 py-1 text-[11px] font-extrabold text-[var(--espresso-800)]"
+                  >Немає в наявності</span>
+                </div>
+              } @else if (badge(); as productBadge) {
+                <div class="absolute left-4 top-4">
+                  <span
+                    class="rounded-full px-2.5 py-1 text-[11px] font-extrabold text-white"
+                    [class.bg-[var(--chili-500)]]="productBadge.kind === 'sale'"
+                    [class.bg-[var(--garden-500)]]="productBadge.kind === 'new'"
+                  >{{ productBadge.label }}</span>
+                </div>
+              }
+            </div>
+
+            @if (gallery().length > 0) {
+              <div
+                class="flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:pb-0"
+                role="list"
+                aria-label="Мініатюри"
+              >
+                @for (thumb of gallery(); track $index) {
+                  <button
+                    type="button"
+                    role="listitem"
+                    class="aspect-square w-14 shrink-0 overflow-hidden rounded-[var(--radius-md)] border-2 bg-[var(--kraft-100)] md:w-auto"
+                    [class.border-[var(--marigold-400)]]="activeThumb() === $index"
+                    [class.border-[var(--border-subtle)]]="activeThumb() !== $index"
+                    [attr.aria-label]="'Зображення ' + ($index + 1)"
+                    [attr.aria-pressed]="activeThumb() === $index"
+                    (click)="selectThumb($index)"
+                  >
+                    @if (safeThumbUrl(thumb, $index); as thumbUrl) {
+                      <img
+                        [src]="thumbUrl"
+                        alt=""
+                        class="h-full w-full object-cover"
+                        (error)="onThumbError($index)"
+                      />
+                    } @else {
+                      <span class="grid h-full place-items-center text-[var(--kraft-400)]">
+                        <app-icon name="image-off" [size]="20" />
+                      </span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Details -->
+          <div class="flex flex-col">
+            <h1
+              class="mb-2.5 font-[var(--font-display)] text-2xl leading-[1.1] text-[var(--espresso-900)] sm:text-3xl"
+            >
+              {{ detail.name }}
+            </h1>
+
+            @if (detail.shortDescription) {
+              <p class="mb-3.5 text-[var(--espresso-700)] sm:text-base">
+                {{ detail.shortDescription }}
+              </p>
+            }
+
+            <div class="mb-2 flex flex-wrap items-baseline gap-3">
+              <span
+                class="font-[var(--font-accent)] text-[34px] font-bold leading-none sm:text-[44px]"
+                [class.text-[var(--espresso-900)]]="inStock()"
+                [class.text-[var(--kraft-500)]]="!inStock()"
+              >
+                {{ detail.price | number: '1.0-2' }}
+                <span class="text-[0.55em]">₴</span>
+              </span>
+              @if (detail.oldPrice && detail.oldPrice > detail.price) {
+                <del class="text-lg text-[var(--kraft-500)]">
+                  {{ detail.oldPrice | number: '1.0-2' }} ₴
+                </del>
+              }
+              @if (unitLabel(); as unit) {
+                <span class="text-sm text-[var(--text-muted)]">/ {{ unit }}</span>
+              }
+            </div>
+
+            <div class="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
+              @if (unitLabel(); as unit) {
+                <span class="text-sm text-[var(--espresso-700)]">
+                  Фасування: <strong>{{ unit }}</strong>
+                </span>
+                <span class="size-1.5 rounded-full bg-[var(--kraft-400)]" aria-hidden="true"></span>
+              }
+              @if (inStock()) {
+                <span
+                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--garden-700)]"
+                >
+                  <app-icon name="check-circle" [size]="16" />
+                  В наявності
+                </span>
+              } @else {
+                <span
+                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--text-muted)]"
+                >
+                  <app-icon name="x-circle" [size]="16" />
+                  Немає в наявності
+                </span>
+              }
+            </div>
+
+            <!-- Desktop stepper + add -->
+            <div class="mb-7 hidden items-center gap-4 md:flex">
+              <div
+                class="inline-flex h-10 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
+                role="group"
+                aria-label="Кількість"
+              >
+                <button
+                  type="button"
+                  class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
+                  aria-label="Зменшити кількість"
+                  [disabled]="!inStock() || quantity() <= 1 || addStatus() === 'adding'"
+                  (click)="decreaseQty()"
+                >−</button>
+                <span
+                  class="grid min-w-10 place-items-center border-x border-[var(--border-subtle)] text-sm font-bold tabular-nums"
+                  aria-live="polite"
+                >{{ quantity() }}</span>
+                <button
+                  type="button"
+                  class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
+                  aria-label="Збільшити кількість"
+                  [disabled]="!inStock() || quantity() >= maxQuantity() || addStatus() === 'adding'"
+                  (click)="increaseQty()"
+                >+</button>
+              </div>
+
+              <button
+                type="button"
+                class="inline-flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] font-extrabold transition disabled:cursor-not-allowed"
+                [class.bg-[var(--marigold-400)]]="inStock() && addStatus() !== 'added'"
+                [class.text-[var(--espresso-900)]]="inStock() && addStatus() !== 'added'"
+                [class.hover:bg-[var(--marigold-500)]]="inStock() && addStatus() !== 'added'"
+                [class.bg-[var(--garden-500)]]="addStatus() === 'added'"
+                [class.text-white]="addStatus() === 'added'"
+                [class.bg-[var(--kraft-200)]]="!inStock()"
+                [class.text-[var(--kraft-500)]]="!inStock()"
+                [disabled]="!canAdd() && addStatus() !== 'added'"
+                (click)="addToCart()"
+              >
+                @if (!inStock()) {
+                  Немає в наявності
+                } @else if (addStatus() === 'adding') {
+                  Додаємо…
+                } @else if (addStatus() === 'added') {
+                  <app-icon name="check" [size]="20" />
+                  Додано
+                } @else {
+                  <app-icon name="bag" [size]="19" />
+                  В кошик
+                }
+              </button>
+            </div>
+
+            <div
+              class="mb-6 flex flex-col gap-3 border-y border-[var(--border-subtle)] py-4 sm:flex-row sm:gap-5"
+            >
+              <div class="inline-flex items-center gap-2.5 text-sm text-[var(--espresso-700)]">
+                <app-icon name="truck" [size]="18" class="text-[var(--cinnamon-700)]" />
+                Доставка Новою Поштою
+              </div>
+              <div class="inline-flex items-center gap-2.5 text-sm text-[var(--espresso-700)]">
+                <app-icon name="leaf" [size]="18" class="text-[var(--garden-700)]" />
+                100% натуральний склад
+              </div>
+            </div>
+
+            @if (detail.description) {
+              <h2 class="mb-2.5 text-lg">Опис</h2>
+              <div class="whitespace-pre-line text-[var(--espresso-700)] leading-relaxed">
+                {{ detail.description }}
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      @if (similar().length) {
+        <section class="mt-10" aria-labelledby="similar-heading">
+          <div class="mb-5 flex items-baseline justify-between gap-4">
+            <h2 id="similar-heading" class="font-[var(--font-display)] text-xl sm:text-2xl">
+              Схожі товари
+            </h2>
+            <a
+              routerLink="/catalog"
+              [queryParams]="{ category: detail.categorySlug }"
+              class="shrink-0 text-sm font-semibold text-[var(--cinnamon-700)] hover:text-[var(--espresso-800)] hover:underline"
+            >
+              Усі {{ detail.categoryName }} →
+            </a>
+          </div>
+
+          <div class="hidden gap-[22px] md:grid md:grid-cols-3">
+            @for (item of similar(); track item.id) {
+              <app-product-card
+                [product]="item"
+                [status]="similarStatus(item.id)"
+                (add)="addSimilar($event)"
+              />
+            }
+          </div>
+
+          <div
+            class="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:hidden"
+            role="list"
+          >
+            @for (item of similar(); track item.id) {
+              <div class="w-[180px] shrink-0" role="listitem">
+                <app-product-card
+                  [product]="item"
+                  [status]="similarStatus(item.id)"
+                  (add)="addSimilar($event)"
+                />
+              </div>
+            }
+          </div>
+        </section>
+      }
+    }
+  </div>
+</main>
+
+<!-- Mobile sticky add bar -->
+@if (status() === 'ready' && product(); as detail) {
+  <div
+    class="fixed inset-x-0 bottom-0 z-40 flex h-[76px] items-center gap-3 border-t border-[var(--border-subtle)] bg-white px-4 shadow-[0_-6px_20px_rgba(59,36,18,0.08)] md:hidden"
+    style="padding-bottom: env(safe-area-inset-bottom)"
+  >
+    <div
+      class="inline-flex h-10 shrink-0 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
+      role="group"
+      aria-label="Кількість"
+    >
+      <button
+        type="button"
+        class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
+        aria-label="Зменшити кількість"
+        [disabled]="!inStock() || quantity() <= 1 || addStatus() === 'adding'"
+        (click)="decreaseQty()"
+      >−</button>
+      <span
+        class="grid min-w-9 place-items-center border-x border-[var(--border-subtle)] text-sm font-bold tabular-nums"
+        aria-live="polite"
+      >{{ quantity() }}</span>
+      <button
+        type="button"
+        class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
+        aria-label="Збільшити кількість"
+        [disabled]="!inStock() || quantity() >= maxQuantity() || addStatus() === 'adding'"
+        (click)="increaseQty()"
+      >+</button>
+    </div>
+
+    <button
+      type="button"
+      class="inline-flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] font-extrabold transition disabled:cursor-not-allowed"
+      [class.bg-[var(--marigold-400)]]="inStock() && addStatus() !== 'added'"
+      [class.text-[var(--espresso-900)]]="inStock() && addStatus() !== 'added'"
+      [class.bg-[var(--garden-500)]]="addStatus() === 'added'"
+      [class.text-white]="addStatus() === 'added'"
+      [class.bg-[var(--kraft-200)]]="!inStock()"
+      [class.text-[var(--kraft-500)]]="!inStock()"
+      [disabled]="!canAdd() && addStatus() !== 'added'"
+      (click)="addToCart()"
+    >
+      @if (!inStock()) {
+        Немає в наявності
+      } @else if (addStatus() === 'adding') {
+        Додаємо…
+      } @else if (addStatus() === 'added') {
+        Додано ✓
+      } @else {
+        В кошик
+      }
+    </button>
+  </div>
+}
+
+@if (toast(); as toastMessage) {
+  <div
+    role="status"
+    aria-live="polite"
+    class="fn-toast-in fixed z-50 flex items-center gap-3 rounded-[var(--radius-md)] bg-[var(--espresso-800)] px-4 py-3 text-[var(--kraft-50)] shadow-[var(--shadow-lg)] max-md:inset-x-4 max-md:bottom-[88px] md:bottom-10 md:right-10 md:left-auto"
+    [class.bg-[var(--chili-700)]]="toastMessage.error"
+  >
+    @if (!toastMessage.error) {
+      <span
+        class="grid size-7 shrink-0 place-items-center rounded-full bg-[var(--garden-500)] text-white"
+        aria-hidden="true"
+      >
+        <app-icon name="check" [size]="16" />
+      </span>
+    }
+    <div class="flex flex-col">
+      <span class="font-bold">{{ toastMessage.title }}</span>
+      @if (toastMessage.detail && !toastMessage.error) {
+        <span class="hidden text-sm text-[var(--kraft-200)] md:block">{{ toastMessage.detail }}</span>
+      }
+    </div>
+  </div>
+}

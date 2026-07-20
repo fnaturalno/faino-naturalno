@@ -30,6 +30,28 @@ export interface CatalogProduct {
   categorySlug: string;
 }
 
+/** GET /api/products/:slug — active product with gallery and similar cards. */
+export interface ProductDetail {
+  id: number;
+  name: string;
+  slug: string;
+  shortDescription?: string | null;
+  description?: string | null;
+  price: number;
+  oldPrice?: number | null;
+  imageUrl?: string | null;
+  imageUrls: string[];
+  weight?: number | null;
+  weightUnit?: string | null;
+  stockQuantity: number;
+  isFeatured: boolean;
+  createdAt: string;
+  categoryId: number;
+  categoryName: string;
+  categorySlug: string;
+  similarProducts: CatalogProduct[];
+}
+
 export type CatalogSort = 'popular' | 'price-asc' | 'price-desc' | 'new';
 
 export interface CatalogFilters {

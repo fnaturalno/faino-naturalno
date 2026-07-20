@@ -3,18 +3,22 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 export type IconName =
   | 'bag'
   | 'check'
+  | 'check-circle'
   | 'chevron-down'
   | 'chevron-left'
   | 'chevron-right'
   | 'close'
   | 'filter'
+  | 'image-off'
+  | 'leaf'
   | 'log-out'
   | 'map-pin'
   | 'menu'
   | 'package'
   | 'search'
   | 'truck'
-  | 'user';
+  | 'user'
+  | 'x-circle';
 
 @Component({
   selector: 'app-icon',
@@ -37,11 +41,26 @@ export type IconName =
           <path d="M6 8h12l1 13H5L6 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" />
         }
         @case ('check') { <path d="m5 12 4 4L19 6" /> }
+        @case ('check-circle') {
+          <circle cx="12" cy="12" r="10" />
+          <path d="m9 12 2 2 4-4" />
+        }
         @case ('chevron-down') { <path d="m6 9 6 6 6-6" /> }
         @case ('chevron-left') { <path d="m15 18-6-6 6-6" /> }
         @case ('chevron-right') { <path d="m9 18 6-6-6-6" /> }
         @case ('close') { <path d="M18 6 6 18M6 6l12 12" /> }
         @case ('filter') { <path d="M4 6h16M7 12h10M10 18h4" /> }
+        @case ('image-off') {
+          <path d="M2 2l20 20" />
+          <path d="M10.41 10.41a2 2 0 1 1-2.83-2.83" />
+          <path d="M13.5 13.5 6 21h14a2 2 0 0 0 2-2v-4.5" />
+          <path d="M3.59 3.59A1.99 1.99 0 0 0 3 5v14a2 2 0 0 0 2 2h14" />
+          <path d="M21 15V5a2 2 0 0 0-2-2H9" />
+        }
+        @case ('leaf') {
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+        }
         @case ('log-out') {
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
           <path d="m16 17 5-5-5-5" />
@@ -70,6 +89,10 @@ export type IconName =
         @case ('user') {
           <circle cx="12" cy="8" r="4" />
           <path d="M4 20a8 8 0 0 1 16 0" />
+        }
+        @case ('x-circle') {
+          <circle cx="12" cy="12" r="10" />
+          <path d="m15 9-6 6M9 9l6 6" />
         }
       }
     </svg>

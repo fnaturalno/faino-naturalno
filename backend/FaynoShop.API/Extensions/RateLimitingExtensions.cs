@@ -9,6 +9,7 @@ public static class RateLimitingExtensions
 {
     public const string AuthStrictPolicy = "auth-strict";
     public const string AuthForgotPolicy = "auth-forgot";
+    public const string CartMutationPolicy = "cart-mutation";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -49,6 +50,17 @@ public static class RateLimitingExtensions
                     {
                         PermitLimit = 5,
                         Window = TimeSpan.FromMinutes(15),
+                        QueueLimit = 0
+                    }));
+
+            // Guest cart mutations — blunt cart-stuffing / DoS from a single IP.
+            options.AddPolicy(CartMutationPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientKey(httpContext),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 60,
+                        Window = TimeSpan.FromMinutes(1),
                         QueueLimit = 0
                     }));
         });

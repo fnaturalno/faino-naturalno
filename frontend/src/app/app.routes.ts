@@ -12,9 +12,7 @@ export const routes: Routes = [
   {
     path: 'catalog/:slug',
     loadComponent: () =>
-      import('./pages/product-placeholder/product-placeholder.component').then(
-        (module) => module.ProductPlaceholderComponent,
-      ),
+      import('./pages/product/product.component').then((module) => module.ProductComponent),
   },
   {
     path: 'auth/login',

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/faino-naturalno-design-system-69873b7b-f6fd-41c1-a506-a953191d246d/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/faino-naturalno-design-system-69873b7b-f6fd-41c1-a506-a953191d246d/tokens/colors.css">
+<link rel="stylesheet" href="_ds/faino-naturalno-design-system-69873b7b-f6fd-41c1-a506-a953191d246d/tokens/typography.css">
+<link rel="stylesheet" href="_ds/faino-naturalno-design-system-69873b7b-f6fd-41c1-a506-a953191d246d/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/faino-naturalno-design-system-69873b7b-f6fd-41c1-a506-a953191d246d/tokens/base.css">
+<link rel="stylesheet" href="_ds/faino-naturalno-design-system-69873b7b-f6fd-41c1-a506-a953191d246d/styles.css">
+<script src="_ds/faino-naturalno-design-system-69873b7b-f6fd-41c1-a506-a953191d246d/_ds_bundle.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+@keyframes fnSpin { to { transform: rotate(360deg); } }
+.co-link { font-family: var(--font-body); font-weight: var(--fw-semibold); color: var(--cinnamon-700); cursor: pointer; }
+.co-link:hover { color: var(--espresso-800); text-decoration: underline; }
+.co-spin { width: 18px; height: 18px; border: 2.5px solid var(--kraft-300); border-top-color: var(--cinnamon-700); border-radius: 999px; animation: fnSpin .7s linear infinite; }
+</style>
+</helmet>
+
+<div style="min-height:100%;background:var(--bg-page);padding:56px 48px 96px;display:flex;flex-direction:column;gap:20px;font-family:var(--font-body);">
+
+  <div style="max-width:1000px;">
+    <span class="fn-eyebrow">Файно натурально — оформлення</span>
+    <h1 style="margin:8px 0 6px;font-size:var(--text-3xl);">Оформлення замовлення</h1>
+    <p style="margin:0;color:var(--espresso-700);max-width:640px;">Сторінка /checkout — форма замовлення ліворуч, підсумок праворуч. Пошук міста Нової Пошти з автодоповненням, вибір відділення після вибору міста. Праворуч у розкладці — мобільний варіант і стани доставки.</p>
+  </div>
+
+  <!-- ================= DESKTOP ================= -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-family:var(--font-body);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--espresso-700);">Desktop — /checkout</span>
+      <span style="height:1.5px;flex:1;background:var(--kraft-400);max-width:400px;"></span>
+    </div>
+
+    <div style="width:1200px;max-width:100%;display:grid;grid-template-columns:1fr 400px;gap:28px;align-items:start;">
+
+      <!-- LEFT: form -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+
+        <!-- contact -->
+        <div style="padding:32px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-xs);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;">
+            <span style="width:30px;height:30px;flex:0 0 30px;border-radius:999px;background:var(--espresso-800);color:var(--kraft-50);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-body);font-weight:800;font-size:var(--text-sm);">1</span>
+            <h3 style="margin:0;font-size:var(--text-lg);">Контактні дані</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;gap:14px;">
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Ім'я" value="Олена" hint-size="100%,72px"></x-import>
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Прізвище" value="Коваль" hint-size="100%,72px"></x-import>
+            </div>
+            <div style="display:flex;gap:14px;">
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Телефон" type="tel" value="+38 (095) 348 85 36" hint-size="100%,72px"></x-import>
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Ел. пошта" type="email" value="olena@example.com" hint-size="100%,72px"></x-import>
+            </div>
+          </div>
+        </div>
+
+        <!-- delivery -->
+        <div style="padding:32px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-xs);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="width:30px;height:30px;flex:0 0 30px;border-radius:999px;background:var(--espresso-800);color:var(--kraft-50);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-body);font-weight:800;font-size:var(--text-sm);">2</span>
+              <h3 style="margin:0;font-size:var(--text-lg);">Доставка Новою Поштою</h3>
+            </div>
+            <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:#DA291C;border-radius:var(--radius-pill);">
+              <span style="width:16px;height:16px;border-radius:4px;background:var(--white);color:#DA291C;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;font-family:var(--font-body);">Н</span>
+              <span style="color:var(--white);font-family:var(--font-body);font-weight:800;font-size:var(--text-xs);letter-spacing:.02em;">Нова Пошта</span>
+            </span>
+          </div>
+
+          <!-- saved address banner -->
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--marigold-50);border:var(--border-width) solid var(--marigold-300);border-radius:var(--radius-md);margin-bottom:18px;">
+            <span style="color:var(--cinnamon-700);display:inline-flex;margin-top:1px;">
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="truck" size="18" hint-size="18px,18px"></x-import>
+            </span>
+            <div style="flex:1;min-width:0;">
+              <span style="display:block;font-family:var(--font-body);font-weight:var(--fw-bold);font-size:var(--text-sm);color:var(--espresso-900);margin-bottom:1px;">Збережена адреса підставлена</span>
+              <span style="font-size:var(--text-sm);color:var(--espresso-700);">Львів, Відділення №3: вул. Січових Стрільців, 30</span>
+            </div>
+            <span class="co-link" style="font-size:var(--text-sm);white-space:nowrap;">Змінити</span>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <!-- city autocomplete open -->
+            <div style="position:relative;display:flex;flex-direction:column;gap:6px;">
+              <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-800);">Місто</label>
+              <div style="position:relative;">
+                <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--kraft-500);display:inline-flex;">
+                  <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="search" size="17" hint-size="17px,17px"></x-import>
+                </span>
+                <input type="text" value="{{ cityQuery }}" onInput="{{ onCityInput }}" placeholder="Почніть вводити місто…" style="width:100%;padding:12px 14px 12px 42px;font-family:var(--font-body);font-size:var(--text-base);color:var(--espresso-800);background:var(--white);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);outline:none;">
+              </div>
+              <sc-if value="{{ showCityList }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;left:0;right:0;z-index:20;margin-top:6px;background:var(--white);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);overflow:hidden;max-height:230px;overflow-y:auto;">
+                  <sc-for list="{{ cityMatches }}" as="ct" hint-placeholder-count="4">
+                    <button type="button" onClick="{{ ct.pick }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;background:none;border:none;border-bottom:var(--border-width) solid var(--border-subtle);cursor:pointer;text-align:left;font-family:var(--font-body);font-size:var(--text-base);color:var(--espresso-800);">
+                      <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="map-pin" size="16" color="var(--kraft-500)" hint-size="16px,16px"></x-import>
+                      <span style="flex:1;">{{ ct.name }}</span>
+                      <span style="font-size:var(--text-xs);color:var(--text-muted);">{{ ct.region }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showCityEmpty }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:var(--text-sm);color:var(--text-muted);">Нічого не знайдено — перевірте написання</span>
+              </sc-if>
+            </div>
+
+            <!-- branch: loading / select / hint -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:{{ branchLabelColor }};">Відділення</label>
+              <sc-if value="{{ branchLoading }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--kraft-100);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);color:var(--text-muted);font-size:var(--text-sm);">
+                  <span class="co-spin"></span>
+                  Завантажуємо відділення…
+                </div>
+              </sc-if>
+              <sc-if value="{{ branchReady }}" hint-placeholder-val="{{ true }}">
+                <div style="position:relative;">
+                  <select value="{{ branchIdx }}" onChange="{{ onBranchChange }}" disabled="{{ branchDisabled }}" style="{{ branchSelectStyle }}">
+                    <option value="-1">{{ branchPlaceholder }}</option>
+                    <sc-for list="{{ branches }}" as="br" hint-placeholder-count="3">
+                      <option value="{{ br.idx }}">{{ br.label }}</option>
+                    </sc-for>
+                  </select>
+                  <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;display:inline-flex;color:var(--espresso-700);">
+                    <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="chevron-down" size="16" hint-size="16px,16px"></x-import>
+                  </span>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="display:inline-flex;align-items:center;gap:8px;font-size:var(--text-sm);color:var(--garden-700);">
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="clock" size="16" hint-size="16px,16px"></x-import>
+              Орієнтовно: 2–3 робочі дні
+            </div>
+          </div>
+        </div>
+
+        <!-- comment -->
+        <div style="padding:32px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-xs);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+            <span style="width:30px;height:30px;flex:0 0 30px;border-radius:999px;background:var(--espresso-800);color:var(--kraft-50);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-body);font-weight:800;font-size:var(--text-sm);">3</span>
+            <h3 style="margin:0;font-size:var(--text-lg);">Коментар до замовлення <span style="font-weight:var(--fw-regular);color:var(--text-muted);font-size:var(--text-sm);">— необовʼязково</span></h3>
+          </div>
+          <textarea placeholder="Побажання щодо замовлення чи доставки…" style="width:100%;min-height:96px;resize:vertical;padding:14px;font-family:var(--font-body);font-size:var(--text-base);color:var(--espresso-800);background:var(--white);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);outline:none;"></textarea>
+        </div>
+
+        <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Button" size="lg" full="{{ true }}" hint-size="100%,56px">Оформити замовлення</x-import>
+      </div>
+
+      <!-- RIGHT: summary -->
+      <div style="position:sticky;top:20px;padding:28px;background:var(--surface-cream);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-xs);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <h3 style="margin:0;font-size:var(--text-lg);">Ваше замовлення</h3>
+          <span class="co-link" style="font-size:var(--text-sm);">Редагувати</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px;">
+          <sc-for list="{{ items }}" as="it" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="position:relative;width:56px;height:56px;flex:0 0 56px;background:var(--kraft-100);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;">
+                <span style="font-family:var(--font-accent);font-size:10px;color:var(--kraft-400);">фото</span>
+                <span style="position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;padding:0 5px;display:flex;align-items:center;justify-content:center;background:var(--espresso-800);color:var(--kraft-50);font-size:11px;font-weight:800;border-radius:999px;border:2px solid var(--surface-cream);">{{ it.qty }}</span>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <span style="display:block;font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-900);line-height:1.2;">{{ it.name }}</span>
+                <span style="font-size:var(--text-xs);color:var(--text-muted);">{{ it.category }}</span>
+              </div>
+              <span style="font-family:var(--font-accent);font-weight:700;font-size:var(--text-base);color:var(--espresso-900);white-space:nowrap;">{{ it.lineTotal }} ₴</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="height:1.5px;background:var(--border-subtle);margin-bottom:16px;"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="color:var(--espresso-700);">Сума товарів</span>
+          <span style="color:var(--espresso-800);">{{ subtotal }} ₴</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;">
+          <span style="color:var(--espresso-700);">Доставка</span>
+          <span style="font-size:var(--text-sm);color:var(--text-muted);text-align:right;">за тарифами Нової Пошти</span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;padding-top:16px;border-top:var(--border-width) solid var(--border-subtle);">
+          <span style="font-family:var(--font-display);font-weight:800;font-size:var(--text-lg);color:var(--espresso-900);">Разом</span>
+          <span style="font-family:var(--font-accent);font-weight:700;font-size:var(--text-2xl);color:var(--espresso-900);">{{ subtotal }} ₴</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MOBILE + STATES ROW ================= -->
+  <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start;">
+
+    <!-- MOBILE -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:var(--font-body);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--espresso-700);">Mobile — /checkout</span>
+      </div>
+      <div style="width:375px;background:var(--bg-page);border:var(--border-width) solid var(--border-strong);border-radius:28px;overflow:hidden;box-shadow:var(--shadow-lg);">
+        <div style="display:flex;align-items:center;gap:12px;height:56px;padding:0 14px;background:var(--white);border-bottom:var(--border-width) solid var(--border-subtle);">
+          <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.IconButton" label="Назад" variant="ghost" size="sm" hint-size="34px,34px">
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="chevron-left" size="22" hint-size="22px,22px"></x-import>
+          </x-import>
+          <h2 style="margin:0;font-size:var(--text-lg);">Оформлення</h2>
+        </div>
+
+        <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+          <!-- summary collapsed on top -->
+          <div style="padding:16px;background:var(--surface-cream);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-md);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-family:var(--font-body);font-weight:var(--fw-bold);color:var(--espresso-900);">Замовлення · {{ countLabel }}</span>
+              <span class="co-link" style="font-size:var(--text-sm);">Редагувати</span>
+            </div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;">
+              <span style="color:var(--espresso-700);font-size:var(--text-sm);">Разом</span>
+              <span style="font-family:var(--font-accent);font-weight:700;font-size:var(--text-xl);color:var(--espresso-900);">{{ subtotal }} ₴</span>
+            </div>
+          </div>
+
+          <div style="padding:18px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-md);">
+            <h3 style="margin:0 0 14px;font-size:var(--text-base);">Контактні дані</h3>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;gap:10px;">
+                <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Ім'я" value="Олена" hint-size="100%,72px"></x-import>
+                <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Прізвище" value="Коваль" hint-size="100%,72px"></x-import>
+              </div>
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Телефон" type="tel" value="+38 (095) 348 85 36" hint-size="100%,72px"></x-import>
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Ел. пошта" type="email" value="olena@example.com" hint-size="100%,72px"></x-import>
+            </div>
+          </div>
+
+          <div style="padding:18px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-md);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
+              <h3 style="margin:0;font-size:var(--text-base);">Нова Пошта</h3>
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:#DA291C;border-radius:var(--radius-pill);">
+                <span style="width:14px;height:14px;border-radius:3px;background:var(--white);color:#DA291C;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;font-family:var(--font-body);">Н</span>
+                <span style="color:var(--white);font-weight:800;font-size:11px;">Нова Пошта</span>
+              </span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-800);">Місто</label>
+                <div style="position:relative;">
+                  <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--kraft-500);display:inline-flex;">
+                    <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="search" size="16" hint-size="16px,16px"></x-import>
+                  </span>
+                  <input type="text" value="Львів" readonly style="width:100%;padding:12px 14px 12px 40px;font-family:var(--font-body);font-size:var(--text-base);color:var(--espresso-800);background:var(--white);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);outline:none;min-height:48px;">
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-800);">Відділення</label>
+                <div style="position:relative;">
+                  <div style="width:100%;padding:12px 36px 12px 14px;font-family:var(--font-body);font-size:var(--text-sm);color:var(--espresso-800);background:var(--white);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);min-height:48px;display:flex;align-items:center;">Відділення №3: вул. Січових Стрільців, 30</div>
+                  <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;display:inline-flex;color:var(--espresso-700);">
+                    <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="chevron-down" size="15" hint-size="15px,15px"></x-import>
+                  </span>
+                </div>
+              </div>
+              <div style="display:inline-flex;align-items:center;gap:7px;font-size:var(--text-sm);color:var(--garden-700);">
+                <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="clock" size="15" hint-size="15px,15px"></x-import>
+                Орієнтовно: 2–3 робочі дні
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:18px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-md);">
+            <h3 style="margin:0 0 12px;font-size:var(--text-base);">Коментар <span style="font-weight:var(--fw-regular);color:var(--text-muted);font-size:var(--text-sm);">— необовʼязково</span></h3>
+            <textarea placeholder="Побажання щодо замовлення…" style="width:100%;min-height:72px;resize:vertical;padding:12px;font-family:var(--font-body);font-size:var(--text-base);color:var(--espresso-800);background:var(--white);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);outline:none;"></textarea>
+          </div>
+
+          <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Button" size="lg" full="{{ true }}" hint-size="100%,56px">Оформити замовлення</x-import>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATES: delivery -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:var(--font-body);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--espresso-700);">Стани вибору відділення</span>
+      </div>
+
+      <!-- before city -->
+      <div style="width:420px;padding:24px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);">
+        <span class="fn-eyebrow" style="display:block;margin-bottom:12px;">До вибору міста</span>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-800);">Місто</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--kraft-500);display:inline-flex;">
+                <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="search" size="16" hint-size="16px,16px"></x-import>
+              </span>
+              <input type="text" value="" readonly placeholder="Почніть вводити місто…" style="width:100%;padding:12px 14px 12px 40px;font-family:var(--font-body);font-size:var(--text-base);color:var(--espresso-800);background:var(--white);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);outline:none;">
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--kraft-500);">Відділення</label>
+            <div style="width:100%;padding:12px 14px;font-family:var(--font-body);font-size:var(--text-sm);color:var(--kraft-500);background:var(--kraft-100);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);">Спочатку оберіть місто</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- loading -->
+      <div style="width:420px;padding:24px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);">
+        <span class="fn-eyebrow" style="display:block;margin-bottom:12px;">Завантаження відділень</span>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-800);">Місто</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--kraft-500);display:inline-flex;">
+                <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="search" size="16" hint-size="16px,16px"></x-import>
+              </span>
+              <input type="text" value="Київ" readonly style="width:100%;padding:12px 14px 12px 40px;font-family:var(--font-body);font-size:var(--text-base);color:var(--espresso-800);background:var(--white);border:var(--border-width) solid var(--marigold-400);border-radius:var(--radius-md);outline:none;">
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-800);">Відділення</label>
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--kraft-100);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);color:var(--text-muted);font-size:var(--text-sm);">
+              <span class="co-spin"></span>
+              Завантажуємо відділення…
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    cityQuery: "Льв",
+    cityTouched: true,
+    cityId: "",
+    branchIdx: -1,
+    branchLoading: false,
+  };
+  componentDidMount() { if (window.lucide) window.lucide.createIcons(); }
+  componentDidUpdate() { if (window.lucide) window.lucide.createIcons(); }
+  componentWillUnmount() { clearTimeout(this._load); }
+
+  CITIES = [
+    { id: "lviv", name: "Львів", region: "Львівська обл." },
+    { id: "kyiv", name: "Київ", region: "м. Київ" },
+    { id: "berehovo", name: "Берегово", region: "Закарпатська обл." },
+    { id: "uzhhorod", name: "Ужгород", region: "Закарпатська обл." },
+    { id: "kharkiv", name: "Харків", region: "Харківська обл." },
+    { id: "dnipro", name: "Дніпро", region: "Дніпропетровська обл." },
+    { id: "odesa", name: "Одеса", region: "Одеська обл." },
+    { id: "ivano", name: "Івано-Франківськ", region: "Івано-Франківська обл." },
+    { id: "ternopil", name: "Тернопіль", region: "Тернопільська обл." },
+    { id: "vinnytsia", name: "Вінниця", region: "Вінницька обл." },
+  ];
+  BRANCHES = {
+    lviv: ["Відділення №1: вул. Городоцька, 359", "Відділення №2: вул. Пасічна, 152", "Відділення №3: вул. Січових Стрільців, 30", "Поштомат №4791: вул. Шевченка, 60"],
+    kyiv: ["Відділення №1: вул. Хрещатик, 1", "Відділення №5: вул. Пирогівський шлях, 135", "Поштомат №12043: пр. Перемоги, 89"],
+    berehovo: ["Відділення №1: пл. Ференца Ракоці, 6", "Відділення №2: вул. Мужайська, 6"],
+    uzhhorod: ["Відділення №1: вул. Собранецька, 39", "Відділення №3: пр. Свободи, 3"],
+    kharkiv: ["Відділення №1: вул. Полтавський Шлях, 56", "Відділення №8: пр. Науки, 45"],
+    dnipro: ["Відділення №1: вул. Курсантська, 26", "Відділення №4: пр. Дмитра Яворницького, 5"],
+    odesa: ["Відділення №1: вул. Базарна, 63", "Відділення №11: вул. Дерибасівська, 12"],
+    ivano: ["Відділення №1: вул. Незалежності, 137", "Відділення №2: вул. Галицька, 130"],
+    ternopil: ["Відділення №1: вул. Живова, 5", "Відділення №3: вул. Руська, 18"],
+    vinnytsia: ["Відділення №1: вул. Келецька, 117", "Відділення №5: вул. Соборна, 24"],
+  };
+
+  pickCity(c) {
+    clearTimeout(this._load);
+    this.setState({ cityQuery: c.name, cityId: c.id, cityTouched: false, branchIdx: -1, branchLoading: true });
+    this._load = setTimeout(() => this.setState({ branchLoading: false }), 1100);
+  }
+
+  plural(n) {
+    const a = Math.abs(n) % 100, b = n % 10;
+    if (a > 10 && a < 20) return "товарів";
+    if (b === 1) return "товар";
+    if (b >= 2 && b <= 4) return "товари";
+    return "товарів";
+  }
+
+  renderVals() {
+    const s = this.state;
+    const q = s.cityQuery.trim().toLowerCase();
+    const matches = q.length >= 1 ? this.CITIES.filter((c) => c.name.toLowerCase().includes(q)) : this.CITIES.slice(0, 6);
+    const exact = this.CITIES.find((c) => c.name.toLowerCase() === q);
+    const showCityList = s.cityTouched && !exact && matches.length > 0;
+    const showCityEmpty = s.cityTouched && q.length >= 1 && matches.length === 0;
+
+    const branchList = (s.cityId && this.BRANCHES[s.cityId]) || [];
+    const branches = branchList.map((label, idx) => ({ idx, label }));
+    const branchDisabled = !s.cityId;
+
+    const selectBase = "appearance:none;-webkit-appearance:none;width:100%;padding:12px 40px 12px 16px;font-family:var(--font-body);font-size:var(--text-base);border-radius:var(--radius-md);outline:none;border:var(--border-width) solid var(--border-strong);";
+    const branchSelectStyle = branchDisabled
+      ? selectBase + "background:var(--kraft-100);color:var(--kraft-500);cursor:not-allowed;"
+      : selectBase + "background:var(--white);color:var(--espresso-800);cursor:pointer;";
+
+    const items = [
+      { name: "Паприка копчена", category: "Спеції", price: 95, qty: 2 },
+      { name: "Іван-чай ферментований", category: "Чаї", price: 130, qty: 1 },
+      { name: "Хмелі-сунелі", category: "Приправи", price: 70, qty: 1 },
+    ];
+    const subtotal = items.reduce((a, i) => a + i.price * i.qty, 0);
+    const totalQty = items.reduce((a, i) => a + i.qty, 0);
+
+    return {
+      cityQuery: s.cityQuery,
+      onCityInput: (e) => this.setState({ cityQuery: e.target.value, cityTouched: true, cityId: "", branchIdx: -1, branchLoading: false }),
+      showCityList,
+      showCityEmpty,
+      cityMatches: matches.map((c) => ({ ...c, pick: () => this.pickCity(c) })),
+      branchLoading: s.branchLoading,
+      branchReady: !s.branchLoading,
+      branches,
+      branchIdx: s.branchIdx,
+      branchDisabled,
+      branchLabelColor: branchDisabled ? "var(--kraft-500)" : "var(--espresso-800)",
+      branchPlaceholder: branchDisabled ? "Спочатку оберіть місто" : "Оберіть відділення",
+      branchSelectStyle,
+      onBranchChange: (e) => this.setState({ branchIdx: Number(e.target.value) }),
+      items: items.map((it) => ({ ...it, lineTotal: it.price * it.qty })),
+      subtotal,
+      countLabel: totalQty + " " + this.plural(totalQty),
+    };
+  }
+}
+</script>
+</body>
+</html>

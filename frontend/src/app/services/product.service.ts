@@ -3,7 +3,12 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { ApiResponse, CatalogFilters, ProductPage } from '../models/catalog.models';
+import {
+  ApiResponse,
+  CatalogFilters,
+  ProductDetail,
+  ProductPage,
+} from '../models/catalog.models';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -27,5 +32,12 @@ export class ProductService {
     }
 
     return this.http.get<ApiResponse<ProductPage>>(this.url, { params });
+  }
+
+  /** Fresh load each call — no client-side detail cache. */
+  getBySlug(slug: string): Observable<ApiResponse<ProductDetail>> {
+    return this.http.get<ApiResponse<ProductDetail>>(
+      `${this.url}/${encodeURIComponent(slug)}`,
+    );
   }
 }

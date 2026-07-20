@@ -22,11 +22,12 @@ export class CartService {
     return this.sessionId;
   }
 
-  addItem(productId: number): Observable<ApiResponse<AddCartItemResponse>> {
+  addItem(productId: number, quantity = 1): Observable<ApiResponse<AddCartItemResponse>> {
+    const qty = Math.max(1, Math.min(12, Math.floor(quantity)));
     return this.http
       .post<ApiResponse<AddCartItemResponse>>(
         `${environment.apiBaseUrl}/api/cart/items`,
-        { productId, quantity: 1 },
+        { productId, quantity: qty },
         { headers: this.sessionHeaders() },
       )
       .pipe(

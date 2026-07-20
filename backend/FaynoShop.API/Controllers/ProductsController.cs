@@ -30,4 +30,19 @@ public sealed class ProductsController : ControllerBase
         var data = await _productService.GetProductsAsync(query, cancellationToken);
         return Ok(ApiResponse<ProductListResponse>.Ok(data));
     }
+
+    /// <summary>
+    /// Active product detail by slug, including up to 3 similar products (same category, popular order).
+    /// Unknown or inactive slug → 404 with ApiResponse failure.
+    /// </summary>
+    [HttpGet("{slug}")]
+    [ProducesResponseType(typeof(ApiResponse<ProductDetailDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<ProductDetailDto>>> GetBySlug(
+        string slug,
+        CancellationToken cancellationToken)
+    {
+        var data = await _productService.GetBySlugAsync(slug, cancellationToken);
+        return Ok(ApiResponse<ProductDetailDto>.Ok(data));
+    }
 }

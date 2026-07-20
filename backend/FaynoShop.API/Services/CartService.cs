@@ -114,6 +114,8 @@ public sealed class CartService : ICartService
     {
         ValidateSessionId(sessionId);
 
+        var quantityToAdd = request.Quantity ?? 1;
+
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
 
         // Lock product row for the transaction so concurrent adds cannot oversell stock.
@@ -121,14 +123,10 @@ public sealed class CartService : ICartService
             .FromSql($"SELECT * FROM products WHERE id = {request.ProductId} FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (product is null)
+        // Same client-facing message for missing and inactive — avoid product-ID existence oracle.
+        if (product is null || !product.IsActive)
         {
             throw new NotFoundException("Товар не знайдено.");
-        }
-
-        if (!product.IsActive)
-        {
-            throw new BadRequestException("Товар недоступний.");
         }
 
         if (product.StockQuantity <= 0)
@@ -137,7 +135,7 @@ public sealed class CartService : ICartService
         }
 
         var cart = await GetOrCreateCartAsync(sessionId, cancellationToken);
-        var line = await GetOrCreateLineAsync(cart, product, cancellationToken);
+        var line = await GetOrCreateLineAsync(cart, product, quantityToAdd, cancellationToken);
 
         if (line.Quantity > product.StockQuantity)
         {
@@ -159,6 +157,7 @@ public sealed class CartService : ICartService
     private async Task<CartItem> GetOrCreateLineAsync(
         Cart cart,
         Product product,
+        int quantityToAdd,
         CancellationToken cancellationToken)
     {
         var line = await _db.CartItems
@@ -168,15 +167,33 @@ public sealed class CartService : ICartService
 
         if (line is not null)
         {
-            line.Quantity += 1;
+            var remainingCapacity = product.StockQuantity - line.Quantity;
+            if (remainingCapacity <= 0)
+            {
+                throw new BadRequestException("Недостатньо товару на складі.");
+            }
+
+            // Cap at remaining capacity so concurrent or oversized requests cannot oversell.
+            var maxAddable = Math.Min(product.StockQuantity, remainingCapacity);
+            if (quantityToAdd > maxAddable)
+            {
+                throw new BadRequestException("Недостатньо товару на складі.");
+            }
+
+            line.Quantity += quantityToAdd;
             return line;
+        }
+
+        if (quantityToAdd > product.StockQuantity)
+        {
+            throw new BadRequestException("Недостатньо товару на складі.");
         }
 
         line = new CartItem
         {
             CartId = cart.Id,
             ProductId = product.Id,
-            Quantity = 1
+            Quantity = quantityToAdd
         };
         _db.CartItems.Add(line);
 
@@ -199,7 +216,19 @@ public sealed class CartService : ICartService
                 throw;
             }
 
-            line.Quantity += 1;
+            var remainingCapacity = product.StockQuantity - line.Quantity;
+            if (remainingCapacity <= 0)
+            {
+                throw new BadRequestException("Недостатньо товару на складі.");
+            }
+
+            var maxAddable = Math.Min(product.StockQuantity, remainingCapacity);
+            if (quantityToAdd > maxAddable)
+            {
+                throw new BadRequestException("Недостатньо товару на складі.");
+            }
+
+            line.Quantity += quantityToAdd;
             return line;
         }
     }

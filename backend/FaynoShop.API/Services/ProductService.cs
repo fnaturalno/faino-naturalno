@@ -1,17 +1,123 @@
 using FaynoShop.API.Data;
 using FaynoShop.API.DTOs.Products;
+using FaynoShop.API.Exceptions;
 using FaynoShop.API.Models;
+using FaynoShop.API.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace FaynoShop.API.Services;
 
 public sealed class ProductService : IProductService
 {
+    private const int SimilarProductsLimit = 3;
+
+    /// <summary>Matches <see cref="Data.Configurations.ProductConfiguration"/> slug max length.</summary>
+    private const int MaxSlugLength = 200;
+
     private readonly AppDbContext _db;
 
     public ProductService(AppDbContext db)
     {
         _db = db;
+    }
+
+    public async Task<ProductDetailDto> GetBySlugAsync(
+        string slug,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            throw new NotFoundException("Товар не знайдено.");
+        }
+
+        slug = slug.Trim();
+
+        // Reject oversized slugs before hitting the DB (DoS / accidental huge path segments).
+        if (slug.Length > MaxSlugLength)
+        {
+            throw new NotFoundException("Товар не знайдено.");
+        }
+
+        var product = await _db.Products
+            .AsNoTracking()
+            .Where(p => p.IsActive && p.Slug == slug)
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.Slug,
+                p.ShortDescription,
+                p.Description,
+                p.Price,
+                p.OldPrice,
+                p.ImageUrl,
+                p.ImageUrls,
+                p.Weight,
+                p.WeightUnit,
+                p.StockQuantity,
+                p.IsFeatured,
+                p.CreatedAt,
+                p.CategoryId,
+                CategoryName = p.Category.Name,
+                CategorySlug = p.Category.Slug
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (product is null)
+        {
+            throw new NotFoundException("Товар не знайдено.");
+        }
+
+        var similarProducts = await _db.Products
+            .AsNoTracking()
+            .Where(p =>
+                p.IsActive &&
+                p.CategoryId == product.CategoryId &&
+                p.Id != product.Id)
+            .OrderByDescending(p => p.IsFeatured)
+            .ThenBy(p => p.Id)
+            .Take(SimilarProductsLimit)
+            .Select(p => new ProductDto(
+                p.Id,
+                p.Name,
+                p.Slug,
+                p.ShortDescription,
+                p.Price,
+                p.OldPrice,
+                p.ImageUrl,
+                p.Weight,
+                p.WeightUnit,
+                p.StockQuantity,
+                p.IsFeatured,
+                p.CreatedAt,
+                p.CategoryId,
+                p.Category.Name,
+                p.Category.Slug))
+            .ToListAsync(cancellationToken);
+
+        similarProducts = similarProducts
+            .Select(MapSafeProductCard)
+            .ToList();
+
+        return new ProductDetailDto(
+            product.Id,
+            product.Name,
+            product.Slug,
+            product.ShortDescription,
+            product.Description,
+            product.Price,
+            product.OldPrice,
+            MediaUrlGuard.Sanitize(product.ImageUrl),
+            MediaUrlGuard.SanitizeMany(product.ImageUrls),
+            product.Weight,
+            product.WeightUnit,
+            product.StockQuantity,
+            product.IsFeatured,
+            product.CreatedAt,
+            product.CategoryId,
+            product.CategoryName,
+            product.CategorySlug,
+            similarProducts);
     }
 
     public async Task<ProductListResponse> GetProductsAsync(
@@ -69,6 +175,8 @@ public sealed class ProductService : IProductService
                 p.Category.Name,
                 p.Category.Slug))
             .ToListAsync(cancellationToken);
+
+        items = items.Select(MapSafeProductCard).ToList();
 
         return new ProductListResponse(
             items,
@@ -166,4 +274,7 @@ public sealed class ProductService : IProductService
 
         return $"%{escaped}%";
     }
+
+    private static ProductDto MapSafeProductCard(ProductDto product) =>
+        product with { ImageUrl = MediaUrlGuard.Sanitize(product.ImageUrl) };
 }

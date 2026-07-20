@@ -12,7 +12,7 @@ public sealed class AddCartItemRequestValidator : AbstractValidator<AddCartItemR
             .WithMessage("Ідентифікатор товару є обов'язковим.");
 
         RuleFor(x => x.Quantity)
-            .Must(q => q is null or 1)
-            .WithMessage("Каталог додає рівно одну одиницю товару.");
+            .Must(q => q is null or (>= 1 and <= 12))
+            .WithMessage("Кількість має бути від 1 до 12.");
     }
 }

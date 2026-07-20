@@ -9,6 +9,15 @@ public static class SeedData
     // Fixed reference time so "Новинка" and demo inventory stay deterministic across runs.
     private static readonly DateTime SeedReferenceUtc = new(2026, 7, 17, 12, 0, 0, DateTimeKind.Utc);
 
+    /// <summary>Multi-image gallery for product-page thumbnail testing (up to 4 thumbs).</summary>
+    private static readonly string[] GalleryKurkuma =
+    [
+        "/assets/demo/product-1.jpg",
+        "/assets/demo/product-2.jpg",
+        "/assets/demo/product-3.jpg",
+        "/assets/demo/product-5.jpg"
+    ];
+
     /// <summary>
     /// Local-only demo password for <c>demo@fayno.local</c>. Never use in production.
     /// </summary>
@@ -37,7 +46,29 @@ public static class SeedData
             await context.SaveChangesAsync(ct);
         }
 
+        await EnsureProductGalleriesAsync(context, ct);
         await SeedDemoAuthAsync(context, ct);
+    }
+
+    /// <summary>
+    /// Ensures at least one demo product has a multi-image gallery for product-page testing.
+    /// Idempotent — only updates when the gallery is empty or a single URL.
+    /// </summary>
+    private static async Task EnsureProductGalleriesAsync(AppDbContext context, CancellationToken ct)
+    {
+        var product = await context.Products
+            .FirstOrDefaultAsync(p => p.Slug == "kurkuma-melena", ct);
+
+        if (product is null)
+            return;
+
+        if (product.ImageUrls.Length >= 2)
+            return;
+
+        product.ImageUrl ??= GalleryKurkuma[0];
+        product.ImageUrls = GalleryKurkuma;
+        product.UpdatedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync(ct);
     }
 
     private static async Task SeedDemoAuthAsync(AppDbContext context, CancellationToken ct)
@@ -211,13 +242,14 @@ public static class SeedData
                 "Яскрава куркума з насиченим ароматом для каррі та супів.",
                 89.00m,
                 oldPrice: 120.00m,
-                imageUrl: "/assets/demo/product-1.jpg",
+                imageUrl: GalleryKurkuma[0],
                 weight: 100m,
                 weightUnit: "г",
                 stock: 48,
                 featured: true,
                 createdAt: older,
-                updatedAt: older),
+                updatedAt: older,
+                imageUrls: GalleryKurkuma),
             Product(
                 "Паприка солодка",
                 "papryka-solodka",
@@ -456,7 +488,8 @@ public static class SeedData
         DateTime createdAt,
         DateTime updatedAt,
         string? description = null,
-        bool isActive = true) =>
+        bool isActive = true,
+        string[]? imageUrls = null) =>
         new()
         {
             Name = name,
@@ -466,7 +499,7 @@ public static class SeedData
             Price = price,
             OldPrice = oldPrice,
             ImageUrl = imageUrl,
-            ImageUrls = imageUrl is null ? [] : [imageUrl],
+            ImageUrls = imageUrls ?? (imageUrl is null ? [] : [imageUrl]),
             StockQuantity = stock,
             Weight = weight,
             WeightUnit = weightUnit,
