@@ -20,10 +20,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
+        var origins = builder.Configuration["AllowedOrigins"]?
+            .Split(",", StringSplitOptions.RemoveEmptyEntries)
+            ?? ["http://localhost:4200"];
+
         policy
-            .WithOrigins(
-                "http://localhost:4200",
-                "https://localhost:4200")
+            .WithOrigins(origins)
             .WithHeaders("Content-Type", "Authorization", "X-Cart-Session-Id")
             .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
     });
