@@ -23,4 +23,7 @@ public sealed class ProductQuery
 
     /// <summary>popular | price-asc | price-desc | new. Defaults to popular.</summary>
     public string? SortBy { get; set; }
+
+    /// <summary>Honored only for administrators.</summary>
+    public bool IncludeInactive { get; set; }
 }

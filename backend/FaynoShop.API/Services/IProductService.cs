@@ -11,4 +11,14 @@ public interface IProductService
     /// Throws <see cref="Exceptions.NotFoundException"/> for unknown or inactive slugs.
     /// </summary>
     Task<ProductDetailDto> GetBySlugAsync(string slug, CancellationToken cancellationToken);
+
+    Task<AdminProductDto> GetForAdminAsync(int id, CancellationToken cancellationToken);
+
+    Task<AdminProductDto> CreateAsync(SaveProductRequest request, CancellationToken cancellationToken);
+
+    Task<AdminProductDto> UpdateAsync(int id, SaveProductRequest request, CancellationToken cancellationToken);
+
+    Task<AdminProductDto> SetActiveAsync(int id, bool isActive, CancellationToken cancellationToken);
+
+    Task DeleteAsync(int id, CancellationToken cancellationToken);
 }

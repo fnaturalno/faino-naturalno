@@ -29,6 +29,17 @@ public interface IOrderService
         string? confirmationToken,
         int? userId,
         CancellationToken cancellationToken);
+
+    Task<AdminOrderListResponse> GetAdminOrdersAsync(
+        AdminOrderQuery query,
+        CancellationToken cancellationToken);
+
+    Task<OrderDetailDto> GetAdminOrderByIdAsync(int id, CancellationToken cancellationToken);
+
+    Task<OrderDetailDto> UpdateStatusAsync(
+        int id,
+        UpdateOrderStatusRequest request,
+        CancellationToken cancellationToken);
 }
 
 public sealed class OrderService : IOrderService
@@ -309,6 +320,150 @@ public sealed class OrderService : IOrderService
             order.Comment,
             items);
     }
+
+    public async Task<AdminOrderListResponse> GetAdminOrdersAsync(
+        AdminOrderQuery query,
+        CancellationToken cancellationToken)
+    {
+        var pageSize = Math.Clamp(query.PageSize ?? 10, 1, 100);
+        var page = Math.Max(query.Page ?? 1, 1);
+        var orders = _db.Orders.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var pattern = EscapeLikePattern(query.Search.Trim());
+            orders = orders.Where(o =>
+                EF.Functions.ILike(o.OrderNumber, pattern, "\\")
+                || EF.Functions.ILike(o.RecipientName, pattern, "\\")
+                || EF.Functions.ILike(o.Phone, pattern, "\\"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Status)
+            && Enum.TryParse<OrderStatus>(query.Status, true, out var status))
+        {
+            orders = orders.Where(o => o.Status == status);
+        }
+
+        var totalCount = await orders.CountAsync(cancellationToken);
+        var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = totalPages == 0 ? 1 : Math.Min(page, totalPages);
+
+        var rows = await orders
+            .OrderByDescending(o => o.CreatedAt)
+            .ThenByDescending(o => o.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(o => new
+            {
+                o.Id,
+                o.OrderNumber,
+                o.CreatedAt,
+                o.RecipientName,
+                o.Phone,
+                o.DeliveryAddress,
+                o.TotalAmount,
+                o.Status
+            })
+            .ToListAsync(cancellationToken);
+
+        var items = rows.Select(o => new AdminOrderListItemDto(
+            o.Id,
+            o.OrderNumber,
+            o.CreatedAt,
+            o.RecipientName,
+            o.Phone,
+            ExtractCity(o.DeliveryAddress),
+            o.TotalAmount,
+            o.Status.ToString())).ToList();
+
+        return new AdminOrderListResponse(items, page, pageSize, totalCount, totalPages);
+    }
+
+    public async Task<OrderDetailDto> GetAdminOrderByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        var order = await _db.Orders
+            .AsNoTracking()
+            .Where(o => o.Id == id)
+            .Select(o => new
+            {
+                o.Id,
+                o.OrderNumber,
+                Status = o.Status.ToString(),
+                o.TotalAmount,
+                o.CreatedAt,
+                o.RecipientName,
+                o.Phone,
+                o.Email,
+                o.DeliveryAddress,
+                o.Comment,
+                Items = o.Items.OrderBy(i => i.Id).Select(i => new
+                {
+                    i.ProductId,
+                    ProductName = i.Product.Name,
+                    i.Quantity,
+                    i.UnitPrice,
+                    Category = (string?)i.Product.Category.Name,
+                    ImageUrl = i.Product.ImageUrl
+                }).ToList()
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("Замовлення не знайдено.");
+
+        var items = order.Items.Select(i => new OrderDetailItemDto(
+            i.ProductId, i.ProductName, i.Quantity, i.UnitPrice, i.UnitPrice * i.Quantity,
+            i.Category, MediaUrlGuard.Sanitize(i.ImageUrl))).ToList();
+
+        return new OrderDetailDto(
+            order.Id, order.OrderNumber, order.Status, order.TotalAmount, order.CreatedAt,
+            order.RecipientName, order.Phone, order.Email, order.DeliveryAddress, order.Comment, items);
+    }
+
+    public async Task<OrderDetailDto> UpdateStatusAsync(
+        int id,
+        UpdateOrderStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<OrderStatus>(request.Status, true, out var nextStatus))
+        {
+            throw new BadRequestException("Вкажіть коректний статус замовлення.");
+        }
+
+        var order = await _db.Orders.FirstOrDefaultAsync(o => o.Id == id, cancellationToken)
+            ?? throw new NotFoundException("Замовлення не знайдено.");
+
+        if (!IsAllowedTransition(order.Status, nextStatus))
+        {
+            throw new BadRequestException("Перехід до вибраного статусу неможливий.");
+        }
+
+        order.Status = nextStatus;
+        order.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+        return await GetAdminOrderByIdAsync(id, cancellationToken);
+    }
+
+    private static bool IsAllowedTransition(OrderStatus current, OrderStatus next) =>
+        (current, next) switch
+        {
+            (OrderStatus.Pending, OrderStatus.Confirmed) => true,
+            (OrderStatus.Confirmed, OrderStatus.Shipped) => true,
+            (OrderStatus.Shipped, OrderStatus.Delivered) => true,
+            (OrderStatus.Pending, OrderStatus.Cancelled) => true,
+            (OrderStatus.Confirmed, OrderStatus.Cancelled) => true,
+            (OrderStatus.Shipped, OrderStatus.Cancelled) => true,
+            _ => false
+        };
+
+    private static string ExtractCity(string deliveryAddress)
+    {
+        var separator = deliveryAddress.IndexOf(',');
+        return separator < 0 ? deliveryAddress : deliveryAddress[..separator].Trim();
+    }
+
+    private static string EscapeLikePattern(string value) =>
+        $"%{value.Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("%", "\\%", StringComparison.Ordinal)
+            .Replace("_", "\\_", StringComparison.Ordinal)}%";
 
     private static bool CanAccessOrder(
         int? orderUserId,

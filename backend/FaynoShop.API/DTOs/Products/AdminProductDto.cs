@@ -1,19 +1,22 @@
 namespace FaynoShop.API.DTOs.Products;
 
-public sealed record ProductDto(
+public sealed record AdminProductDto(
     int Id,
     string Name,
     string Slug,
-    string? ShortDescription,
-    decimal Price,
-    decimal? OldPrice,
-    string? ImageUrl,
-    decimal? Weight,
-    string? WeightUnit,
-    int StockQuantity,
-    bool IsFeatured,
-    DateTime CreatedAt,
     int CategoryId,
     string CategoryName,
     string CategorySlug,
-    bool IsActive = true);
+    string? ShortDescription,
+    string? Description,
+    decimal Price,
+    decimal? OldPrice,
+    decimal? Weight,
+    string? WeightUnit,
+    int StockQuantity,
+    string? ImageUrl,
+    string[] ImageUrls,
+    bool IsActive,
+    bool IsFeatured,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);

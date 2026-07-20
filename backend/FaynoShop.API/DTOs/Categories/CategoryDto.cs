@@ -5,4 +5,5 @@ public sealed record CategoryDto(
     string Name,
     string Slug,
     int SortOrder,
-    int ActiveProductCount);
+    int ActiveProductCount,
+    string? Description = null);

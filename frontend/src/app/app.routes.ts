@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'catalog' },
@@ -64,6 +65,46 @@ export const routes: Routes = [
       import('./pages/order-confirm/order-confirm.component').then(
         (module) => module.OrderConfirmComponent,
       ),
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./pages/admin/admin-shell.component').then((module) => module.AdminShellComponent),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'products' },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./pages/admin/admin-products.component').then((module) => module.AdminProductsComponent),
+      },
+      {
+        path: 'products/new',
+        loadComponent: () =>
+          import('./pages/admin/admin-product-form.component').then(
+            (module) => module.AdminProductFormComponent,
+          ),
+      },
+      {
+        path: 'products/:id/edit',
+        loadComponent: () =>
+          import('./pages/admin/admin-product-form.component').then(
+            (module) => module.AdminProductFormComponent,
+          ),
+      },
+      {
+        path: 'orders',
+        loadComponent: () =>
+          import('./pages/admin/admin-orders.component').then((module) => module.AdminOrdersComponent),
+      },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./pages/admin/admin-categories.component').then(
+            (module) => module.AdminCategoriesComponent,
+          ),
+      },
+    ],
   },
   { path: '**', redirectTo: 'catalog' },
 ];

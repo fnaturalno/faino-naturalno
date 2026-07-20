@@ -25,6 +25,13 @@ public static class SeedData
 
     public const string DemoUserEmail = "demo@fayno.local";
 
+    /// <summary>
+    /// Local-only default admin for <c>admin@fayno.local</c>. Never use in production.
+    /// </summary>
+    public const string AdminUserPassword = "Admin1234!";
+
+    public const string AdminUserEmail = "admin@fayno.local";
+
     public static async Task SeedAsync(AppDbContext context, IConfiguration config, CancellationToken ct = default)
     {
         var seedEnabled = config.GetValue("SeedDemoData", false)
@@ -48,6 +55,58 @@ public static class SeedData
 
         await EnsureProductGalleriesAsync(context, ct);
         await SeedDemoAuthAsync(context, ct);
+        await EnsureDefaultAdminAsync(context, ct);
+    }
+
+    /// <summary>
+    /// Ensures a default admin account exists (idempotent). Creates or upgrades
+    /// <c>admin@fayno.local</c> with <see cref="AdminUserPassword"/>.
+    /// </summary>
+    private static async Task EnsureDefaultAdminAsync(AppDbContext context, CancellationToken ct)
+    {
+        var now = SeedReferenceUtc;
+        var existing = await context.Users
+            .FirstOrDefaultAsync(u => u.Email == AdminUserEmail, ct);
+
+        if (existing is not null)
+        {
+            var dirty = false;
+
+            if (!existing.IsAdmin)
+            {
+                existing.IsAdmin = true;
+                dirty = true;
+            }
+
+            if (!PasswordHasher.Verify(AdminUserPassword, existing.PasswordHash)
+                || !IsCurrentWorkFactor(existing.PasswordHash))
+            {
+                existing.PasswordHash = PasswordHasher.Hash(AdminUserPassword);
+                dirty = true;
+            }
+
+            if (dirty)
+            {
+                existing.UpdatedAt = DateTime.UtcNow;
+                await context.SaveChangesAsync(ct);
+            }
+
+            return;
+        }
+
+        context.Users.Add(new User
+        {
+            Email = AdminUserEmail,
+            PasswordHash = PasswordHasher.Hash(AdminUserPassword),
+            FirstName = "Адмін",
+            LastName = "Файно",
+            Phone = "+380501000000",
+            IsAdmin = true,
+            CreatedAt = now,
+            UpdatedAt = now
+        });
+
+        await context.SaveChangesAsync(ct);
     }
 
     /// <summary>

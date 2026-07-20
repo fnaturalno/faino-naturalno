@@ -217,7 +217,7 @@ Or via environment variable: `SEED_DEMO_DATA=true` (maps to the same config key 
 
 ### Behavior
 - Runs on app startup **only if** `SeedDemoData: true`
-- Idempotent — categories skip if any exist; demo user skips if `demo@fayno.local` already exists
+- Idempotent — categories skip if any exist; demo user skips if `demo@fayno.local` already exists; admin is created/upgraded if `admin@fayno.local` is missing or not admin
 - Skips seeding in production unless explicitly enabled (`SeedDemoData` defaults to `false` in `appsettings.json`; Development sets `true`)
 
 ### Demo Data Set
@@ -251,8 +251,18 @@ Prices in UAH (`numeric`). Placeholder images under `/assets/demo/...`.
 | Password | `Demo1234!` (local-only; bcrypt hash in `SeedData`) |
 | Name | Олена Коваль |
 | Phone | `+380501112233` |
+| IsAdmin | `false` |
 | NP address | Київ sample city/branch + summary |
 | Orders | 2 sample rows (`FN-2026-0001` Delivered, `FN-2026-0002` Shipped) for profile list |
+
+#### Default admin
+| Field | Value |
+|-------|--------|
+| Email | `admin@fayno.local` |
+| Password | `Admin1234!` (local-only; bcrypt hash in `SeedData`) |
+| Name | Адмін Файно |
+| Phone | `+380501000000` |
+| IsAdmin | `true` |
 
 ### Implementation
 
@@ -265,6 +275,7 @@ public static class SeedData
         if (!config.GetValue<bool>("SeedDemoData")) return;
         // catalog: skip if categories exist
         // auth: skip if demo@fayno.local exists
+        // admin: ensure admin@fayno.local with IsAdmin=true
     }
 }
 ```

@@ -4,6 +4,7 @@ using FaynoShop.API.Exceptions;
 using FaynoShop.API.Models;
 using FaynoShop.API.Security;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace FaynoShop.API.Services;
 
@@ -127,9 +128,16 @@ public sealed class ProductService : IProductService
         var normalized = ProductQueryNormalizer.Normalize(query);
         normalized = await ResolveValidCategorySlugsAsync(normalized, cancellationToken);
 
-        var priceBounds = await _db.Products
+        var includeInactive = query.IncludeInactive;
+        var products = _db.Products.AsNoTracking();
+
+        if (!includeInactive)
+        {
+            products = products.Where(p => p.IsActive);
+        }
+
+        var priceBounds = await products
             .AsNoTracking()
-            .Where(p => p.IsActive)
             .GroupBy(_ => 1)
             .Select(g => new
             {
@@ -141,9 +149,7 @@ public sealed class ProductService : IProductService
         var priceMin = priceBounds?.Min ?? 0m;
         var priceMax = priceBounds?.Max ?? 0m;
 
-        var filtered = ApplyFilters(
-            _db.Products.AsNoTracking().Where(p => p.IsActive),
-            normalized);
+        var filtered = ApplyFilters(products, normalized);
 
         var totalCount = await filtered.CountAsync(cancellationToken);
 
@@ -173,7 +179,8 @@ public sealed class ProductService : IProductService
                 p.CreatedAt,
                 p.CategoryId,
                 p.Category.Name,
-                p.Category.Slug))
+                p.Category.Slug,
+                p.IsActive))
             .ToListAsync(cancellationToken);
 
         items = items.Select(MapSafeProductCard).ToList();
@@ -187,6 +194,175 @@ public sealed class ProductService : IProductService
             priceMin,
             priceMax);
     }
+
+    public async Task<AdminProductDto> GetForAdminAsync(int id, CancellationToken cancellationToken)
+    {
+        var product = await _db.Products
+            .AsNoTracking()
+            .Where(p => p.Id == id)
+            .Select(p => new AdminProductDto(
+                p.Id, p.Name, p.Slug, p.CategoryId, p.Category.Name, p.Category.Slug,
+                p.ShortDescription, p.Description, p.Price, p.OldPrice, p.Weight, p.WeightUnit,
+                p.StockQuantity, p.ImageUrl, p.ImageUrls, p.IsActive, p.IsFeatured,
+                p.CreatedAt, p.UpdatedAt))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return product ?? throw new NotFoundException("Товар не знайдено.");
+    }
+
+    public async Task<AdminProductDto> CreateAsync(
+        SaveProductRequest request,
+        CancellationToken cancellationToken)
+    {
+        await EnsureCategoryExistsAsync(request.CategoryId, cancellationToken);
+        var slug = await ResolveSlugAsync(request.Slug, request.Name, null, cancellationToken);
+        var now = DateTime.UtcNow;
+        var imageUrls = NormalizeImageUrls(request.ImageUrl, request.ImageUrls);
+
+        var product = new Product
+        {
+            Name = request.Name.Trim(),
+            Slug = slug,
+            CategoryId = request.CategoryId,
+            ShortDescription = TrimOrNull(request.ShortDescription),
+            Description = TrimOrNull(request.Description),
+            Price = request.Price,
+            OldPrice = request.OldPrice,
+            Weight = request.Weight,
+            WeightUnit = TrimOrNull(request.WeightUnit),
+            StockQuantity = request.StockQuantity,
+            ImageUrl = imageUrls.FirstOrDefault(),
+            ImageUrls = imageUrls,
+            IsActive = request.IsActive,
+            IsFeatured = request.IsFeatured,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        _db.Products.Add(product);
+        await _db.SaveChangesAsync(cancellationToken);
+        return await GetForAdminAsync(product.Id, cancellationToken);
+    }
+
+    public async Task<AdminProductDto> UpdateAsync(
+        int id,
+        SaveProductRequest request,
+        CancellationToken cancellationToken)
+    {
+        var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
+            ?? throw new NotFoundException("Товар не знайдено.");
+
+        await EnsureCategoryExistsAsync(request.CategoryId, cancellationToken);
+        var slug = await ResolveSlugAsync(request.Slug, request.Name, id, cancellationToken);
+        var imageUrls = NormalizeImageUrls(request.ImageUrl, request.ImageUrls);
+
+        product.Name = request.Name.Trim();
+        product.Slug = slug;
+        product.CategoryId = request.CategoryId;
+        product.ShortDescription = TrimOrNull(request.ShortDescription);
+        product.Description = TrimOrNull(request.Description);
+        product.Price = request.Price;
+        product.OldPrice = request.OldPrice;
+        product.Weight = request.Weight;
+        product.WeightUnit = TrimOrNull(request.WeightUnit);
+        product.StockQuantity = request.StockQuantity;
+        product.ImageUrl = imageUrls.FirstOrDefault();
+        product.ImageUrls = imageUrls;
+        product.IsActive = request.IsActive;
+        product.IsFeatured = request.IsFeatured;
+        product.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(cancellationToken);
+        return await GetForAdminAsync(product.Id, cancellationToken);
+    }
+
+    public async Task<AdminProductDto> SetActiveAsync(
+        int id,
+        bool isActive,
+        CancellationToken cancellationToken)
+    {
+        var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
+            ?? throw new NotFoundException("Товар не знайдено.");
+
+        product.IsActive = isActive;
+        product.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+        return await GetForAdminAsync(product.Id, cancellationToken);
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        var exists = await _db.Products.AnyAsync(p => p.Id == id, cancellationToken);
+        if (!exists)
+        {
+            throw new NotFoundException("Товар не знайдено.");
+        }
+
+        var referenced = await _db.CartItems.AnyAsync(item => item.ProductId == id, cancellationToken)
+            || await _db.OrderItems.AnyAsync(item => item.ProductId == id, cancellationToken);
+        if (referenced)
+        {
+            throw new ConflictException(
+                "Товар неможливо видалити, бо він є в кошиках або історії замовлень. Приховайте його замість видалення.");
+        }
+
+        try
+        {
+            await _db.Products.Where(p => p.Id == id).ExecuteDeleteAsync(cancellationToken);
+        }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.ForeignKeyViolation)
+        {
+            throw new ConflictException(
+                "Товар неможливо видалити, бо він пов'язаний з іншими даними. Приховайте його замість видалення.");
+        }
+    }
+
+    private async Task EnsureCategoryExistsAsync(int categoryId, CancellationToken cancellationToken)
+    {
+        if (!await _db.Categories.AnyAsync(c => c.Id == categoryId, cancellationToken))
+        {
+            throw new BadRequestException("Вказану категорію не знайдено.");
+        }
+    }
+
+    private async Task<string> ResolveSlugAsync(
+        string? requestedSlug,
+        string name,
+        int? currentProductId,
+        CancellationToken cancellationToken)
+    {
+        var source = string.IsNullOrWhiteSpace(requestedSlug) ? name : requestedSlug;
+        var slug = SlugGenerator.From(source, MaxSlugLength);
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            throw new BadRequestException("Не вдалося сформувати коректний slug товару.");
+        }
+
+        var duplicate = await _db.Products.AnyAsync(
+            p => p.Slug == slug && p.Id != currentProductId,
+            cancellationToken);
+        if (duplicate)
+        {
+            throw new ConflictException("Товар з таким URL (slug) уже існує.");
+        }
+
+        return slug;
+    }
+
+    private static string[] NormalizeImageUrls(string? imageUrl, IReadOnlyList<string>? imageUrls)
+    {
+        var urls = new[] { imageUrl }
+            .Concat(imageUrls ?? [])
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .Select(url => url!.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        return urls;
+    }
+
+    private static string? TrimOrNull(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private async Task<NormalizedProductQuery> ResolveValidCategorySlugsAsync(
         NormalizedProductQuery query,
@@ -221,6 +397,7 @@ public sealed class ProductService : IProductService
             var pattern = EscapeLikePattern(query.Search);
             source = source.Where(p =>
                 EF.Functions.ILike(p.Name, pattern, "\\") ||
+                EF.Functions.ILike(p.Slug, pattern, "\\") ||
                 (p.ShortDescription != null && EF.Functions.ILike(p.ShortDescription, pattern, "\\")));
         }
 
