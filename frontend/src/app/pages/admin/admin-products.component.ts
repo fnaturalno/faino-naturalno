@@ -6,6 +6,7 @@ import { AdminProduct, AdminProductPage } from '../../models/admin.models';
 import { AdminService } from '../../services/admin.service';
 import { extractApiError } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
+import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 
 @Component({
   selector: 'app-admin-products',
@@ -31,7 +32,7 @@ import { ToastService } from '../../services/toast.service';
         <div class="hidden grid-cols-[64px_1fr_130px_100px_90px_140px_85px] gap-3 border-b border-[#dac7a2] bg-[#f5ecd8] px-5 py-3 text-xs font-bold uppercase tracking-wide text-[#4e301a] md:grid"><span></span><span>Назва</span><span>Категорія</span><span>Ціна</span><span>Залишок</span><span>Статус</span><span>Дії</span></div>
         @for (product of page().items; track product.id) {
           <article class="grid gap-3 border-b border-[#eadcc0] p-4 last:border-0 md:grid-cols-[64px_1fr_130px_100px_90px_140px_85px] md:items-center md:px-5">
-            <div class="grid h-12 w-12 place-items-center overflow-hidden rounded bg-[#f5ecd8] text-xs text-[#9c8461]">@if (product.imageUrl) { <img [src]="product.imageUrl" [alt]="product.name" class="h-full w-full object-cover" /> } @else { фото }</div>
+            <div class="grid h-12 w-12 place-items-center overflow-hidden rounded bg-[#f5ecd8] text-xs text-[#9c8461]">@if (previewUrl(product.imageUrl); as src) { <img [src]="src" [alt]="product.name" class="h-full w-full object-cover" /> } @else { фото }</div>
             <div class="min-w-0"><p class="truncate font-bold">{{ product.name }}</p><p class="truncate text-xs text-[#9c8461]">{{ product.slug }}</p></div>
             <p class="text-sm text-[#4e301a]">{{ product.categoryName }}</p><p class="font-bold">{{ product.price }} ₴</p>
             <p [class]="product.stockQuantity === 0 ? 'font-bold text-[#b23a2e]' : product.stockQuantity < 10 ? 'font-bold text-[#7a3e18]' : 'font-bold text-[#3e5626]'">{{ product.stockQuantity }}</p>
@@ -65,6 +66,7 @@ export class AdminProductsComponent {
     this.admin.getProducts({ search: this.search(), category: this.category(), page: this.page().page, pageSize: this.page().pageSize }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: response => { if (response.success) this.page.set(response.data); else this.error.set(response.error ?? 'Не вдалося завантажити товари'); this.loading.set(false); }, error: error => { this.error.set(extractApiError(error, 'Не вдалося завантажити товари')); this.loading.set(false); } });
   }
   changePage(delta: number): void { this.page.update(value => ({ ...value, page: value.page + delta })); this.load(); }
+  previewUrl(url: string | null | undefined): string | null { return sanitizeImageUrl(url); }
   toggleActive(product: AdminProduct): void {
     if (this.togglingId() !== null) return;
     this.togglingId.set(product.id);

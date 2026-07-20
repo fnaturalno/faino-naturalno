@@ -46,6 +46,12 @@ export class AdminService {
     return this.http.put<ApiResponse<AdminProduct>>(`${this.apiUrl}/products/${id}/active`, { isActive });
   }
 
+  uploadImage(file: File): Observable<ApiResponse<{ url: string }>> {
+    const body = new FormData();
+    body.append('file', file);
+    return this.http.post<ApiResponse<{ url: string }>>(`${this.apiUrl}/admin/uploads/images`, body);
+  }
+
   deleteProduct(id: number): Observable<ApiResponse<object>> {
     return this.http.delete<ApiResponse<object>>(`${this.apiUrl}/products/${id}`);
   }

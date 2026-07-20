@@ -21,6 +21,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICartService, CartService>();
+        services.AddScoped<IMediaUploadService, MediaUploadService>();
         services.AddValidatorsFromAssemblyContaining<Program>();
         return services;
     }
