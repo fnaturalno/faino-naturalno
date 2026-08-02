@@ -1,6 +1,6 @@
 # Feature: Підкатегорії
 
-**Status:** Ready for implementation  
+**Status:** Implemented  
 **Priority:** 7  
 **Agent:** requirements-planner → backend + database + frontend → tester → plan-verifier → code-reviewer → security-reviewer
 
@@ -159,8 +159,8 @@ Request body:
 ### 2.1 Catalog filters (public)
 
 - Surfaces: desktop sticky sidebar, tablet collapsible bar / chips, mobile bottom sheet — same shells as catalog.md.
-- Categories render as a **two-level** list:
-  - Parent row: checkbox + name + parent count.
+- Categories render as a **two-level** list of **native checkboxes** (not toggle buttons):
+  - Parent row: checkbox + name (truncate + title tooltip) + parent count.
   - Under each parent with children: indented subcategory checkboxes + name + own count.
 - Parents without children still appear as a single selectable row (current three may gain children after seed).
 - Multi-select preserved: any mix of parents and subcategories.
@@ -176,20 +176,26 @@ Request body:
 
 ### 2.3 Admin categories (`/admin/categories`)
 
-- Count line uses total number of category **nodes** (parents + subcategories) with existing Ukrainian pluralization pattern, or clarify as «N категорій» including subcategories — prefer counting all nodes.
-- CTA «+ Додати категорію» unchanged.
-- List displays hierarchy:
-  - Parent rows first (by sort), with subcategories indented beneath (or grouped section under each parent).
-  - Columns remain: name, slug, product count, actions (edit / delete).
-  - Parent «Товарів» shows the aggregated count (§1.5); subcategory shows its own.
-- Drawer fields:
-  - «Назва категорії» (required)
-  - Auto slug preview (same `/catalog?category=` pattern)
-  - «Батьківська категорія» select: «— Без батька (верхній рівень) —» + list of top-level categories only
-  - Optional description
-  - «Зберегти» / «Скасувати»
-- When editing a category that has children, parent select is disabled or limited to «верхній рівень» (cannot assign a parent).
-- Visual language matches admin.md (kraft / espresso / marigold).
+Layout and interactions follow `design/admin.dc.html` (categories view + category drawer):
+
+- Count line: **«N категорія|категорії|категорій (з підкатегоріями)»** counting **all nodes** (parents + children).
+- CTA «+ Додати категорію» (marigold primary).
+- Table card (cream header, white rows): columns **Назва** | **URL (slug)** | **Товарів** | **Дії**.
+- Parent row:
+  - Expand/collapse chevron (children shown only when expanded; default expanded on first load).
+  - Accent icon tile by category (e.g. Спеції / Приправи / Чаї tones).
+  - Bold name + optional pill «N підкатегорія|…».
+  - Slug path `/slug`; «Товарів» = aggregated count (§1.5).
+  - Actions (icon buttons): **+** add subcategory, pencil edit, trash delete.
+- Child row (when parent expanded): cream background, indent, corner-down-right marker, smaller icon, semibold name, path `/parentSlug/childSlug`, own count; actions edit + delete only.
+- Long names truncate with ellipsis; full value via `title`.
+- Drawer (~420px):
+  - Title: «Нова категорія» / «Нова підкатегорія» / «Редагувати категорію» / «Редагувати підкатегорію» depending on mode and parent.
+  - «Батьківська категорія» first: «— Коренева категорія —» + top-level options only; hint «Категорія верхнього рівня — може містити підкатегорії» or «Буде вкладена в «…»».
+  - «Назва категорії» (required); auto slug preview `/catalog?category=…`; optional description placeholder «Короткий опис категорії…».
+  - Footer «Зберегти» / «Скасувати».
+- When editing a category that has children, parent select is **disabled** (must stay top-level).
+- «+» on a parent opens the drawer pre-filled with that parent selected and expands the parent row.
 
 ### 2.4 Admin product form / list filter
 
@@ -213,8 +219,10 @@ Request body:
 
 ### 3.2 Admin categories
 
-- Create: open drawer; choose optional parent; save → toast success → close → refresh tree.
-- Edit: same drawer; changing parent only allowed when the category has no children and the new parent is top-level (or null).
+- Create root: «+ Додати категорію» → drawer («Нова категорія», parent = коренева).
+- Create child: parent row **+** → drawer («Нова підкатегорія») with that parent pre-selected; parent row expands.
+- Edit: pencil → drawer with titles «Редагувати категорію» / «Редагувати підкатегорію»; changing parent only when the category has no children.
+- Expand/collapse chevron toggles visibility of child rows (does not navigate).
 - Delete: confirmation required; blocked when products or children remain — error toast / message with API text.
 - Double-submit on save prevented while in flight.
 
@@ -308,7 +316,8 @@ Request body:
 
 ### Admin UI
 
-- [ ] Categories screen lists hierarchy (indent or group); drawer includes parent select for new/eligible edits.
+- [ ] Categories screen matches `design/admin.dc.html`: expand/collapse tree, accent icons, subcategory pill, path columns, icon actions (+ / edit / delete).
+- [ ] Drawer titles and «Батьківська категорія» (коренева + hint) match design; parent locked when the category has children.
 - [ ] Product form category control groups parents and subcategories; list filter understands parent expansion.
 - [ ] Save / delete toasts and delete confirmation behave as specified.
 

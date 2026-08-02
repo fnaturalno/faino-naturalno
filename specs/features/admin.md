@@ -20,7 +20,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Оболонка адмінки: лівий сайдбар, топбар з іменем адміна, мобільний вигляд списку товарів.
 - Товари: список з пошуком / фільтром / пагінацією, toggle активності, створення, редагування, видалення.
 - Форма товару: поля моделі Product (назва, slug, категорія, описи, ціна, стара ціна, вага/одиниця, залишок, зображення URL(и), IsActive, IsFeatured).
-- Категорії: список, створення / редагування в drawer, видалення.
+- Категорії: ієрархічний список (expand/collapse, підкатегорії), створення / редагування в drawer, видалення; деталі в `specs/features/subcategories.md`.
 - Замовлення: список усіх з пошуком / фільтром статусу, drawer деталей, зміна статусу.
 - Український copy з `design/admin.dc.html`.
 - Спільний `ApiResponse` envelope; admin-операції за контрактами `specs/api.md` (і уточненнями нижче).
@@ -152,9 +152,10 @@ Server rules:
 
 ### 1.8 Categories
 
-- List: id, name, slug, optional description, product count (for the «Товарів» column), optional display accent/icon if already part of seed/UI (not a new CMS).
-- Create / update: `name` (required), auto `slug`, optional `description`.
-- Delete: fails if the category still has products (DB RESTRICT) with a clear Ukrainian error; otherwise removes the category.
+- Hierarchy: optional `parentId` (2 levels only) — see `specs/features/subcategories.md`.
+- List: nested tree (id, name, slug, `parentId`, `children`, product count, optional description).
+- Create / update: `name` (required), auto `slug`, optional `description`, optional `parentId` (top-level parent only).
+- Delete: fails if the category still has **products or children** (clear Ukrainian error); otherwise removes the category.
 - Sort order may keep existing defaults; reordering UI is not required by the design.
 
 ### 1.9 Admin orders
@@ -283,10 +284,14 @@ Table columns: «№», «Дата», «Клієнт», «Телефон», «М
 
 ### 2.9 Categories
 
-- Count line with Ukrainian plural («N категорія / категорії / категорій»).
+Matches `design/admin.dc.html` and `specs/features/subcategories.md` §2.3:
+
+- Count: «N категорія|… (з підкатегоріями)» for all nodes.
 - CTA «+ Додати категорію».
-- Table: icon/accent, «Назва», «URL (slug)», «Товарів», edit / delete.
-- Drawer: «Нова категорія» / «Редагувати категорію»; fields name, auto slug preview (`/catalog?category=`), optional description; «Зберегти» / «Скасувати».
+- Tree table: expand/collapse parents, accent icon, subcategory count pill, columns Назва / URL (slug) / Товарів / Дії.
+- Parent actions: add subcategory (+), edit, delete; child actions: edit, delete.
+- Child rows indented under expanded parent; cream background; path `/parent/child`.
+- Drawer: «Нова / Редагувати категорію|підкатегорію»; «Батьківська категорія» («— Коренева категорія —» + hint); name; auto slug `/catalog?category=`; optional description; «Зберегти» / «Скасувати».
 
 ### 2.10 Visual language and copy
 
@@ -329,9 +334,11 @@ Table columns: «№», «Дата», «Клієнт», «Телефон», «М
 
 ### 3.5 Categories
 
-- «+ Додати категорію» / pencil → drawer; backdrop / close / «Скасувати» dismiss without save when unchanged or after cancel.
-- «Зберегти» creates or updates then closes the drawer and refreshes the list.
-- Trash → **confirmation** before delete; blocked delete shows error toast / message when products still use the category.
+- «+ Додати категорію» → new root drawer; parent-row **+** → new subcategory drawer with parent pre-selected.
+- Chevron expands/collapses children; pencil opens edit drawer; trash → **confirmation** before delete.
+- Backdrop / close / «Скасувати» dismiss without save when cancelled.
+- «Зберегти» creates or updates then closes the drawer and refreshes the tree.
+- Blocked delete (products or children) shows error toast / message from the API.
 
 ### 3.6 Navigation
 
@@ -434,8 +441,9 @@ Table columns: «№», «Дата», «Клієнт», «Телефон», «М
 
 ### Categories
 
-- [ ] Admin can list, create, edit, and delete categories; delete confirms and fails safely when products remain.
-- [ ] Category drawer fields and copy match the design; slug is auto-generated for display.
+- [ ] Admin can list, create, edit, and delete categories (and subcategories); tree UI matches `design/admin.dc.html` (expand, icons, + subcategory, paths).
+- [ ] Category drawer fields and copy match the design (parent select «Коренева», titles for підкатегорія); slug is auto-generated for display.
+- [ ] Delete confirms and fails safely when products or child categories remain.
 
 ### Orders
 

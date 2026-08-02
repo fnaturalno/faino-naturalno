@@ -9,13 +9,17 @@ export type IconName =
   | 'chevron-right'
   | 'clock'
   | 'close'
+  | 'corner-down-right'
   | 'filter'
+  | 'flame'
   | 'image-off'
   | 'leaf'
   | 'log-out'
   | 'map-pin'
   | 'menu'
   | 'package'
+  | 'pencil'
+  | 'plus'
   | 'search'
   | 'shopping-basket'
   | 'trash'
@@ -56,7 +60,14 @@ export type IconName =
           <path d="M12 6v6l4 2" />
         }
         @case ('close') { <path d="M18 6 6 18M6 6l12 12" /> }
+        @case ('corner-down-right') {
+          <path d="m15 10 5 5-5 5" />
+          <path d="M4 4v7a4 4 0 0 0 4 4h12" />
+        }
         @case ('filter') { <path d="M4 6h16M7 12h10M10 18h4" /> }
+        @case ('flame') {
+          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+        }
         @case ('image-off') {
           <path d="M2 2l20 20" />
           <path d="M10.41 10.41a2 2 0 1 1-2.83-2.83" />
@@ -81,6 +92,13 @@ export type IconName =
         @case ('package') {
           <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" />
           <path d="m4.5 7.5 7.5 4 7.5-4M12 11.5V21" />
+        }
+        @case ('pencil') {
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        }
+        @case ('plus') {
+          <path d="M12 5v14M5 12h14" />
         }
         @case ('search') {
           <circle cx="11" cy="11" r="7" />

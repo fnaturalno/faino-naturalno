@@ -23,7 +23,7 @@
 | /admin/products/new | AdminProductFormComponent | Create product |
 | /admin/products/:id/edit | AdminProductFormComponent | Edit product |
 | /admin/orders | AdminOrdersComponent | Orders list + detail drawer |
-| /admin/categories | AdminCategoriesComponent | Hierarchical categories list + drawer (parent select) |
+| /admin/categories | AdminCategoriesComponent | Tree table per admin design (expand, icons, + subcategory, drawer) |
 
 All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the shared shop navbar for main-menu navigation.
 
