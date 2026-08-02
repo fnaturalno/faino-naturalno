@@ -373,13 +373,36 @@ public sealed class ProductService : IProductService
             return query;
         }
 
-        var validSlugs = await _db.Categories
+        var selectedCategories = await _db.Categories
             .AsNoTracking()
             .Where(c => query.CategorySlugs.Contains(c.Slug))
+            .Select(c => new { c.Id, c.Slug, c.ParentId })
+            .ToListAsync(cancellationToken);
+
+        var selectedParentIds = selectedCategories
+            .Where(c => c.ParentId is null)
+            .Select(c => c.Id)
+            .ToArray();
+
+        if (selectedParentIds.Length == 0)
+        {
+            return query with { CategorySlugs = selectedCategories.Select(c => c.Slug).ToArray() };
+        }
+
+        var expandedSlugs = await _db.Categories
+            .AsNoTracking()
+            .Where(c => c.ParentId.HasValue && selectedParentIds.Contains(c.ParentId.Value))
             .Select(c => c.Slug)
             .ToListAsync(cancellationToken);
 
-        return query with { CategorySlugs = validSlugs };
+        return query with
+        {
+            CategorySlugs = selectedCategories
+                .Select(c => c.Slug)
+                .Concat(expandedSlugs)
+                .Distinct(StringComparer.Ordinal)
+                .ToArray()
+        };
     }
 
     private static IQueryable<Product> ApplyFilters(

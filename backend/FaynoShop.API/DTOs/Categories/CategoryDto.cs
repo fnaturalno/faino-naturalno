@@ -4,6 +4,8 @@ public sealed record CategoryDto(
     int Id,
     string Name,
     string Slug,
+    int? ParentId,
     int SortOrder,
     int ActiveProductCount,
-    string? Description = null);
+    string? Description,
+    IReadOnlyList<CategoryDto> Children);

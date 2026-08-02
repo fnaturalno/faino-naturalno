@@ -26,10 +26,13 @@
 |-------|------|-------|
 | Id | int | PK |
 | Name | string | |
-| Slug | string | unique |
+| Slug | string | unique (global across parents and subcategories) |
 | Description | string? | |
 | ImageUrl | string? | |
-| SortOrder | int | display order |
+| SortOrder | int | display order among siblings |
+| ParentId | int? | FK → Category; null = top-level; max depth 2 (parent → subcategory only) |
+
+See `specs/features/subcategories.md` for hierarchy, counts, and filter expansion rules.
 
 ## Order
 | Field | Type | Notes |

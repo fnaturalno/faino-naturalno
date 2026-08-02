@@ -228,7 +228,12 @@ export class CatalogStore {
         }
         const categories = [...response.data].sort((a, b) => a.sortOrder - b.sortOrder);
         this.categoriesState.set(categories);
-        const validSlugs = new Set(categories.map((category) => category.slug));
+        const validSlugs = new Set(
+          categories.flatMap((category) => [
+            category.slug,
+            ...(category.children ?? []).map((child) => child.slug),
+          ]),
+        );
         const validSelected = this.filtersState().categories.filter((slug) => validSlugs.has(slug));
         if (validSelected.length !== this.filtersState().categories.length) {
           this.navigate({ ...this.filtersState(), categories: validSelected }, true);

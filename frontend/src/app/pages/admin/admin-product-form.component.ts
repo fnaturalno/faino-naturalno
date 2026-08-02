@@ -38,7 +38,12 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
               <select formControlName="categoryId" class="mt-1 w-full rounded-lg border border-[#c2ab80] bg-white p-3 font-normal">
                 <option [ngValue]="0">Оберіть категорію</option>
                 @for (category of categories(); track category.id) {
-                  <option [ngValue]="category.id">{{ category.name }}</option>
+                  <optgroup [label]="category.name">
+                    <option [ngValue]="category.id">{{ category.name }}</option>
+                    @for (child of category.children; track child.id) {
+                      <option [ngValue]="child.id">↳ {{ child.name }}</option>
+                    }
+                  </optgroup>
                 }
               </select>
             </label>
@@ -172,7 +177,7 @@ export class AdminProductFormComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly id = Number(this.route.snapshot.paramMap.get('id')) || null;
-  readonly categories = signal<{ id: number; name: string }[]>([]);
+  readonly categories = signal<{ id: number; name: string; children: { id: number; name: string }[] }[]>([]);
   readonly loading = signal(!!this.id);
   readonly saving = signal(false);
   readonly uploading = signal(false);

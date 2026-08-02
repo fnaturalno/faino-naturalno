@@ -33,5 +33,14 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
 
         builder.HasIndex(c => c.SortOrder)
             .HasDatabaseName("idx_categories_sort_order");
+
+        builder.HasIndex(c => c.ParentId)
+            .HasDatabaseName("idx_categories_parent_id");
+
+        builder.HasOne(c => c.Parent)
+            .WithMany(c => c.Children)
+            .HasForeignKey(c => c.ParentId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_categories_categories_parent_id");
     }
 }

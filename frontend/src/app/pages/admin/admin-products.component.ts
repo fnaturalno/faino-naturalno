@@ -17,7 +17,10 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
       <input class="min-w-52 flex-1 rounded-lg border border-[#c2ab80] bg-white px-4 py-2.5 outline-none focus:border-[#e4a600]" placeholder="Пошук товару…" [value]="search()" (input)="search.set($any($event.target).value); reload()" />
       <select class="rounded-lg border border-[#c2ab80] bg-white px-3 py-2.5" [value]="category()" (change)="category.set($any($event.target).value); reload()">
         <option value="">Усі категорії</option>
-        @for (item of categories(); track item.id) { <option [value]="item.slug">{{ item.name }}</option> }
+        @for (item of categories(); track item.id) {
+          <option [value]="item.slug">{{ item.name }}</option>
+          @for (child of item.children; track child.id) { <option [value]="child.slug">↳ {{ child.name }}</option> }
+        }
       </select>
       <a routerLink="/admin/products/new" class="rounded-lg bg-[#f5b800] px-4 py-2.5 font-bold text-[#2a1a0d]">+ Додати товар</a>
     </div>
@@ -51,7 +54,7 @@ export class AdminProductsComponent {
   private readonly destroyRef = inject(DestroyRef);
   readonly search = signal('');
   readonly category = signal('');
-  readonly categories = signal<{ id: number; name: string; slug: string }[]>([]);
+  readonly categories = signal<{ id: number; name: string; slug: string; children: { id: number; name: string; slug: string }[] }[]>([]);
   readonly page = signal<AdminProductPage>({ items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 1 });
   readonly loading = signal(true);
   readonly error = signal('');

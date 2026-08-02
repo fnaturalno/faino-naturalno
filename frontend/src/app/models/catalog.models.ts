@@ -8,8 +8,11 @@ export interface CategorySummary {
   id: number;
   name: string;
   slug: string;
+  parentId: number | null;
   sortOrder: number;
+  description?: string | null;
   activeProductCount: number;
+  children: CategorySummary[];
 }
 
 export interface CatalogProduct {

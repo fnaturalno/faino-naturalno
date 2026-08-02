@@ -23,7 +23,7 @@
 | /admin/products/new | AdminProductFormComponent | Create product |
 | /admin/products/:id/edit | AdminProductFormComponent | Edit product |
 | /admin/orders | AdminOrdersComponent | Orders list + detail drawer |
-| /admin/categories | AdminCategoriesComponent | Categories list + drawer |
+| /admin/categories | AdminCategoriesComponent | Hierarchical categories list + drawer (parent select) |
 
 All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the shared shop navbar for main-menu navigation.
 
@@ -37,11 +37,11 @@ All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the 
 
 ## Services
 - `ProductService` — GET /products, /products/:slug
-- `CategoryService` — GET /categories
+- `CategoryService` — GET /categories (nested tree with `children[]` / `parentId`)
 - `CartService` — cart CRUD + signal for item count
 - `OrderService` — POST /orders, GET /orders/:id
 - `AuthService` — login, register, token management
-- `AdminService` — admin product/category/order CRUD + image upload
+- `AdminService` — admin product/category/order CRUD + image upload (category create/update includes optional `parentId`)
 
 ## State (Signals)
 - `CartService.itemCount` — navbar badge

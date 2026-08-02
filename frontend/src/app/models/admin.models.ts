@@ -35,14 +35,18 @@ export interface AdminCategory {
   id: number;
   name: string;
   slug: string;
+  parentId: number | null;
+  sortOrder: number;
   description?: string | null;
   activeProductCount: number;
+  children: AdminCategory[];
 }
 
 export interface SaveCategoryRequest {
   name: string;
   slug?: string;
   description?: string | null;
+  parentId?: number | null;
 }
 
 export interface AdminOrderSummary {

@@ -10,5 +10,6 @@ public sealed class SaveCategoryRequestValidator : AbstractValidator<SaveCategor
         RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Slug).MaximumLength(100).When(x => !string.IsNullOrWhiteSpace(x.Slug));
         RuleFor(x => x.Description).MaximumLength(2_000);
+        RuleFor(x => x.ParentId).GreaterThan(0).When(x => x.ParentId.HasValue);
     }
 }

@@ -17,10 +17,14 @@
 | description | text | |
 | image_url | varchar(500) | |
 | sort_order | int | NOT NULL DEFAULT 0 |
+| parent_id | int | nullable; FK → categories (ON DELETE RESTRICT); null = top-level |
 
 **Indexes:**
 - `idx_categories_slug` — UNIQUE (slug lookups, category filter query params)
-- `idx_categories_sort_order` — catalog category display order
+- `idx_categories_sort_order` — catalog category display order among siblings
+- `idx_categories_parent_id` — hierarchy / children-by-parent lookups
+
+**Hierarchy:** Max 2 levels (parent with `parent_id` null; subcategory whose parent is top-level). Details: `specs/features/subcategories.md`.
 
 #### products
 | Column | Type | Constraints |
@@ -195,6 +199,7 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | `AuthSchema` (`20260719170451_AuthSchema`) | users, refresh_tokens, password_reset_tokens, user_delivery_addresses, orders, order_items; FK `carts.user_id` → users |
 | `RefreshTokenFamily` (`20260719172227_RefreshTokenFamily`) | `refresh_tokens.token_family` + index for reuse detection |
 | `OrderConfirmationToken` | `orders.confirmation_token_hash` UNIQUE — guest confirmation capability (hashed) |
+| `SubcategoriesSchema` (`20260802140008_SubcategoriesSchema`) | `categories.parent_id` nullable self-FK (RESTRICT) + `idx_categories_parent_id` for subcategory hierarchy |
 
 ### Connection String
 ```
@@ -222,12 +227,27 @@ Or via environment variable: `SEED_DEMO_DATA=true` (maps to the same config key 
 
 ### Demo Data Set
 
-#### Categories (3)
-| name | slug | sort_order |
-|------|------|------------|
-| Спеції | spetsiyi | 1 |
-| Приправи | prypravy | 2 |
-| Чаї | chayi | 3 |
+#### Categories (3 top-level + optional demo subcategories)
+| name | slug | sort_order | parent |
+|------|------|------------|--------|
+| Спеції | spetsiyi | 1 | — |
+| Приправи | prypravy | 2 | — |
+| Чаї | chayi | 3 | — |
+
+#### Subcategories
+| parent | name | slug | sort_order |
+|--------|------|------|------------|
+| Спеції | Мелені | meleni | 1 |
+| Спеції | Цілі | tsili | 2 |
+| Спеції | Суміші | sumishi | 3 |
+| Приправи | Універсальні | universalni | 1 |
+| Приправи | До м'яса | do-myasa | 2 |
+| Приправи | До овочів | do-ovochiv | 3 |
+| Чаї | Чорний | chornyy-chay | 1 |
+| Чаї | Зелений | zelenyy-chay | 2 |
+| Чаї | Трав'яний | travyanyy-chay | 3 |
+
+The seed adds missing subcategories idempotently. Existing products stay on the three top-level parents; no mass reassignment occurs.
 
 #### Products (16 — 5 per category + 1 inactive)
 Realistic Ukrainian natural products covering catalog UI states:

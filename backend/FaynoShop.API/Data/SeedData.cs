@@ -53,6 +53,7 @@ public static class SeedData
             await context.SaveChangesAsync(ct);
         }
 
+        await EnsureSubcategoriesAsync(context, ct);
         await EnsureProductGalleriesAsync(context, ct);
         await SeedDemoAuthAsync(context, ct);
         await EnsureDefaultAdminAsync(context, ct);
@@ -283,6 +284,50 @@ public static class SeedData
             SortOrder = 3
         }
     ];
+
+    private static async Task EnsureSubcategoriesAsync(AppDbContext context, CancellationToken ct)
+    {
+        var parents = await context.Categories
+            .Where(c => c.ParentId == null && (c.Slug == "spetsiyi" || c.Slug == "prypravy" || c.Slug == "chayi"))
+            .ToDictionaryAsync(c => c.Slug, c => c.Id, ct);
+
+        var subcategories = new (string ParentSlug, string Name, string Slug, int SortOrder)[]
+        {
+            ("spetsiyi", "Мелені", "meleni", 1),
+            ("spetsiyi", "Цілі", "tsili", 2),
+            ("spetsiyi", "Суміші", "sumishi", 3),
+            ("prypravy", "Універсальні", "universalni", 1),
+            ("prypravy", "До м'яса", "do-myasa", 2),
+            ("prypravy", "До овочів", "do-ovochiv", 3),
+            ("chayi", "Чорний", "chornyy-chay", 1),
+            ("chayi", "Зелений", "zelenyy-chay", 2),
+            ("chayi", "Трав'яний", "travyanyy-chay", 3)
+        };
+
+        var subcategorySlugs = subcategories.Select(s => s.Slug).ToArray();
+        var existingSlugs = await context.Categories
+            .Where(c => subcategorySlugs.Contains(c.Slug))
+            .Select(c => c.Slug)
+            .ToListAsync(ct);
+
+        var existingSlugSet = existingSlugs.ToHashSet(StringComparer.Ordinal);
+        var missingSubcategories = subcategories
+            .Where(s => parents.ContainsKey(s.ParentSlug) && !existingSlugSet.Contains(s.Slug))
+            .Select(s => new Category
+            {
+                Name = s.Name,
+                Slug = s.Slug,
+                ParentId = parents[s.ParentSlug],
+                SortOrder = s.SortOrder
+            })
+            .ToList();
+
+        if (missingSubcategories.Count == 0)
+            return;
+
+        context.Categories.AddRange(missingSubcategories);
+        await context.SaveChangesAsync(ct);
+    }
 
     private static List<Product> CreateProducts(IReadOnlyList<Category> categories)
     {

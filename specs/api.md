@@ -14,15 +14,17 @@ All responses: `{ success: bool, data: T, error: string? }`
 | PUT | /products/:id/active | Admin | Toggle `isActive` only |
 | DELETE | /products/:id | Admin | Delete |
 
-**GET /products query params:** `category` (slug(s)), `search`, `minPrice`, `maxPrice`, `page`, `pageSize`, `sortBy`, `includeInactive` (Admin only)
+**GET /products query params:** `category` (slug(s); parent slug expands to parent-direct + subcategory products), `search`, `minPrice`, `maxPrice`, `page`, `pageSize`, `sortBy`, `includeInactive` (Admin only)
 
 ## Categories
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| GET | /categories | — / Admin | All categories (`activeProductCount`; admin count includes inactive products) |
-| POST | /categories | Admin | Create |
-| PUT | /categories/:id | Admin | Update |
-| DELETE | /categories/:id | Admin | Delete |
+| GET | /categories | — / Admin | Nested tree: top-level nodes with `children[]`, `parentId`, counts (parent = direct + children; admin count may include inactive) |
+| POST | /categories | Admin | Create (optional `parentId`; max depth 2) |
+| PUT | /categories/:id | Admin | Update (name / slug / description / `parentId` with hierarchy rules) |
+| DELETE | /categories/:id | Admin | Delete (fails if products or child categories remain) |
+
+Hierarchy details: `specs/features/subcategories.md`.
 
 ## Cart
 | Method | Route | Auth | Description |

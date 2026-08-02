@@ -19,19 +19,32 @@
             @if (store.categoryError()) {
               <span class="text-sm text-[var(--chili-700)]">Категорії тимчасово недоступні</span>
             } @else {
-              @for (category of store.categories(); track category.id) {
-                <button
-                  type="button"
-                  class="rounded-full border px-4 py-2 text-sm font-semibold"
-                  [class.border-[var(--espresso-800)]]="store.filters().categories.includes(category.slug)"
-                  [class.bg-[var(--espresso-800)]]="store.filters().categories.includes(category.slug)"
-                  [class.text-[var(--kraft-50)]]="store.filters().categories.includes(category.slug)"
-                  [class.border-[var(--border-subtle)]]="!store.filters().categories.includes(category.slug)"
-                  [class.bg-[var(--kraft-100)]]="!store.filters().categories.includes(category.slug)"
-                  [attr.aria-pressed]="store.filters().categories.includes(category.slug)"
-                  (click)="toggleAppliedCategory(category.slug)"
-                >{{ category.name }}</button>
-              }
+              <div class="flex w-full flex-col gap-1.5">
+                @for (category of store.categories(); track category.id) {
+                  <label class="flex min-h-9 cursor-pointer items-center gap-2 rounded-lg px-1 text-sm">
+                    <input
+                      type="checkbox"
+                      class="size-4 shrink-0 accent-[var(--marigold-400)]"
+                      [checked]="store.filters().categories.includes(category.slug)"
+                      (change)="toggleAppliedCategory(category.slug)"
+                    />
+                    <span class="min-w-0 flex-1 truncate font-semibold" [title]="category.name">{{ category.name }}</span>
+                    <span class="shrink-0 text-[var(--text-muted)]">{{ category.activeProductCount }}</span>
+                  </label>
+                  @for (child of category.children; track child.id) {
+                    <label class="flex min-h-8 cursor-pointer items-center gap-2 rounded-lg py-0.5 pl-6 text-sm">
+                      <input
+                        type="checkbox"
+                        class="size-3.5 shrink-0 accent-[var(--marigold-400)]"
+                        [checked]="store.filters().categories.includes(child.slug)"
+                        (change)="toggleAppliedCategory(child.slug)"
+                      />
+                      <span class="min-w-0 flex-1 truncate text-[var(--espresso-700)]" [title]="child.name">{{ child.name }}</span>
+                      <span class="shrink-0 text-xs text-[var(--text-muted)]">{{ child.activeProductCount }}</span>
+                    </label>
+                  }
+                }
+              </div>
             }
             <span class="ml-auto text-sm text-[var(--text-muted)]">
               {{ store.filters().minPrice ?? store.page()?.priceMin ?? 0 }}–{{ store.filters().maxPrice ?? store.page()?.priceMax ?? 0 }} ₴
@@ -87,23 +100,28 @@
           } @else {
             <div class="space-y-2">
               @for (category of store.categories(); track category.id) {
-                <button
-                  type="button"
-                  class="flex min-h-10 w-full items-center gap-3 rounded-lg text-left"
-                  [attr.aria-pressed]="store.filters().categories.includes(category.slug)"
-                  (click)="toggleAppliedCategory(category.slug)"
-                >
-                  <span
-                    class="grid size-[22px] shrink-0 place-items-center rounded-md border border-[var(--border-strong)]"
-                    [class.bg-[var(--marigold-400)]]="store.filters().categories.includes(category.slug)"
-                  >
-                    @if (store.filters().categories.includes(category.slug)) {
-                      <app-icon name="check" [size]="15" />
-                    }
-                  </span>
-                  <span class="flex-1 font-medium">{{ category.name }}</span>
-                  <span class="text-sm text-[var(--text-muted)]">{{ category.activeProductCount }}</span>
-                </button>
+                <label class="flex min-h-10 w-full cursor-pointer items-center gap-3 rounded-lg">
+                  <input
+                    type="checkbox"
+                    class="size-[18px] shrink-0 accent-[var(--marigold-400)]"
+                    [checked]="store.filters().categories.includes(category.slug)"
+                    (change)="toggleAppliedCategory(category.slug)"
+                  />
+                  <span class="min-w-0 flex-1 truncate font-medium" [title]="category.name">{{ category.name }}</span>
+                  <span class="shrink-0 text-sm text-[var(--text-muted)]">{{ category.activeProductCount }}</span>
+                </label>
+                @for (child of category.children; track child.id) {
+                  <label class="flex min-h-9 w-full cursor-pointer items-center gap-3 rounded-lg pl-7">
+                    <input
+                      type="checkbox"
+                      class="size-4 shrink-0 accent-[var(--marigold-400)]"
+                      [checked]="store.filters().categories.includes(child.slug)"
+                      (change)="toggleAppliedCategory(child.slug)"
+                    />
+                    <span class="min-w-0 flex-1 truncate text-sm text-[var(--espresso-700)]" [title]="child.name">{{ child.name }}</span>
+                    <span class="shrink-0 text-xs text-[var(--text-muted)]">{{ child.activeProductCount }}</span>
+                  </label>
+                }
               }
             </div>
           }
@@ -310,23 +328,30 @@
       @if (store.categoryError()) {
         <p class="text-sm text-[var(--chili-700)]">Категорії тимчасово недоступні.</p>
       } @else {
-        <div class="mb-5">
+        <div class="mb-5 space-y-1">
           @for (category of store.categories(); track category.id) {
-            <button
-              type="button"
-              class="flex min-h-12 w-full items-center gap-3 rounded-lg px-1 text-left"
-              [attr.aria-pressed]="pending.categories.includes(category.slug)"
-              (click)="togglePendingCategory(category.slug)"
-            >
-              <span
-                class="grid size-[26px] shrink-0 place-items-center rounded-lg border border-[var(--border-strong)]"
-                [class.bg-[var(--marigold-400)]]="pending.categories.includes(category.slug)"
-              >
-                @if (pending.categories.includes(category.slug)) { <app-icon name="check" [size]="17" /> }
-              </span>
-              <span class="flex-1 text-lg font-medium">{{ category.name }}</span>
-              <span class="text-sm text-[var(--text-muted)]">{{ category.activeProductCount }}</span>
-            </button>
+            <label class="flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-lg px-1">
+              <input
+                type="checkbox"
+                class="size-5 shrink-0 accent-[var(--marigold-400)]"
+                [checked]="pending.categories.includes(category.slug)"
+                (change)="togglePendingCategory(category.slug)"
+              />
+              <span class="min-w-0 flex-1 truncate text-lg font-medium" [title]="category.name">{{ category.name }}</span>
+              <span class="shrink-0 text-sm text-[var(--text-muted)]">{{ category.activeProductCount }}</span>
+            </label>
+            @for (child of category.children; track child.id) {
+              <label class="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg py-1 pl-8">
+                <input
+                  type="checkbox"
+                  class="size-[18px] shrink-0 accent-[var(--marigold-400)]"
+                  [checked]="pending.categories.includes(child.slug)"
+                  (change)="togglePendingCategory(child.slug)"
+                />
+                <span class="min-w-0 flex-1 truncate text-base text-[var(--espresso-700)]" [title]="child.name">{{ child.name }}</span>
+                <span class="shrink-0 text-sm text-[var(--text-muted)]">{{ child.activeProductCount }}</span>
+              </label>
+            }
           }
         </div>
       }
