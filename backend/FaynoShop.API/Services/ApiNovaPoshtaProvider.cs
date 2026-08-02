@@ -70,12 +70,13 @@ public sealed class ApiNovaPoshtaProvider : INovaPoshtaProvider
 
             foreach (var a in block.Addresses)
             {
-                if (string.IsNullOrWhiteSpace(a.Ref) || string.IsNullOrWhiteSpace(a.Present))
+                var cityRef = a.DeliveryCity ?? a.Ref;
+                if (string.IsNullOrWhiteSpace(cityRef) || string.IsNullOrWhiteSpace(a.Present))
                 {
                     continue;
                 }
 
-                cities.Add(new NpCityDto(a.Ref, a.MainDescription ?? a.Present, a.Area));
+                cities.Add(new NpCityDto(cityRef, a.MainDescription ?? a.Present, a.Area));
             }
         }
 
@@ -169,6 +170,8 @@ public sealed class ApiNovaPoshtaProvider : INovaPoshtaProvider
     private sealed class NpAddressHit
     {
         public string? Ref { get; set; }
+        /// <summary>City ref required by getWarehouses (differs from settlement Ref).</summary>
+        public string? DeliveryCity { get; set; }
         public string? Present { get; set; }
         public string? MainDescription { get; set; }
         public string? Area { get; set; }
