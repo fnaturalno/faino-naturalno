@@ -16,8 +16,11 @@ public static class ServiceCollectionExtensions
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public static IServiceCollection AddCatalogServices(this IServiceCollection services)
+    public static IServiceCollection AddCatalogServices(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
+        services.Configure<MediaStorageOptions>(configuration.GetSection(MediaStorageOptions.SectionName));
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICartService, CartService>();

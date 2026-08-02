@@ -155,7 +155,12 @@ function resolvePackKey(weight: number | null | undefined, unit: string | null |
                     (drop)="onReorderDrop($event, index)"
                   >
                     @if (previewUrl(url); as src) {
-                      <img [src]="src" [alt]="'Фото ' + (index + 1)" class="h-full w-full object-cover" />
+                      <img
+                        [src]="src"
+                        [alt]="'Фото ' + (index + 1)"
+                        class="h-full w-full object-cover"
+                        (error)="markImageFailed(url)"
+                      />
                     } @else {
                       <span class="grid h-full place-items-center text-xs text-[#9c8461]">фото</span>
                     }
@@ -220,6 +225,7 @@ export class AdminProductFormComponent {
   readonly saving = signal(false);
   readonly uploading = signal(false);
   readonly imageUrls = signal<string[]>([]);
+  private readonly failedImageUrls = signal(new Set<string>());
   private dragFrom: number | null = null;
 
   readonly packOptions = signal(PACK_OPTIONS);
@@ -259,7 +265,16 @@ export class AdminProductFormComponent {
   }
 
   previewUrl(url: string): string | null {
+    if (this.failedImageUrls().has(url)) return null;
     return sanitizeImageUrl(url);
+  }
+
+  markImageFailed(url: string): void {
+    this.failedImageUrls.update((urls) => {
+      const next = new Set(urls);
+      next.add(url);
+      return next;
+    });
   }
 
   load(): void {
@@ -373,6 +388,11 @@ export class AdminProductFormComponent {
           this.uploading.set(false);
           if (response.success) {
             this.imageUrls.update((urls) => [...urls, response.data.url]);
+            this.failedImageUrls.update((failed) => {
+              const next = new Set(failed);
+              next.delete(response.data.url);
+              return next;
+            });
           } else {
             this.toast.error(response.error ?? 'Не вдалося завантажити зображення');
           }

@@ -1,4 +1,6 @@
 using FaynoShop.API.Exceptions;
+using FaynoShop.API.Options;
+using Microsoft.Extensions.Options;
 
 namespace FaynoShop.API.Services;
 
@@ -17,11 +19,21 @@ public sealed class MediaUploadService : IMediaUploadService
         "image/png"
     };
 
-    private readonly IWebHostEnvironment _environment;
+    private readonly string _productsRoot;
 
-    public MediaUploadService(IWebHostEnvironment environment)
+    public MediaUploadService(IWebHostEnvironment environment, IOptions<MediaStorageOptions> options)
     {
-        _environment = environment;
+        _productsRoot = Path.Combine(ResolveUploadsRoot(environment, options.Value), "products");
+    }
+
+    public static string ResolveUploadsRoot(IWebHostEnvironment environment, MediaStorageOptions options)
+    {
+        if (!string.IsNullOrWhiteSpace(options.RootPath))
+        {
+            return Path.GetFullPath(options.RootPath.Trim());
+        }
+
+        return Path.Combine(environment.ContentRootPath, "wwwroot", "uploads");
     }
 
     public async Task<string> SaveProductImageAsync(IFormFile file, CancellationToken cancellationToken)
@@ -44,11 +56,10 @@ public sealed class MediaUploadService : IMediaUploadService
         var extension = DetectExtension(file)
             ?? throw new BadRequestException("Дозволені лише JPG та PNG.");
 
-        var uploadsRoot = Path.Combine(_environment.ContentRootPath, "wwwroot", "uploads", "products");
-        Directory.CreateDirectory(uploadsRoot);
+        Directory.CreateDirectory(_productsRoot);
 
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var fullPath = Path.Combine(uploadsRoot, fileName);
+        var fullPath = Path.Combine(_productsRoot, fileName);
 
         await using (var stream = File.Create(fullPath))
         {
@@ -68,13 +79,11 @@ public sealed class MediaUploadService : IMediaUploadService
             return null;
         }
 
-        // JPEG: FF D8 FF
         if (header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF)
         {
             return ".jpg";
         }
 
-        // PNG: 89 50 4E 47 0D 0A 1A 0A
         if (read >= 8
             && header[0] == 0x89
             && header[1] == 0x50

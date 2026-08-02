@@ -1,13 +1,16 @@
 using FaynoShop.API.Data;
 using FaynoShop.API.Extensions;
 using FaynoShop.API.Middleware;
+using FaynoShop.API.Options;
+using FaynoShop.API.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddCatalogServices();
+builder.Services.AddCatalogServices(builder.Configuration);
 builder.Services.AddAuthServices(builder.Configuration, builder.Environment);
 builder.Services.AddAuthRateLimiting();
 
@@ -41,6 +44,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+var mediaOptions = builder.Configuration
+    .GetSection(MediaStorageOptions.SectionName)
+    .Get<MediaStorageOptions>() ?? new MediaStorageOptions();
+var uploadsRoot = MediaUploadService.ResolveUploadsRoot(builder.Environment, mediaOptions);
+Directory.CreateDirectory(Path.Combine(uploadsRoot, "products"));
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsRoot),
+    RequestPath = "/uploads"
+});
 app.UseStaticFiles();
 app.UseCors("Frontend");
 app.UseRateLimiter();

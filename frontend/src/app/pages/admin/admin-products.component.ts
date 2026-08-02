@@ -124,8 +124,13 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             <div
               class="grid size-12 place-items-center overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--kraft-100)] text-[10px] text-[var(--kraft-400)]"
             >
-              @if (previewUrl(product.imageUrl); as src) {
-                <img [src]="src" [alt]="product.name" class="h-full w-full object-cover" />
+              @if (thumbUrl(product); as src) {
+                <img
+                  [src]="src"
+                  [alt]="product.name"
+                  class="h-full w-full object-cover"
+                  (error)="markImageFailed(product.id)"
+                />
               } @else {
                 фото
               }
@@ -202,8 +207,13 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             <div
               class="grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--kraft-100)] text-[10px] text-[var(--kraft-400)]"
             >
-              @if (previewUrl(product.imageUrl); as src) {
-                <img [src]="src" [alt]="product.name" class="h-full w-full object-cover" />
+              @if (thumbUrl(product); as src) {
+                <img
+                  [src]="src"
+                  [alt]="product.name"
+                  class="h-full w-full object-cover"
+                  (error)="markImageFailed(product.id)"
+                />
               } @else {
                 фото
               }
@@ -305,6 +315,7 @@ export class AdminProductsComponent {
   readonly loading = signal(true);
   readonly error = signal('');
   readonly togglingId = signal<number | null>(null);
+  private readonly failedImageIds = signal(new Set<number>());
 
   readonly first = computed(() =>
     this.page().totalCount ? (this.page().page - 1) * this.page().pageSize + 1 : 0,
@@ -375,6 +386,19 @@ export class AdminProductsComponent {
 
   previewUrl(url: string | null | undefined): string | null {
     return sanitizeImageUrl(url);
+  }
+
+  thumbUrl(product: AdminProduct): string | null {
+    if (this.failedImageIds().has(product.id)) return null;
+    return sanitizeImageUrl(product.imageUrl);
+  }
+
+  markImageFailed(productId: number): void {
+    this.failedImageIds.update((ids) => {
+      const next = new Set(ids);
+      next.add(productId);
+      return next;
+    });
   }
 
   stockClass(stock: number): string {

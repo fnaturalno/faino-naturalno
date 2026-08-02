@@ -131,8 +131,9 @@ Images are uploaded separately before save:
 
 - `POST /api/admin/uploads/images` with multipart field `file`
 - Allowed: JPG / PNG; max **5 MB**; magic-byte validated on the server
-- Response `data.url` is a relative path `/uploads/products/{file}` stored on the product and served as a static file from the API `wwwroot`
-- Clients resolve `/uploads/...` against the API base URL when rendering `<img>`
+- Response `data.url` is a relative path `/uploads/products/{file}` stored on the product and served as static files at `/uploads`
+- Default disk root: `{ContentRoot}/wwwroot/uploads`. On ephemeral hosts (Railway) set `MediaStorage__RootPath` to a **mounted volume** (e.g. `/data/uploads`) so uploads survive redeploys; without a volume, redeploy deletes files while DB URLs remain → broken images
+- Clients resolve `/uploads/...` against the API base URL when rendering `<img>`; broken URLs fall back to the kraft «фото» placeholder
 
 Server rules:
 

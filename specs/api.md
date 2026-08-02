@@ -50,7 +50,7 @@ Hierarchy details: `specs/features/subcategories.md`.
 |--------|-------|------|-------------|
 | POST | /admin/uploads/images | Admin | Upload product image (multipart `file`; JPG/PNG ≤ 5 MB) → `{ url }` under `/uploads/products/...` |
 
-Static files: API serves `wwwroot` so `/uploads/products/{file}` is publicly readable; write only via the Admin upload endpoint.
+Static files: API serves `/uploads` from `MediaStorage:RootPath` (default `wwwroot/uploads`) so `/uploads/products/{file}` is publicly readable; write only via the Admin upload endpoint. On Railway set `MediaStorage__RootPath` to a persistent volume.
 
 ## Auth
 | Method | Route | Auth | Description |
