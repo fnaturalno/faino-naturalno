@@ -86,6 +86,7 @@ See `specs/features/subcategories.md` for hierarchy, counts, and filter expansio
 | LastName | string | |
 | Phone | string? | optional; `+380…` when set |
 | IsAdmin | bool | default false |
+| PasswordChangedAt | DateTime? | null until first change/reset; set on change-password and reset-password |
 | CreatedAt | DateTime | |
 | UpdatedAt | DateTime | |
 

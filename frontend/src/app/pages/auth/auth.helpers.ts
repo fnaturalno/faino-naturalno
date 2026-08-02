@@ -55,7 +55,9 @@ export function formatUaDate(iso: string): string {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  }).format(date);
+  })
+    .format(date)
+    .replace(/\s*р\.?$/u, '');
 }
 
 export function formatItemCount(count: number): string {
@@ -154,5 +156,35 @@ export const AUTH_CARD_CLASSES =
 export const AUTH_PRIMARY_BTN =
   'inline-flex min-h-[54px] w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 text-base font-extrabold text-[var(--espresso-900)] transition hover:bg-[var(--marigold-500)] disabled:cursor-not-allowed disabled:opacity-60';
 
+export const AUTH_SECONDARY_BTN =
+  'inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white px-5 text-base font-extrabold text-[var(--espresso-900)] transition hover:bg-[var(--kraft-100)] disabled:cursor-not-allowed disabled:opacity-60';
+
 export const AUTH_LINK_CLASSES =
   'font-semibold text-[var(--cinnamon-700)] hover:text-[var(--espresso-800)] hover:underline';
+
+/** Client-only password strength (matches design/auth.dc.html). */
+export interface PasswordStrength {
+  width: string;
+  color: string;
+  label: string;
+}
+
+export function passwordStrength(value: string): PasswordStrength {
+  if (!value) {
+    return { width: '0%', color: 'var(--kraft-400)', label: '' };
+  }
+
+  let score = 0;
+  if (value.length >= 8) score++;
+  if (/[A-ZА-ЯЇІЄҐ]/.test(value)) score++;
+  if (/[0-9]/.test(value)) score++;
+  if (/[^A-Za-zА-Яа-яЇїІіЄєҐґ0-9]/.test(value)) score++;
+
+  if (score <= 1) {
+    return { width: '33%', color: 'var(--chili-500)', label: 'Слабкий' };
+  }
+  if (score <= 3) {
+    return { width: '66%', color: 'var(--marigold-600)', label: 'Середній' };
+  }
+  return { width: '100%', color: 'var(--garden-700)', label: 'Надійний' };
+}

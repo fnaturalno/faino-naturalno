@@ -10,6 +10,8 @@ export interface AuthUser {
   phone?: string | null;
   isAdmin: boolean;
   createdAt: string;
+  /** ISO date of last password change; null until first change. */
+  passwordChangedAt?: string | null;
 }
 
 export interface AuthSession {
@@ -42,6 +44,23 @@ export interface ResetPasswordRequest {
   token: string;
   password: string;
 }
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  /** Sent when present so backend can keep this device’s session. */
+  refreshToken?: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
+/** Change-password may return a message only, or rotated tokens. */
+export type ChangePasswordResponse =
+  | MessageResponse
+  | (Partial<AuthSession> & MessageResponse)
+  | AuthSession;
 
 export interface UpdateProfileRequest {
   firstName: string;

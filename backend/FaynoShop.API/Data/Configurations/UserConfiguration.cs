@@ -35,6 +35,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasDefaultValue(false);
 
+        builder.Property(u => u.PasswordChangedAt)
+            .HasColumnType("timestamptz");
+
         builder.Property(u => u.CreatedAt)
             .HasColumnType("timestamptz")
             .IsRequired()

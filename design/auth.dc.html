@@ -147,6 +147,51 @@
             </div>
           </div>
 
+          <!-- change password -->
+          <div style="padding:32px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-xs);">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:22px;">
+              <div>
+                <span class="fn-eyebrow" style="display:block;margin-bottom:6px;">Безпека</span>
+                <h3 style="margin:0;font-size:var(--text-lg);">Змінити пароль</h3>
+              </div>
+              <sc-if value="{{ pwdCollapsed }}" hint-placeholder-val="{{ true }}">
+                <span class="auth-link" onClick="{{ openPwd }}" style="font-size:var(--text-sm);white-space:nowrap;">Змінити</span>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ pwdCollapsed }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--surface-cream);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-md);">
+                <span style="width:38px;height:38px;flex:0 0 38px;border-radius:var(--radius-sm);background:var(--kraft-100);display:flex;align-items:center;justify-content:center;color:var(--cinnamon-700);">
+                  <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="lock" size="18" hint-size="18px,18px"></x-import>
+                </span>
+                <div style="flex:1;min-width:0;">
+                  <span style="display:block;font-family:var(--font-body);font-weight:var(--fw-bold);color:var(--espresso-900);">••••••••••</span>
+                  <span style="font-size:var(--text-sm);color:var(--text-muted);">Остання зміна — 12 травня 2026</span>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ pwdOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:16px;">
+                <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Поточний пароль" type="password" placeholder="••••••••" hint-size="100%,72px"></x-import>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Новий пароль" type="password" value="{{ newPwd }}" onInput="{{ setNewPwd }}" placeholder="Мінімум 8 символів" hint-size="100%,72px"></x-import>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="flex:1;height:5px;border-radius:999px;background:var(--kraft-200);overflow:hidden;">
+                      <span style="display:block;height:100%;width:{{ pwdBarW }};background:{{ pwdBarColor }};border-radius:999px;transition:width var(--dur) var(--ease-out);"></span>
+                    </span>
+                    <span style="font-size:var(--text-xs);font-weight:var(--fw-semibold);color:{{ pwdBarColor }};white-space:nowrap;">{{ pwdLabel }}</span>
+                  </div>
+                </div>
+                <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Підтвердіть новий пароль" type="password" placeholder="••••••••" hint-size="100%,72px"></x-import>
+                <div style="display:flex;gap:12px;margin-top:4px;">
+                  <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Button" onClick="{{ closePwd }}" hint-size="auto,48px">Оновити пароль</x-import>
+                  <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Button" variant="ghost" onClick="{{ closePwd }}" hint-size="auto,48px">Скасувати</x-import>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
           <!-- delivery address -->
           <div style="padding:32px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-xs);">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:22px;">
@@ -388,6 +433,24 @@
 
         <div style="height:1.5px;background:var(--border-subtle);margin:24px 0;"></div>
 
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <span class="fn-eyebrow">Безпека</span>
+        </div>
+        <button type="button" style="display:flex;align-items:center;gap:12px;width:100%;padding:14px;background:var(--surface-cream);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;text-align:left;min-height:56px;">
+          <span style="width:34px;height:34px;flex:0 0 34px;border-radius:var(--radius-sm);background:var(--kraft-100);display:flex;align-items:center;justify-content:center;color:var(--cinnamon-700);">
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="lock" size="17" hint-size="17px,17px"></x-import>
+          </span>
+          <div style="flex:1;min-width:0;">
+            <span style="display:block;font-family:var(--font-body);font-weight:var(--fw-bold);font-size:var(--text-sm);color:var(--espresso-900);">Змінити пароль</span>
+            <span style="font-size:var(--text-xs);color:var(--text-muted);">Остання зміна — 12 травня</span>
+          </div>
+          <span style="color:var(--kraft-500);display:inline-flex;">
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="chevron-right" size="18" hint-size="18px,18px"></x-import>
+          </span>
+        </button>
+
+        <div style="height:1.5px;background:var(--border-subtle);margin:24px 0;"></div>
+
         <span class="fn-eyebrow" style="display:block;margin-bottom:14px;">Мої замовлення</span>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <sc-for list="{{ orders }}" as="o" hint-placeholder-count="3">
@@ -405,6 +468,91 @@
           <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="log-out" size="17" hint-size="17px,17px"></x-import>
           Вийти
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PASSWORD RESET FLOW ================= -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-family:var(--font-body);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--espresso-700);">Скидання пароля — /auth/reset</span>
+      <span style="height:1.5px;flex:1;background:var(--kraft-400);max-width:360px;"></span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;">
+
+      <!-- step 1: request -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <span style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;">1 · Запит на скидання</span>
+        <div style="width:420px;padding:40px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;align-items:center;">
+          <div style="width:72px;height:72px;border-radius:999px;background:var(--marigold-100);display:flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--cinnamon-700);">
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="key-round" size="30" strokeWidth="1.5" hint-size="30px,30px"></x-import>
+          </div>
+          <h2 style="margin:0 0 8px;font-size:var(--text-xl);text-align:center;">Забули пароль?</h2>
+          <p style="margin:0 0 24px;color:var(--espresso-700);text-align:center;font-size:var(--text-sm);">Вкажіть пошту — надішлемо посилання для відновлення.</p>
+          <div style="width:100%;">
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Ел. пошта" type="email" placeholder="olena@example.com" hint-size="100%,72px"></x-import>
+          </div>
+          <div style="width:100%;margin-top:20px;">
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Button" size="lg" full="{{ true }}" hint-size="100%,54px">Надіслати посилання</x-import>
+          </div>
+          <p style="margin:20px 0 0;text-align:center;"><span class="auth-link" style="font-size:var(--text-sm);">← Назад до входу</span></p>
+        </div>
+      </div>
+
+      <!-- step 2: sent -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <span style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;">2 · Лист надіслано</span>
+        <div style="width:420px;padding:40px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;align-items:center;text-align:center;">
+          <div style="width:72px;height:72px;border-radius:999px;background:var(--garden-100);display:flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--garden-700);">
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="mail-check" size="30" strokeWidth="1.5" hint-size="30px,30px"></x-import>
+          </div>
+          <h2 style="margin:0 0 8px;font-size:var(--text-xl);">Перевірте пошту</h2>
+          <p style="margin:0 0 6px;color:var(--espresso-700);font-size:var(--text-sm);">Ми надіслали посилання для відновлення на</p>
+          <p style="margin:0 0 22px;font-family:var(--font-body);font-weight:var(--fw-bold);color:var(--espresso-900);">olena@example.com</p>
+          <div style="width:100%;padding:14px 16px;background:var(--surface-cream);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-md);margin-bottom:20px;">
+            <span style="font-size:var(--text-sm);color:var(--espresso-700);line-height:1.5;">Не бачите листа? Подивіться у папці «Спам» — посилання діє 60 хвилин.</span>
+          </div>
+          <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Button" variant="secondary" full="{{ true }}" hint-size="100%,48px">Надіслати ще раз</x-import>
+          <p style="margin:18px 0 0;"><span class="auth-link" style="font-size:var(--text-sm);">← Назад до входу</span></p>
+        </div>
+      </div>
+
+      <!-- step 3: new password -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <span style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;">3 · Новий пароль</span>
+        <div style="width:420px;padding:40px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;align-items:center;">
+          <img src="assets/logo.png" alt="Файно натурально" style="height:52px;width:auto;margin-bottom:18px;">
+          <h2 style="margin:0 0 8px;font-size:var(--text-xl);text-align:center;">Новий пароль</h2>
+          <p style="margin:0 0 24px;color:var(--espresso-700);text-align:center;font-size:var(--text-sm);">Придумайте надійний пароль — мінімум 8 символів.</p>
+          <div style="width:100%;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Новий пароль" type="password" value="{{ resetPwd }}" onInput="{{ setResetPwd }}" placeholder="Мінімум 8 символів" hint-size="100%,72px"></x-import>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="flex:1;height:5px;border-radius:999px;background:var(--kraft-200);overflow:hidden;">
+                  <span style="display:block;height:100%;width:{{ resetBarW }};background:{{ resetBarColor }};border-radius:999px;transition:width var(--dur) var(--ease-out);"></span>
+                </span>
+                <span style="font-size:var(--text-xs);font-weight:var(--fw-semibold);color:{{ resetBarColor }};white-space:nowrap;">{{ resetLabel }}</span>
+              </div>
+            </div>
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Підтвердіть пароль" type="password" placeholder="••••••••" hint-size="100%,72px"></x-import>
+          </div>
+          <div style="width:100%;margin-top:22px;">
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Button" size="lg" full="{{ true }}" hint-size="100%,54px">Зберегти пароль</x-import>
+          </div>
+        </div>
+      </div>
+
+      <!-- step 4: done -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <span style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;">4 · Готово</span>
+        <div style="width:420px;padding:48px 40px;background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;align-items:center;text-align:center;">
+          <div style="width:80px;height:80px;border-radius:999px;background:var(--garden-500);display:flex;align-items:center;justify-content:center;margin-bottom:22px;color:var(--white);">
+            <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="check" size="38" hint-size="38px,38px"></x-import>
+          </div>
+          <h2 style="margin:0 0 8px;font-size:var(--text-xl);">Пароль змінено</h2>
+          <p style="margin:0 0 26px;color:var(--espresso-700);font-size:var(--text-sm);max-width:280px;">Тепер можна увійти з новим паролем.</p>
+          <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Button" size="lg" full="{{ true }}" hint-size="100%,54px">Увійти</x-import>
+        </div>
       </div>
     </div>
   </div>
@@ -535,7 +683,22 @@ class Component extends DCLogic {
     cityId: "lviv",
     cityTouched: false,
     branchIdx: 2,
+    pwdOpen: false,
+    newPwd: "",
+    resetPwd: "",
   };
+
+  strength(v) {
+    let s = 0;
+    if (v.length >= 8) s++;
+    if (/[A-ZА-ЯЇІЄҐ]/.test(v)) s++;
+    if (/[0-9]/.test(v)) s++;
+    if (/[^A-Za-zА-Яа-я0-9]/.test(v)) s++;
+    if (!v) return { w: "0%", color: "var(--kraft-400)", label: "" };
+    if (s <= 1) return { w: "33%", color: "var(--chili-500)", label: "Слабкий" };
+    if (s <= 3) return { w: "66%", color: "var(--marigold-600)", label: "Середній" };
+    return { w: "100%", color: "var(--garden-700)", label: "Надійний" };
+  }
 
   CITIES = [
     { id: "lviv", name: "Львів", region: "Львівська обл." },
@@ -632,6 +795,20 @@ class Component extends DCLogic {
       editAddr: () => this.setState({ editing: true }),
       cancelAddr: () => this.setState({ editing: false, cityTouched: false }),
       saveAddr: () => { if (canSave) this.setState({ addrSaved: true, editing: false, cityTouched: false }); },
+      pwdOpen: s.pwdOpen,
+      pwdCollapsed: !s.pwdOpen,
+      openPwd: () => this.setState({ pwdOpen: true }),
+      closePwd: () => this.setState({ pwdOpen: false, newPwd: "" }),
+      newPwd: s.newPwd,
+      setNewPwd: (e) => this.setState({ newPwd: e.target.value }),
+      pwdBarW: this.strength(s.newPwd).w,
+      pwdBarColor: this.strength(s.newPwd).color,
+      pwdLabel: this.strength(s.newPwd).label,
+      resetPwd: s.resetPwd,
+      setResetPwd: (e) => this.setState({ resetPwd: e.target.value }),
+      resetBarW: this.strength(s.resetPwd).w,
+      resetBarColor: this.strength(s.resetPwd).color,
+      resetLabel: this.strength(s.resetPwd).label,
       orders: [
         { num: "Замовлення №1042", meta: "12 липня 2026 · 3 товари", total: "420 ₴", status: "Доставлено", tone: "fresh" },
         { num: "Замовлення №1051", meta: "14 липня 2026 · 5 товарів", total: "685 ₴", status: "В обробці", tone: "marigold" },

@@ -4,10 +4,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ToastHostComponent } from '../../components/toast-host/toast-host.component';
 import { AuthService, extractApiError } from '../../services/auth.service';
-import { ToastService } from '../../services/toast.service';
 import {
   AUTH_CARD_CLASSES,
   AUTH_ERROR_CLASSES,
@@ -15,35 +15,31 @@ import {
   AUTH_LABEL_CLASSES,
   AUTH_LINK_CLASSES,
   AUTH_PRIMARY_BTN,
+  AUTH_SECONDARY_BTN,
 } from './auth.helpers';
 
 @Component({
   selector: 'app-forgot-password',
-  imports: [ReactiveFormsModule, RouterLink, NavbarComponent, ToastHostComponent],
+  imports: [ReactiveFormsModule, RouterLink, NavbarComponent, ToastHostComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-navbar />
     <main class="flex min-h-[calc(100vh-60px)] items-start justify-center bg-[var(--bg-page)] px-4 py-10 sm:py-14">
       <div [class]="cardClasses">
-        <div class="flex flex-col items-center text-center">
-          <a routerLink="/catalog" aria-label="Файно натурально">
-            <img src="/logo.png" alt="Файно натурально" class="mb-5 h-14 w-auto sm:mb-6 sm:h-16" />
-          </a>
-          <h1 class="mb-1.5 text-xl sm:text-2xl">Забули пароль?</h1>
-          <p class="mb-7 text-[var(--espresso-700)] sm:mb-8">
-            Вкажіть електронну пошту — надішлемо лист для скидання пароля
-          </p>
-        </div>
-
-        @if (sent()) {
-          <div class="rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--kraft-100)] p-4 text-center text-[var(--espresso-800)]" role="status">
-            <p class="mb-3 font-semibold">Лист для скидання пароля надіслано</p>
-            <p class="mb-4 text-sm text-[var(--espresso-700)]">
-              Якщо акаунт з цією поштою існує, ви отримаєте інструкції. Перевірте також папку «Спам».
+        @if (step() === 'request') {
+          <div class="mb-6 flex flex-col items-center text-center">
+            <div
+              class="mb-5 grid size-[72px] place-items-center rounded-full bg-[var(--marigold-100)] text-[var(--cinnamon-700)]"
+              aria-hidden="true"
+            >
+              <app-icon name="key-round" [size]="30" />
+            </div>
+            <h1 class="mb-2 text-xl sm:text-2xl">Забули пароль?</h1>
+            <p class="text-sm text-[var(--espresso-700)]">
+              Вкажіть пошту — надішлемо посилання для відновлення.
             </p>
-            <a routerLink="/auth/login" [class]="linkClasses">Повернутися до входу</a>
           </div>
-        } @else {
+
           <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
             @if (formError()) {
               <p role="alert" [class]="errorClasses">{{ formError() }}</p>
@@ -67,13 +63,60 @@ import {
                 <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
                 Зачекайте…
               } @else {
-                Надіслати лист
+                Надіслати посилання
               }
             </button>
           </form>
-          <p class="mt-6 text-center text-[var(--espresso-700)]">
-            <a routerLink="/auth/login" [class]="linkClasses">Повернутися до входу</a>
+          <p class="mt-5 text-center">
+            <a routerLink="/auth/login" [class]="linkClasses + ' text-sm'">← Назад до входу</a>
           </p>
+        } @else {
+          <div class="flex flex-col items-center text-center" role="status">
+            <div
+              class="mb-5 grid size-[72px] place-items-center rounded-full bg-[var(--garden-100)] text-[var(--garden-700)]"
+              aria-hidden="true"
+            >
+              <app-icon name="mail-check" [size]="30" />
+            </div>
+            <h1 class="mb-2 text-xl sm:text-2xl">Перевірте пошту</h1>
+            <p class="mb-1.5 text-sm text-[var(--espresso-700)]">
+              Ми надіслали посилання для відновлення на
+            </p>
+            <p
+              class="mb-5 max-w-full truncate font-bold text-[var(--espresso-900)]"
+              [title]="submittedEmail()"
+            >{{ submittedEmail() }}</p>
+
+            <div
+              class="mb-5 w-full rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-cream)] px-4 py-3.5 text-left"
+            >
+              <p class="text-sm leading-relaxed text-[var(--espresso-700)]">
+                Не бачите листа? Подивіться у папці «Спам» — посилання діє 60 хвилин.
+              </p>
+            </div>
+
+            @if (formError()) {
+              <p role="alert" class="mb-3 w-full text-left" [class]="errorClasses">{{ formError() }}</p>
+            }
+
+            <button
+              type="button"
+              [class]="secondaryBtn"
+              [disabled]="submitting()"
+              (click)="resend()"
+            >
+              @if (submitting()) {
+                <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
+                Зачекайте…
+              } @else {
+                Надіслати ще раз
+              }
+            </button>
+
+            <p class="mt-[18px]">
+              <a routerLink="/auth/login" [class]="linkClasses + ' text-sm'">← Назад до входу</a>
+            </p>
+          </div>
         }
       </div>
     </main>
@@ -83,17 +126,18 @@ import {
 export class ForgotPasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
-  private readonly toasts = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly submitting = signal(false);
-  protected readonly sent = signal(false);
+  protected readonly step = signal<'request' | 'sent'>('request');
+  protected readonly submittedEmail = signal('');
   protected readonly formError = signal<string | null>(null);
   protected readonly cardClasses = AUTH_CARD_CLASSES;
   protected readonly fieldClasses = AUTH_FIELD_CLASSES;
   protected readonly labelClasses = AUTH_LABEL_CLASSES;
   protected readonly errorClasses = AUTH_ERROR_CLASSES;
   protected readonly primaryBtn = AUTH_PRIMARY_BTN;
+  protected readonly secondaryBtn = AUTH_SECONDARY_BTN;
   protected readonly linkClasses = AUTH_LINK_CLASSES;
 
   protected readonly form = this.fb.nonNullable.group({
@@ -107,9 +151,23 @@ export class ForgotPasswordComponent {
       return;
     }
 
+    const email = this.form.controls.email.value.trim();
+    this.sendForgot(email, true);
+  }
+
+  protected resend(): void {
+    const email = this.submittedEmail();
+    if (!email || this.submitting()) {
+      return;
+    }
+    this.sendForgot(email, false);
+  }
+
+  private sendForgot(email: string, advanceToSent: boolean): void {
+    this.formError.set(null);
     this.submitting.set(true);
     this.auth
-      .forgotPassword({ email: this.form.controls.email.value.trim() })
+      .forgotPassword({ email })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.submitting.set(false)),
@@ -117,14 +175,18 @@ export class ForgotPasswordComponent {
       .subscribe({
         next: (response) => {
           if (!response.success) {
-            this.formError.set(response.error ?? 'Не вдалося надіслати лист.');
+            this.formError.set(response.error ?? 'Не вдалося надіслати посилання.');
             return;
           }
-          this.sent.set(true);
-          this.toasts.success('Лист для скидання пароля надіслано');
+          this.submittedEmail.set(email);
+          if (advanceToSent) {
+            this.step.set('sent');
+          }
         },
         error: (err: unknown) => {
-          this.formError.set(extractApiError(err, 'Не вдалося надіслати лист. Спробуйте ще раз.'));
+          this.formError.set(
+            extractApiError(err, 'Не вдалося надіслати посилання. Спробуйте ще раз.'),
+          );
         },
       });
   }

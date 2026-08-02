@@ -59,4 +59,8 @@ Static files: API serves `/uploads` from `MediaStorage:RootPath` (default `wwwro
 | POST | /auth/login | — | Login → tokens |
 | POST | /auth/refresh | — | Refresh access token |
 | POST | /auth/logout | User | Invalidate refresh token |
-| GET | /auth/me | User | Current user profile (`isAdmin`, name, …) |
+| POST | /auth/forgot-password | — | Request password-reset email (no account enumeration) |
+| POST | /auth/reset-password | — | Set new password via email token; invalidates all sessions |
+| POST | /auth/change-password | User | Change password (`currentPassword`, `newPassword`); keep current session, revoke other sessions |
+| GET | /auth/me | User | Current user profile (`isAdmin`, name, `passwordChangedAt`, …) |
+| PUT | /auth/me | User | Update first name, last name, phone |

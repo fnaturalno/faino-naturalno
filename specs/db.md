@@ -92,6 +92,7 @@
 | last_name | varchar(100) | NOT NULL |
 | phone | varchar(20) | nullable; when set, UA `+380…` validated in API |
 | is_admin | bool | NOT NULL DEFAULT false |
+| password_changed_at | timestamptz | nullable — null until first password change or reset; set on change-password / reset-password |
 | created_at | timestamptz | NOT NULL DEFAULT now() |
 | updated_at | timestamptz | NOT NULL DEFAULT now() |
 
@@ -200,6 +201,7 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | `RefreshTokenFamily` (`20260719172227_RefreshTokenFamily`) | `refresh_tokens.token_family` + index for reuse detection |
 | `OrderConfirmationToken` | `orders.confirmation_token_hash` UNIQUE — guest confirmation capability (hashed) |
 | `SubcategoriesSchema` (`20260802140008_SubcategoriesSchema`) | `categories.parent_id` nullable self-FK (RESTRICT) + `idx_categories_parent_id` for subcategory hierarchy |
+| `PasswordChangedAt` (`20260802160713_PasswordChangedAt`) | nullable `users.password_changed_at` (`timestamptz`) for profile «Остання зміна» and change/reset password flows |
 
 ### Connection String
 ```

@@ -226,11 +226,12 @@
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                     <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Ціна, ₴" type="number" value="95" hint-size="100%,72px"></x-import>
                     <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Стара ціна, ₴ (необов.)" type="number" value="120" hint-size="100%,72px"></x-import>
+                    <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Вага / обʼєм" type="number" value="50" hint-size="100%,72px"></x-import>
                     <div style="display:flex;flex-direction:column;gap:6px;">
-                      <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-800);">Вага / одиниця</label>
+                      <label style="font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-800);">Одиниця</label>
                       <div style="position:relative;">
                         <select style="appearance:none;-webkit-appearance:none;width:100%;padding:12px 40px 12px 14px;font-family:var(--font-body);font-size:var(--text-base);color:var(--espresso-800);background:var(--white);border:var(--border-width) solid var(--border-strong);border-radius:var(--radius-md);cursor:pointer;outline:none;">
-                          <option>10 г</option><option selected>50 г</option><option>100 г</option><option>250 г</option><option>500 г</option><option>1 кг</option><option>шт</option>
+                          <option>г</option><option>кг</option><option>мл</option><option>л</option>
                         </select>
                         <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;display:inline-flex;color:var(--espresso-700);">
                           <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="chevron-down" size="16" hint-size="16px,16px"></x-import>

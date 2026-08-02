@@ -1,0 +1,29 @@
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+
+import { passwordStrength } from '../../pages/auth/auth.helpers';
+
+@Component({
+  selector: 'app-password-strength',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @if (meter().label) {
+      <div class="flex items-center gap-2.5" aria-live="polite">
+        <span class="h-[5px] flex-1 overflow-hidden rounded-full bg-[var(--kraft-200)]" aria-hidden="true">
+          <span
+            class="block h-full rounded-full transition-[width] duration-200 ease-out"
+            [style.width]="meter().width"
+            [style.background]="meter().color"
+          ></span>
+        </span>
+        <span
+          class="whitespace-nowrap text-xs font-semibold"
+          [style.color]="meter().color"
+        >{{ meter().label }}</span>
+      </div>
+    }
+  `,
+})
+export class PasswordStrengthComponent {
+  readonly password = input.required<string>();
+  protected readonly meter = computed(() => passwordStrength(this.password()));
+}

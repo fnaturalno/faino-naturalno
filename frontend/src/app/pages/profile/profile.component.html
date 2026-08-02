@@ -109,6 +109,127 @@
           }
         </section>
 
+        <!-- Change password -->
+        <section class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-xs)] sm:p-8">
+          <div class="mb-5 flex items-start justify-between gap-3">
+            <div>
+              <span class="fn-eyebrow mb-1.5 block">Безпека</span>
+              <h2 class="text-lg">Змінити пароль</h2>
+            </div>
+            @if (!passwordExpanded() && !profileLoading()) {
+              <button
+                type="button"
+                [class]="linkClasses + ' text-sm whitespace-nowrap'"
+                (click)="openPasswordForm()"
+              >
+                Змінити
+              </button>
+            }
+          </div>
+
+          @if (profileLoading()) {
+            <div class="h-[70px] animate-pulse rounded-[var(--radius-md)] bg-[var(--kraft-200)]"></div>
+          } @else if (!passwordExpanded()) {
+            <div
+              class="flex items-center gap-3.5 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-cream)] px-[18px] py-4"
+            >
+              <div
+                class="grid size-[38px] shrink-0 place-items-center rounded-[var(--radius-sm)] bg-[var(--kraft-100)] text-[var(--cinnamon-700)]"
+                aria-hidden="true"
+              >
+                <app-icon name="lock" [size]="18" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <span class="block font-bold text-[var(--espresso-900)]">••••••••••</span>
+                <span class="text-sm text-[var(--text-muted)]">
+                  Остання зміна — {{ passwordChangedLabel() }}
+                </span>
+              </div>
+            </div>
+          } @else {
+            <form class="flex flex-col gap-4" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+              @if (passwordFormError()) {
+                <p role="alert" [class]="errorClasses">{{ passwordFormError() }}</p>
+              }
+
+              <div>
+                <label for="pwd-current" [class]="labelClasses">Поточний пароль</label>
+                <input
+                  id="pwd-current"
+                  type="password"
+                  autocomplete="current-password"
+                  formControlName="currentPassword"
+                  placeholder="••••••••"
+                  [class]="fieldClasses"
+                />
+                @if (passwordForm.controls.currentPassword.invalid && (passwordForm.controls.currentPassword.dirty || passwordForm.controls.currentPassword.touched)) {
+                  <p [class]="errorClasses">Введіть поточний пароль</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div>
+                  <label for="pwd-new" [class]="labelClasses">Новий пароль</label>
+                  <input
+                    id="pwd-new"
+                    type="password"
+                    autocomplete="new-password"
+                    formControlName="newPassword"
+                    placeholder="Мінімум 8 символів"
+                    [class]="fieldClasses"
+                    (input)="onNewPasswordInput()"
+                  />
+                  @if (passwordForm.controls.newPassword.invalid && (passwordForm.controls.newPassword.dirty || passwordForm.controls.newPassword.touched)) {
+                    <p [class]="errorClasses">Пароль має містити від 8 до 128 символів</p>
+                  }
+                  @if (passwordForm.hasError('passwordSame') && (passwordForm.controls.newPassword.dirty || passwordForm.controls.newPassword.touched)) {
+                    <p [class]="errorClasses">Новий пароль має відрізнятися від поточного</p>
+                  }
+                </div>
+                <app-password-strength [password]="newPasswordValue()" />
+              </div>
+
+              <div>
+                <label for="pwd-confirm" [class]="labelClasses">Підтвердіть новий пароль</label>
+                <input
+                  id="pwd-confirm"
+                  type="password"
+                  autocomplete="new-password"
+                  formControlName="confirmPassword"
+                  placeholder="••••••••"
+                  [class]="fieldClasses"
+                />
+                @if (passwordForm.hasError('passwordMismatch') && (passwordForm.controls.confirmPassword.dirty || passwordForm.controls.confirmPassword.touched)) {
+                  <p [class]="errorClasses">Паролі не збігаються</p>
+                }
+              </div>
+
+              <div class="mt-1 flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  class="inline-flex min-h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)] disabled:cursor-not-allowed disabled:opacity-60"
+                  [disabled]="passwordSaving()"
+                >
+                  @if (passwordSaving()) {
+                    <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
+                    Зачекайте…
+                  } @else {
+                    Оновити пароль
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] px-5 font-semibold text-[var(--espresso-800)] hover:bg-[var(--kraft-100)]"
+                  [disabled]="passwordSaving()"
+                  (click)="cancelPasswordForm()"
+                >
+                  Скасувати
+                </button>
+              </div>
+            </form>
+          }
+        </section>
+
         <!-- Delivery address -->
         <section class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-xs)] sm:p-8">
           <div class="mb-5 flex items-start justify-between gap-3">

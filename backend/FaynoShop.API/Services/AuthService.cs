@@ -213,12 +213,61 @@ public sealed class AuthService : IAuthService
 
         stored.IsUsed = true;
         stored.User.PasswordHash = PasswordHasher.Hash(request.Password);
+        stored.User.PasswordChangedAt = now;
         stored.User.UpdatedAt = now;
 
-        // Password change invalidates outstanding refresh sessions for this user.
+        // Password reset invalidates all outstanding refresh sessions for this user.
         await _db.RefreshTokens
             .Where(t => t.UserId == stored.UserId && t.RevokedAt == null)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now), cancellationToken);
+
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task ChangePasswordAsync(
+        int userId,
+        ChangePasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+            ?? throw new NotFoundException("Користувача не знайдено.");
+
+        if (!PasswordHasher.Verify(request.CurrentPassword, user.PasswordHash))
+        {
+            throw new BadRequestException("Невірний поточний пароль.");
+        }
+
+        if (request.CurrentPassword == request.NewPassword
+            || PasswordHasher.Verify(request.NewPassword, user.PasswordHash))
+        {
+            throw new BadRequestException("Новий пароль має відрізнятися від поточного.");
+        }
+
+        var now = DateTime.UtcNow;
+        user.PasswordHash = PasswordHasher.Hash(request.NewPassword);
+        user.PasswordChangedAt = now;
+        user.UpdatedAt = now;
+
+        // Keep current device session when refreshToken is sent (mirrors logout body);
+        // otherwise revoke all refresh sessions (access token still valid until expiry).
+        string? keepHash = null;
+        if (!string.IsNullOrWhiteSpace(request.RefreshToken))
+        {
+            keepHash = TokenHash.Sha256Hex(request.RefreshToken);
+        }
+
+        var revokeQuery = _db.RefreshTokens
+            .Where(t => t.UserId == userId && t.RevokedAt == null);
+
+        if (keepHash is not null)
+        {
+            revokeQuery = revokeQuery.Where(t => t.TokenHash != keepHash);
+        }
+
+        await revokeQuery.ExecuteUpdateAsync(
+            s => s.SetProperty(t => t.RevokedAt, now),
+            cancellationToken);
 
         await _db.SaveChangesAsync(cancellationToken);
     }

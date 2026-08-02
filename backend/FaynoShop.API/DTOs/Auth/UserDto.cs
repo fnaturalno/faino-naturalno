@@ -7,4 +7,5 @@ public sealed record UserDto(
     string Email,
     string? Phone,
     DateTime CreatedAt,
+    DateTime? PasswordChangedAt,
     bool IsAdmin);

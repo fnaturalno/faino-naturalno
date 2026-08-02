@@ -21,6 +21,7 @@ public sealed class AuthController : ControllerBase
     private readonly IValidator<LogoutRequest> _logoutValidator;
     private readonly IValidator<ForgotPasswordRequest> _forgotValidator;
     private readonly IValidator<ResetPasswordRequest> _resetValidator;
+    private readonly IValidator<ChangePasswordRequest> _changePasswordValidator;
     private readonly IValidator<UpdateProfileRequest> _updateProfileValidator;
     private readonly IValidator<SaveDeliveryAddressRequest> _saveAddressValidator;
 
@@ -32,6 +33,7 @@ public sealed class AuthController : ControllerBase
         IValidator<LogoutRequest> logoutValidator,
         IValidator<ForgotPasswordRequest> forgotValidator,
         IValidator<ResetPasswordRequest> resetValidator,
+        IValidator<ChangePasswordRequest> changePasswordValidator,
         IValidator<UpdateProfileRequest> updateProfileValidator,
         IValidator<SaveDeliveryAddressRequest> saveAddressValidator)
     {
@@ -42,6 +44,7 @@ public sealed class AuthController : ControllerBase
         _logoutValidator = logoutValidator;
         _forgotValidator = forgotValidator;
         _resetValidator = resetValidator;
+        _changePasswordValidator = changePasswordValidator;
         _updateProfileValidator = updateProfileValidator;
         _saveAddressValidator = saveAddressValidator;
     }
@@ -132,6 +135,22 @@ public sealed class AuthController : ControllerBase
     {
         await _resetValidator.ValidateAndThrowAsync(request, cancellationToken);
         await _auth.ResetPasswordAsync(request, cancellationToken);
+        return Ok(ApiResponse<MessageResponse>.Ok(new MessageResponse("Пароль оновлено.")));
+    }
+
+    [HttpPost("change-password")]
+    [Authorize]
+    [EnableRateLimiting(RateLimitingExtensions.AuthStrictPolicy)]
+    [ProducesResponseType(typeof(ApiResponse<MessageResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status429TooManyRequests)]
+    public async Task<ActionResult<ApiResponse<MessageResponse>>> ChangePassword(
+        [FromBody] ChangePasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        await _changePasswordValidator.ValidateAndThrowAsync(request, cancellationToken);
+        await _auth.ChangePasswordAsync(User.GetRequiredUserId(), request, cancellationToken);
         return Ok(ApiResponse<MessageResponse>.Ok(new MessageResponse("Пароль оновлено.")));
     }
 

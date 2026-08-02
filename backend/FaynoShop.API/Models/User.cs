@@ -9,6 +9,7 @@ public class User
     public required string LastName { get; set; }
     public string? Phone { get; set; }
     public bool IsAdmin { get; set; }
+    public DateTime? PasswordChangedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

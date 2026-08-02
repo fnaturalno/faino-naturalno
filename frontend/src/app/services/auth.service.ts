@@ -16,9 +16,12 @@ import {
   AUTH_STORAGE_KEYS,
   AuthSession,
   AuthUser,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
   DeliveryAddressDto,
   ForgotPasswordRequest,
   LoginRequest,
+  MessageResponse,
   RegisterRequest,
   ResetPasswordRequest,
   SaveDeliveryAddressRequest,
@@ -145,6 +148,39 @@ export class AuthService {
 
   resetPassword(payload: ResetPasswordRequest): Observable<ApiResponse<object>> {
     return this.http.post<ApiResponse<object>>(`${this.baseUrl}/reset-password`, payload);
+  }
+
+  changePassword(
+    payload: Pick<ChangePasswordRequest, 'currentPassword' | 'newPassword'>,
+  ): Observable<ApiResponse<ChangePasswordResponse>> {
+    const refreshToken = this.refreshTokenSignal();
+    const body: ChangePasswordRequest = {
+      currentPassword: payload.currentPassword,
+      newPassword: payload.newPassword,
+      ...(refreshToken ? { refreshToken } : {}),
+    };
+
+    return this.http
+      .post<ApiResponse<ChangePasswordResponse>>(`${this.baseUrl}/change-password`, body)
+      .pipe(
+        tap((response) => {
+          if (!response.success || !response.data) {
+            return;
+          }
+          const data = response.data as Partial<AuthSession> & MessageResponse;
+          if (data.accessToken && data.refreshToken) {
+            this.persistTokens(data.accessToken, data.refreshToken);
+          } else if (data.accessToken) {
+            const currentRefresh = this.refreshTokenSignal();
+            if (currentRefresh) {
+              this.persistTokens(data.accessToken, currentRefresh);
+            }
+          }
+          if (data.user) {
+            this.persistUser(data.user);
+          }
+        }),
+      );
   }
 
   getDeliveryAddress(): Observable<ApiResponse<DeliveryAddressDto | null>> {

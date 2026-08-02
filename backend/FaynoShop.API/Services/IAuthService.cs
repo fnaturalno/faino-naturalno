@@ -11,6 +11,7 @@ public interface IAuthService
     Task LogoutAsync(int userId, LogoutRequest request, CancellationToken cancellationToken);
     Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken);
     Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken);
+    Task ChangePasswordAsync(int userId, ChangePasswordRequest request, CancellationToken cancellationToken);
     Task<UserDto> GetMeAsync(int userId, CancellationToken cancellationToken);
     Task<UserDto> UpdateMeAsync(int userId, UpdateProfileRequest request, CancellationToken cancellationToken);
     Task<DeliveryAddressDto?> GetDeliveryAddressAsync(int userId, CancellationToken cancellationToken);
@@ -29,5 +30,6 @@ public static class UserMapping
         user.Email,
         user.Phone,
         user.CreatedAt,
+        user.PasswordChangedAt,
         user.IsAdmin);
 }

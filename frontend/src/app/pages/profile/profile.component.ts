@@ -7,12 +7,19 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, finalize, of, switchMap } from 'rxjs';
 
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { PasswordStrengthComponent } from '../../components/password-strength/password-strength.component';
 import { ToastHostComponent } from '../../components/toast-host/toast-host.component';
 import {
   DeliveryAddressDto,
@@ -40,6 +47,18 @@ import {
   orderStatusTone,
 } from '../auth/auth.helpers';
 
+function passwordsMatch(group: AbstractControl): ValidationErrors | null {
+  const password = group.get('newPassword')?.value;
+  const confirm = group.get('confirmPassword')?.value;
+  return password && confirm && password !== confirm ? { passwordMismatch: true } : null;
+}
+
+function passwordsDiffer(group: AbstractControl): ValidationErrors | null {
+  const current = group.get('currentPassword')?.value;
+  const next = group.get('newPassword')?.value;
+  return current && next && current === next ? { passwordSame: true } : null;
+}
+
 @Component({
   selector: 'app-profile',
   imports: [
@@ -48,6 +67,7 @@ import {
     NavbarComponent,
     ToastHostComponent,
     IconComponent,
+    PasswordStrengthComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html',
@@ -101,6 +121,20 @@ export class ProfileComponent {
     phone: [''],
   });
 
+  protected readonly passwordExpanded = signal(false);
+  protected readonly passwordSaving = signal(false);
+  protected readonly passwordFormError = signal<string | null>(null);
+  protected readonly newPasswordValue = signal('');
+
+  protected readonly passwordForm = this.fb.nonNullable.group(
+    {
+      currentPassword: ['', [Validators.required]],
+      newPassword: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
+      confirmPassword: ['', [Validators.required]],
+    },
+    { validators: [passwordsMatch, passwordsDiffer] },
+  );
+
   protected readonly initials = computed(() => {
     const u = this.user();
     return u ? initialsOf(u.firstName, u.lastName) : '';
@@ -111,6 +145,14 @@ export class ProfileComponent {
     return u ? memberSinceYear(u.createdAt) : '';
   });
 
+  protected readonly passwordChangedLabel = computed(() => {
+    const u = this.user();
+    if (!u) {
+      return '';
+    }
+    const iso = u.passwordChangedAt ?? u.createdAt;
+    return formatUaDate(iso);
+  });
   protected readonly showCityList = computed(() => {
     return (
       this.editingAddress() &&
@@ -301,6 +343,57 @@ export class ProfileComponent {
       });
   }
 
+  protected openPasswordForm(): void {
+    this.passwordExpanded.set(true);
+    this.passwordFormError.set(null);
+  }
+
+  protected cancelPasswordForm(): void {
+    this.passwordExpanded.set(false);
+    this.passwordFormError.set(null);
+    this.clearPasswordForm();
+  }
+
+  protected onNewPasswordInput(): void {
+    this.newPasswordValue.set(this.passwordForm.controls.newPassword.value);
+  }
+
+  protected changePassword(): void {
+    this.passwordFormError.set(null);
+    this.passwordForm.markAllAsTouched();
+    if (this.passwordForm.invalid || this.passwordSaving()) {
+      return;
+    }
+
+    const { currentPassword, newPassword } = this.passwordForm.getRawValue();
+    this.passwordSaving.set(true);
+    this.auth
+      .changePassword({ currentPassword, newPassword })
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.passwordSaving.set(false)),
+      )
+      .subscribe({
+        next: (response) => {
+          if (!response.success) {
+            this.passwordFormError.set(response.error ?? 'Не вдалося оновити пароль.');
+            return;
+          }
+          this.toasts.success('Пароль оновлено');
+          this.cancelPasswordForm();
+          this.auth
+            .me()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({ error: () => undefined });
+        },
+        error: (err: unknown) => {
+          this.passwordFormError.set(
+            extractApiError(err, 'Не вдалося оновити пароль. Спробуйте ще раз.'),
+          );
+        },
+      });
+  }
+
   protected startEditAddress(): void {
     const saved = this.savedAddress();
     this.editingAddress.set(true);
@@ -465,5 +558,14 @@ export class ProfileComponent {
     this.branches.set([]);
     this.cityMatches.set([]);
     this.cityTouched.set(false);
+  }
+
+  private clearPasswordForm(): void {
+    this.passwordForm.reset({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    this.newPasswordValue.set('');
   }
 }
