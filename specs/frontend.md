@@ -19,7 +19,7 @@
 | /auth/login | LoginComponent | Login |
 | /auth/register | RegisterComponent | Register |
 | /admin | → redirect | Redirects to `/admin/products` |
-| /admin/products | AdminProductsComponent | Product list (admin shell + public navbar) |
+| /admin/products | AdminProductsComponent | Products table + mobile cards per admin design |
 | /admin/products/new | AdminProductFormComponent | Create product |
 | /admin/products/:id/edit | AdminProductFormComponent | Edit product |
 | /admin/orders | AdminOrdersComponent | Orders list + detail drawer |

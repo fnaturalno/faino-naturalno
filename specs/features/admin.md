@@ -18,7 +18,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 
 - Захищена зона `/admin/*`: JWT + `IsAdmin`; неадмін / гість — redirect або forbidden.
 - Оболонка адмінки: лівий сайдбар, топбар з іменем адміна, мобільний вигляд списку товарів.
-- Товари: список з пошуком / фільтром / пагінацією, toggle активності, створення, редагування, видалення.
+- Товари: список з пошуком / фільтром / пагінацією (номери сторінок), switch-toggle активності, іконки edit/delete, мобільні картки; створення, редагування, видалення.
 - Форма товару: поля моделі Product (назва, slug, категорія, описи, ціна, стара ціна, вага/одиниця, залишок, зображення URL(и), IsActive, IsFeatured).
 - Категорії: ієрархічний список (expand/collapse, підкатегорії), створення / редагування в drawer, видалення; деталі в `specs/features/subcategories.md`.
 - Замовлення: список усіх з пошуком / фільтром статусу, drawer деталей, зміна статусу.
@@ -225,23 +225,36 @@ All routes are admin-only. The **admin shell** (sidebar + top bar) is the primar
 
 - Shared shop navbar remains at the top (main menu via its hamburger).
 - Compact admin top bar: menu control for admin sections, title «Товари», initials avatar.
-- Search + «+» add button.
-- Vertical list of product cards: thumbnail, name, «категорія · ціна ₴», active toggle.
+- On the products page itself (mobile viewport): card list matching `design/admin.dc.html` mobile — thumbnail, name, «категорія · ціна ₴», switch toggle for active, pencil edit.
 - Admin menu opens navigation to Orders / Categories / Logout (same destinations as sidebar).
 
-### 2.4 Products list (desktop)
+### 2.4 Products list
 
-Toolbar:
+Matches `design/admin.dc.html` products view:
 
-- Search placeholder «Пошук товару…»
-- Category select: «Усі категорії» + category names
-- Primary CTA «+ Додати товар»
+**Toolbar**
 
-Table columns: thumbnail, «Назва» (+ slug subtitle), «Категорія», «Ціна», «Залишок», «Статус» (active toggle + «Активний» / «Прихований»), «Дії» (edit pencil, delete trash).
+- Search with leading search icon; placeholder «Пошук товару…» (debounce ~300ms acceptable).
+- Category select: «Усі категорії» + parents and indented subcategories (slug values); chevron affordance.
+- Primary CTA «+ Додати товар» aligned to the trailing edge (marigold).
 
-Stock color cues: zero → danger; low (&lt; 10) → warning; else → success green (as in the design).
+**Desktop / tablet table**
 
-Pagination: «Показано A–B з N» + page controls.
+- Card surface: cream header (`fn-eyebrow`), white rows, hover cream; columns `64px | 1fr | 130px | 100px | 90px | 130px | 100px`.
+- Thumbnail 48×48 (kraft placeholder «фото» when missing).
+- «Назва» bold + slug subtitle (muted, truncated).
+- «Категорія», «Ціна» (`N ₴`, accent weight), «Залишок» with stock colors (0 → chili; &lt; 10 → cinnamon; else garden).
+- «Статус»: **switch toggle** (garden when on, kraft when off) + label «Активний» / «Прихований» — not text-only bullets.
+- «Дії»: icon buttons (`ad-act`) — pencil edit, trash delete (danger hover).
+
+**Pagination**
+
+- «Показано A–B з N» (muted).
+- Controls: chevron prev/next + numbered page buttons (active page espresso fill); window of up to ~5 page numbers.
+
+**Mobile cards** (below `md`)
+
+- Vertical cards: thumb, name, «категорія · ціна ₴», compact active switch, edit icon (delete available on desktop table; confirm flow still required when deleting).
 
 ### 2.5 Product form
 
@@ -432,12 +445,12 @@ Matches `design/admin.dc.html` and `specs/features/subcategories.md` §2.3:
 
 ### Products
 
-- [ ] Admin can list products (including inactive) with search, category **slug** filter, pagination, and «Показано A–B з N».
+- [ ] Admin can list products (including inactive) with search, category **slug** filter (parents + subs), pagination «Показано A–B з N», and numbered page controls.
 - [ ] Admin can create and edit products with fields from the Product model (name, slug, category, descriptions, price/oldPrice, weight/unit, stock, images, isActive, isFeatured).
 - [ ] Product images are uploaded via `POST /api/admin/uploads/images` (JPG/PNG ≤ 5 MB); gallery supports reorder and remove; first image is primary.
-- [ ] List toggle updates `isActive` via `PUT /api/products/:id/active` without confirmation; delete requires confirmation.
+- [ ] List **switch** toggle updates `isActive` via `PUT /api/products/:id/active` without confirmation; delete requires confirmation (icon trash).
 - [ ] `POST` / `PUT` / `DELETE` `/api/products` (Admin) use the common API envelope; slug uniqueness and validation errors are clear.
-- [ ] Ukrainian copy and layout match the products list + form design (desktop) and mobile product list.
+- [ ] Ukrainian copy and layout match `design/admin.dc.html` products list (desktop table + mobile cards) and the product form.
 
 ### Categories
 
