@@ -9,6 +9,32 @@ import { extractApiError } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 
+type PackOption = { key: string; label: string; weight: number; unit: string };
+
+const PACK_OPTIONS: readonly PackOption[] = [
+  { key: '10g', label: '10 г', weight: 10, unit: 'г' },
+  { key: '50g', label: '50 г', weight: 50, unit: 'г' },
+  { key: '100g', label: '100 г', weight: 100, unit: 'г' },
+  { key: '250g', label: '250 г', weight: 250, unit: 'г' },
+  { key: '500g', label: '500 г', weight: 500, unit: 'г' },
+  { key: '1kg', label: '1 кг', weight: 1, unit: 'кг' },
+  { key: 'pcs', label: 'шт', weight: 1, unit: 'шт' },
+] as const;
+
+function packKeyFrom(weight: number | null | undefined, unit: string | null | undefined): string {
+  const normalizedUnit = (unit ?? '').trim().toLowerCase();
+  const match = PACK_OPTIONS.find(
+    (pack) =>
+      pack.unit.toLowerCase() === normalizedUnit &&
+      Number(pack.weight) === Number(weight ?? 0),
+  );
+  return match?.key ?? `custom:${weight ?? ''}:${unit ?? ''}`;
+}
+
+function resolvePackKey(weight: number | null | undefined, unit: string | null | undefined): string {
+  return packKeyFrom(weight, unit);
+}
+
 @Component({
   selector: 'app-admin-product-form',
   imports: [ReactiveFormsModule],
@@ -63,20 +89,32 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
           <section class="rounded-xl border border-[#dac7a2] bg-white p-5">
             <h2 class="mb-4 font-black">Ціна та наявність</h2>
             <div class="grid gap-4 sm:grid-cols-2">
-              @for (field of numericFields; track field.name) {
-                <label class="block text-sm font-bold"
-                  >{{ field.label
-                  }}<input [formControlName]="field.name" type="number" min="0" class="mt-1 w-full rounded-lg border border-[#c2ab80] p-3 font-normal"
-                /></label>
-              }
               <label class="block text-sm font-bold"
-                >Одиниця
-                <select formControlName="weightUnit" class="mt-1 w-full rounded-lg border border-[#c2ab80] bg-white p-3 font-normal">
-                  @for (unit of units; track unit) {
-                    <option [value]="unit">{{ unit }}</option>
+                >Ціна, ₴<input formControlName="price" type="number" min="0" step="0.01" class="mt-1 w-full rounded-lg border border-[#c2ab80] p-3 font-normal"
+              /></label>
+              <label class="block text-sm font-bold"
+                >Стара ціна, ₴ (необов.)<input
+                  formControlName="oldPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="mt-1 w-full rounded-lg border border-[#c2ab80] p-3 font-normal"
+              /></label>
+              <label class="block text-sm font-bold"
+                >Вага / одиниця
+                <select formControlName="packKey" class="mt-1 w-full rounded-lg border border-[#c2ab80] bg-white p-3 font-normal">
+                  @for (pack of packOptions(); track pack.key) {
+                    <option [value]="pack.key">{{ pack.label }}</option>
                   }
                 </select>
               </label>
+              <label class="block text-sm font-bold"
+                >Залишок на складі<input
+                  formControlName="stockQuantity"
+                  type="number"
+                  min="0"
+                  class="mt-1 w-full rounded-lg border border-[#c2ab80] p-3 font-normal"
+              /></label>
             </div>
             @if (invalid('price') || invalid('stockQuantity')) {
               <p class="mt-2 text-xs text-[#b23a2e]">Ціна має бути більшою за 0, залишок не може бути відʼємним.</p>
@@ -184,13 +222,7 @@ export class AdminProductFormComponent {
   readonly imageUrls = signal<string[]>([]);
   private dragFrom: number | null = null;
 
-  readonly numericFields = [
-    { name: 'price', label: 'Ціна, ₴' },
-    { name: 'oldPrice', label: 'Стара ціна, ₴ (необов.)' },
-    { name: 'weight', label: 'Вага / обʼєм' },
-    { name: 'stockQuantity', label: 'Залишок на складі' },
-  ] as const;
-  readonly units = ['г', 'кг', 'мл', 'л', 'шт'];
+  readonly packOptions = signal(PACK_OPTIONS);
   readonly form = this.fb.group({
     name: ['', Validators.required],
     categoryId: [0, Validators.min(1)],
@@ -198,8 +230,7 @@ export class AdminProductFormComponent {
     description: [''],
     price: [0, Validators.min(0.01)],
     oldPrice: [0],
-    weight: [0],
-    weightUnit: ['г'],
+    packKey: [PACK_OPTIONS[2].key as string, Validators.required],
     stockQuantity: [0, Validators.min(0)],
     isActive: [true],
     isFeatured: [false],
@@ -249,6 +280,25 @@ export class AdminProductFormComponent {
   }
 
   patch(product: AdminProduct): void {
+    const packKey = resolvePackKey(product.weight, product.weightUnit);
+    if (!PACK_OPTIONS.some((pack) => pack.key === packKey)) {
+      const label =
+        product.weightUnit === 'шт'
+          ? 'шт'
+          : `${product.weight ?? ''} ${product.weightUnit ?? ''}`.trim() || 'Інше';
+      this.packOptions.set([
+        ...PACK_OPTIONS,
+        {
+          key: packKey,
+          label: `${label} (поточне)`,
+          weight: product.weight ?? 1,
+          unit: product.weightUnit ?? 'г',
+        },
+      ]);
+    } else {
+      this.packOptions.set(PACK_OPTIONS);
+    }
+
     this.form.patchValue({
       name: product.name,
       categoryId: product.categoryId,
@@ -256,8 +306,7 @@ export class AdminProductFormComponent {
       description: product.description ?? '',
       price: product.price,
       oldPrice: product.oldPrice ?? 0,
-      weight: product.weight ?? 0,
-      weightUnit: product.weightUnit ?? 'г',
+      packKey,
       stockQuantity: product.stockQuantity,
       isActive: product.isActive,
       isFeatured: product.isFeatured,
@@ -340,6 +389,8 @@ export class AdminProductFormComponent {
     if (this.form.invalid || this.saving() || this.uploading()) return;
     this.saving.set(true);
     const value = this.form.getRawValue();
+    const pack =
+      this.packOptions().find((item) => item.key === value.packKey) ?? PACK_OPTIONS[2];
     const imageUrls = this.imageUrls();
     const payload: SaveProductRequest = {
       name: value.name,
@@ -349,8 +400,8 @@ export class AdminProductFormComponent {
       description: value.description || null,
       price: value.price,
       oldPrice: value.oldPrice || null,
-      weight: value.weight || null,
-      weightUnit: value.weightUnit,
+      weight: pack.weight,
+      weightUnit: pack.unit,
       stockQuantity: value.stockQuantity,
       imageUrl: imageUrls[0] ?? null,
       imageUrls,

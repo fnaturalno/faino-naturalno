@@ -122,7 +122,7 @@ Request body fields matching the Product model:
 - `categoryId` (required)
 - `shortDescription`, `description`
 - `price` (required, > 0), optional `oldPrice`
-- `weight`, `weightUnit` (`г` / `кг` / `мл` / `л` as in the design; model also allows `шт` if needed)
+- `weight`, `weightUnit` — admin pack presets: **10 г / 50 г / 100 г / 250 г / 500 г / 1 кг / шт** (stored as numeric `weight` + unit; шт → weight `1`, unit `шт`)
 - `stockQuantity` (≥ 0)
 - `imageUrl` (primary) and `imageUrls` (gallery); first / primary is the main catalog image
 - `isActive`, `isFeatured`
@@ -264,7 +264,7 @@ Left column sections:
 
 - **Основне** — «Назва товару»; slug preview «URL (slug) — генерується автоматично» (`/catalog/…`); «Категорія» select
 - **Опис** — «Короткий опис»; «Повний опис» textarea
-- **Ціна та наявність** — «Ціна, ₴»; «Стара ціна, ₴ (необов.)»; «Вага / обʼєм»; «Одиниця» (г/кг/мл/л); «Залишок на складі»
+- **Ціна та наявність** — «Ціна, ₴»; «Стара ціна, ₴ (необов.)»; «Вага / одиниця» select (**10 г, 50 г, 100 г, 250 г, 500 г, 1 кг, шт**); «Залишок на складі»
 
 Right column:
 
@@ -429,7 +429,7 @@ Matches `design/admin.dc.html` and `specs/features/subcategories.md` §2.3:
 - Mobile menu and drawers remain usable on narrow viewports; order/category drawers full-width or near-full on small screens.
 - Accessibility: labeled inputs, keyboard-operable table actions and drawers, meaningful names for icon-only edit/delete/back/close, confirm dialogs focus-trapped.
 - Image files over 5 MB or wrong type rejected with a clear message when upload is used.
-- Weight unit options match the form; stored `weightUnit` consistent with public product display.
+- Weight / unit on the product form is a fixed pack select (10/50/100/250/500 г, 1 кг, шт); stored `weight` + `weightUnit` stay consistent with public product display.
 
 ---
 

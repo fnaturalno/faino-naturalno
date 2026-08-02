@@ -5,7 +5,7 @@ namespace FaynoShop.API.Validators;
 
 public sealed class SaveProductRequestValidator : AbstractValidator<SaveProductRequest>
 {
-    private static readonly string[] AllowedWeightUnits = ["г", "кг", "мл", "л", "шт"];
+    private static readonly string[] AllowedWeightUnits = ["г", "кг", "шт", "мл", "л"];
 
     public SaveProductRequestValidator()
     {
@@ -22,7 +22,7 @@ public sealed class SaveProductRequestValidator : AbstractValidator<SaveProductR
             .When(x => x.Weight.HasValue);
         RuleFor(x => x.WeightUnit)
             .Must(unit => string.IsNullOrWhiteSpace(unit) || AllowedWeightUnits.Contains(unit.Trim()))
-            .WithMessage("Одиниця виміру має бути: г, кг, мл, л або шт.");
+            .WithMessage("Одиниця виміру має бути: г, кг або шт.");
         RuleFor(x => x.StockQuantity).GreaterThanOrEqualTo(0).WithMessage("Залишок не може бути від'ємним.");
         RuleFor(x => x.ImageUrl).MaximumLength(500).WithMessage("URL зображення занадто довгий.");
         RuleForEach(x => x.ImageUrls).NotEmpty().WithMessage("URL зображення не може бути порожнім.")
