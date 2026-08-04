@@ -55,7 +55,6 @@ public sealed class ProductService : IProductService
                 p.ImageUrls,
                 p.Weight,
                 p.WeightUnit,
-                p.StockQuantity,
                 p.IsFeatured,
                 p.CreatedAt,
                 p.CategoryId,

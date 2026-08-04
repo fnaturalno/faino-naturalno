@@ -109,17 +109,16 @@
             </div>
 
             <div style="background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-xs);">
-              <div style="display:grid;grid-template-columns:64px 1fr 130px 100px 90px 130px 100px;gap:12px;align-items:center;padding:14px 20px;background:var(--surface-cream);border-bottom:var(--border-width) solid var(--border-subtle);">
+              <div style="display:grid;grid-template-columns:64px 1fr 130px 100px 130px 100px;gap:12px;align-items:center;padding:14px 20px;background:var(--surface-cream);border-bottom:var(--border-width) solid var(--border-subtle);">
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);"></span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);">Назва</span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);">Категорія</span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);">Ціна</span>
-                <span class="fn-eyebrow" style="font-size:var(--text-2xs);">Залишок</span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);">Статус</span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);text-align:right;">Дії</span>
               </div>
               <sc-for list="{{ products }}" as="p" hint-placeholder-count="6">
-                <div class="ad-row" style="display:grid;grid-template-columns:64px 1fr 130px 100px 90px 130px 100px;gap:12px;align-items:center;padding:12px 20px;border-bottom:var(--border-width) solid var(--border-subtle);transition:background var(--dur) var(--ease-out);">
+                <div class="ad-row" style="display:grid;grid-template-columns:64px 1fr 130px 100px 130px 100px;gap:12px;align-items:center;padding:12px 20px;border-bottom:var(--border-width) solid var(--border-subtle);transition:background var(--dur) var(--ease-out);">
                   <div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--kraft-100);border:var(--border-width) solid var(--border-subtle);display:flex;align-items:center;justify-content:center;">
                     <span style="font-family:var(--font-accent);font-size:10px;color:var(--kraft-400);">фото</span>
                   </div>
@@ -129,7 +128,6 @@
                   </div>
                   <span style="font-size:var(--text-sm);color:var(--espresso-700);">{{ p.category }}</span>
                   <span style="font-family:var(--font-accent);font-weight:700;font-size:var(--text-base);color:var(--espresso-900);">{{ p.price }} ₴</span>
-                  <span style="font-size:var(--text-sm);color:{{ p.stockColor }};font-weight:var(--fw-semibold);">{{ p.stock }}</span>
                   <div>
                     <button type="button" onClick="{{ p.toggle }}" aria-label="Статус" style="display:inline-flex;align-items:center;gap:8px;background:none;border:none;padding:0;cursor:pointer;">
                       <span style="width:38px;height:22px;border-radius:999px;background:{{ p.togBg }};position:relative;transition:background var(--dur) var(--ease-out);flex:0 0 38px;">
@@ -238,7 +236,6 @@
                         </span>
                       </div>
                     </div>
-                    <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Input" label="Залишок на складі" type="number" value="38" hint-size="100%,72px"></x-import>
                   </div>
                 </div>
               </div>
@@ -617,12 +614,12 @@ class Component extends DCLogic {
   ];
 
   PRODUCTS = [
-    { id: 1, name: "Паприка копчена", slug: "papryka-kopchena", category: "Спеції", price: 95, stock: 38 },
-    { id: 2, name: "Іван-чай ферментований", slug: "ivan-chai", category: "Чаї", price: 130, stock: 12 },
-    { id: 3, name: "Хмелі-сунелі", slug: "hmeli-suneli", category: "Приправи", price: 70, stock: 0 },
-    { id: 4, name: "Кориця мелена", slug: "korytsia-melena", category: "Спеції", price: 64, stock: 54 },
-    { id: 5, name: "Чай чорний з чебрецем", slug: "chai-z-chebretsem", category: "Чаї", price: 110, stock: 7 },
-    { id: 6, name: "Карі, суміш", slug: "kari-sumish", category: "Приправи", price: 68, stock: 21 },
+    { id: 1, name: "Паприка копчена", slug: "papryka-kopchena", category: "Спеції", price: 95 },
+    { id: 2, name: "Іван-чай ферментований", slug: "ivan-chai", category: "Чаї", price: 130 },
+    { id: 3, name: "Хмелі-сунелі", slug: "hmeli-suneli", category: "Приправи", price: 70 },
+    { id: 4, name: "Кориця мелена", slug: "korytsia-melena", category: "Спеції", price: 64 },
+    { id: 5, name: "Чай чорний з чебрецем", slug: "chai-z-chebretsem", category: "Чаї", price: 110 },
+    { id: 6, name: "Карі, суміш", slug: "kari-sumish", category: "Приправи", price: 68 },
   ];
 
   navStyle(active) {
@@ -713,7 +710,6 @@ class Component extends DCLogic {
         const on = s.prodActive[p.id];
         return {
           ...p,
-          stockColor: p.stock === 0 ? "var(--chili-500)" : p.stock < 10 ? "var(--cinnamon-700)" : "var(--garden-700)",
           toggle: () => this.setState((st) => ({ prodActive: { ...st.prodActive, [p.id]: !st.prodActive[p.id] } })),
           togBg: on ? "var(--garden-500)" : "var(--kraft-300)",
           togX: on ? "18px" : "2px",

@@ -181,9 +181,7 @@
 
             <div class="mb-2 flex flex-wrap items-baseline gap-3">
               <span
-                class="font-[var(--font-accent)] text-[34px] font-bold leading-none sm:text-[44px]"
-                [class.text-[var(--espresso-900)]]="inStock()"
-                [class.text-[var(--kraft-500)]]="!inStock()"
+                class="font-[var(--font-accent)] text-[34px] font-bold leading-none text-[var(--espresso-900)] sm:text-[44px]"
               >
                 {{ detail.price | number: '1.0-2' }}
                 <span class="text-[0.55em]">₴</span>
@@ -203,22 +201,6 @@
                 <span class="text-sm text-[var(--espresso-700)]">
                   Фасування: <strong>{{ unit }}</strong>
                 </span>
-                <span class="size-1.5 rounded-full bg-[var(--kraft-400)]" aria-hidden="true"></span>
-              }
-              @if (inStock()) {
-                <span
-                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--garden-700)]"
-                >
-                  <app-icon name="check-circle" [size]="16" />
-                  В наявності
-                </span>
-              } @else {
-                <span
-                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--text-muted)]"
-                >
-                  <app-icon name="x-circle" [size]="16" />
-                  Немає в наявності
-                </span>
               }
             </div>
 
@@ -233,7 +215,7 @@
                   type="button"
                   class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
                   aria-label="Зменшити кількість"
-                  [disabled]="!inStock() || quantity() <= 1 || addStatus() === 'adding'"
+                  [disabled]="quantity() <= 1 || addStatus() === 'adding'"
                   (click)="decreaseQty()"
                 >−</button>
                 <span
@@ -244,7 +226,7 @@
                   type="button"
                   class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
                   aria-label="Збільшити кількість"
-                  [disabled]="!inStock() || quantity() >= maxQuantity() || addStatus() === 'adding'"
+                  [disabled]="quantity() >= maxQuantity() || addStatus() === 'adding'"
                   (click)="increaseQty()"
                 >+</button>
               </div>
@@ -252,19 +234,15 @@
               <button
                 type="button"
                 class="inline-flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] font-extrabold transition disabled:cursor-not-allowed"
-                [class.bg-[var(--marigold-400)]]="inStock() && addStatus() !== 'added'"
-                [class.text-[var(--espresso-900)]]="inStock() && addStatus() !== 'added'"
-                [class.hover:bg-[var(--marigold-500)]]="inStock() && addStatus() !== 'added'"
+                [class.bg-[var(--marigold-400)]]="addStatus() !== 'added'"
+                [class.text-[var(--espresso-900)]]="addStatus() !== 'added'"
+                [class.hover:bg-[var(--marigold-500)]]="addStatus() !== 'added'"
                 [class.bg-[var(--garden-500)]]="addStatus() === 'added'"
                 [class.text-white]="addStatus() === 'added'"
-                [class.bg-[var(--kraft-200)]]="!inStock()"
-                [class.text-[var(--kraft-500)]]="!inStock()"
                 [disabled]="!canAdd() && addStatus() !== 'added'"
                 (click)="addToCart()"
               >
-                @if (!inStock()) {
-                  Немає в наявності
-                } @else if (addStatus() === 'adding') {
+                @if (addStatus() === 'adding') {
                   Додаємо…
                 } @else if (addStatus() === 'added') {
                   <app-icon name="check" [size]="20" />
@@ -359,7 +337,7 @@
         type="button"
         class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
         aria-label="Зменшити кількість"
-        [disabled]="!inStock() || quantity() <= 1 || addStatus() === 'adding'"
+        [disabled]="quantity() <= 1 || addStatus() === 'adding'"
         (click)="decreaseQty()"
       >−</button>
       <span
@@ -370,7 +348,7 @@
         type="button"
         class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
         aria-label="Збільшити кількість"
-        [disabled]="!inStock() || quantity() >= maxQuantity() || addStatus() === 'adding'"
+        [disabled]="quantity() >= maxQuantity() || addStatus() === 'adding'"
         (click)="increaseQty()"
       >+</button>
     </div>
@@ -378,18 +356,14 @@
     <button
       type="button"
       class="inline-flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] font-extrabold transition disabled:cursor-not-allowed"
-      [class.bg-[var(--marigold-400)]]="inStock() && addStatus() !== 'added'"
-      [class.text-[var(--espresso-900)]]="inStock() && addStatus() !== 'added'"
+      [class.bg-[var(--marigold-400)]]="addStatus() !== 'added'"
+      [class.text-[var(--espresso-900)]]="addStatus() !== 'added'"
       [class.bg-[var(--garden-500)]]="addStatus() === 'added'"
       [class.text-white]="addStatus() === 'added'"
-      [class.bg-[var(--kraft-200)]]="!inStock()"
-      [class.text-[var(--kraft-500)]]="!inStock()"
       [disabled]="!canAdd() && addStatus() !== 'added'"
       (click)="addToCart()"
     >
-      @if (!inStock()) {
-        Немає в наявності
-      } @else if (addStatus() === 'adding') {
+      @if (addStatus() === 'adding') {
         Додаємо…
       } @else if (addStatus() === 'added') {
         Додано ✓
