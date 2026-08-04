@@ -65,4 +65,4 @@ Static files: API serves `/uploads` from `MediaStorage:RootPath` (default `wwwro
 | GET | /auth/me | User | Current user profile (`isAdmin`, name, `passwordChangedAt`, …) |
 | PUT | /auth/me | User | Update first name, last name, phone |
 
-**Password-reset email:** link = `{App:FrontendBaseUrl}/auth/reset-password?token=…`. Delivery uses `Email:Smtp` when `Host` is set; empty Host = log-only stub (Development logs body/link). Production sets `Email__*` and `App__FrontendBaseUrl` via environment (e.g. Railway), not committed secrets.
+**Password-reset email:** link = `{App:FrontendBaseUrl}/auth/reset-password?token=…`. Delivery uses Resend HTTP API when `Resend:ApiToken` is set; empty token = log-only stub (Development logs body/link). Production sets `Resend__ApiToken`, `Email__From`, and `App__FrontendBaseUrl` via environment (e.g. Railway), not committed secrets.

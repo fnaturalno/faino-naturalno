@@ -1,7 +1,7 @@
 namespace FaynoShop.API.Services;
 
 /// <summary>
-/// Fallback when SMTP is not configured — logs outbound mail, does not deliver.
+/// Fallback when Resend is not configured — logs outbound mail, does not deliver.
 /// In Development the body (incl. reset links) is logged for local testing.
 /// </summary>
 public sealed class LoggingEmailSender : IEmailSender
@@ -20,15 +20,13 @@ public sealed class LoggingEmailSender : IEmailSender
     public Task SendAsync(string toEmail, string subject, string body, CancellationToken cancellationToken)
     {
         _logger.LogWarning(
-            "Email SMTP is not configured (Email:Smtp:Host empty) — message was NOT delivered. To={ToEmail} Subject={Subject}",
+            "Resend:ApiToken is not configured — message was NOT delivered. To={ToEmail} Subject={Subject}",
             toEmail,
             subject);
 
         if (_environment.IsDevelopment())
         {
-            _logger.LogInformation(
-                "Email (stub) Body={Body}",
-                body);
+            _logger.LogInformation("Email (stub) Body={Body}", body);
         }
 
         return Task.CompletedTask;

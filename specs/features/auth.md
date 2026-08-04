@@ -26,7 +26,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Блок «Мої замовлення» (останні 20; клік веде на сторінку замовлення).
 - Злив guest-кошика (`X-Cart-Session-Id`) у кошик користувача після успішного login/register.
 - Узгодження з існуючими контрактами `POST /auth/register|login|refresh|logout` і `GET /orders` (User).
-- Доставка листів скидання пароля: опційний SMTP (`Email:Smtp`); без Host — log-only stub.
+- Доставка листів скидання пароля через Resend HTTP API (`Resend:ApiToken` + `Email:From`); без токена — log-only stub.
 
 ### Out of scope
 
@@ -135,20 +135,17 @@ After success, the client merges the guest cart (session id) into the authentica
 7. Invalid or expired token yields a clear failure the UI can explain, with an option to request a new email.
 8. Reset link is built as `{App:FrontendBaseUrl}/auth/reset-password?token=…` (must be the live frontend URL in production).
 
-#### Email delivery (`Email` config)
+#### Email delivery (`Resend` + `Email:From`)
 
 | Setting | Purpose |
 |---------|---------|
-| `Email:From` | From address (e.g. `noreply@fayno.shop`) |
-| `Email:Smtp:Host` | SMTP host; **empty** → log-only stub (no inbox delivery) |
-| `Email:Smtp:Port` | Default `587` |
-| `Email:Smtp:Username` / `Password` | SMTP credentials |
-| `Email:Smtp:UseSsl` | Default `true` |
+| `Email:From` | From address, e.g. `Файно натурально <noreply@f-n.fun>` |
+| `Resend:ApiToken` | Resend API token; **empty** → log-only stub (no inbox delivery) |
 
-- When `Email:Smtp:Host` is set → `SmtpEmailSender` delivers plain-text reset mail.
-- When Host is empty → `LoggingEmailSender`: warns that mail was not delivered; in **Development** also logs the message body (incl. reset link) for local testing.
-- SMTP failures are logged; the forgot-password API still returns the same success outcome (no account enumeration / broken UX).
-- Do **not** commit real SMTP passwords in `appsettings.json`. Production (e.g. Railway) uses env vars: `Email__From`, `Email__Smtp__Host`, `Email__Smtp__Port`, `Email__Smtp__Username`, `Email__Smtp__Password`, `Email__Smtp__UseSsl`, plus `App__FrontendBaseUrl`.
+- When `Resend:ApiToken` is set → `ResendEmailSender` delivers plain-text reset mail over HTTPS (works on Railway; SMTP ports are blocked there).
+- When token is empty → `LoggingEmailSender`: warns that mail was not delivered; in **Development** also logs the message body (incl. reset link) for local testing.
+- Send failures are logged; the forgot-password API still returns the same success outcome (no account enumeration / broken UX).
+- Do **not** commit real API tokens in `appsettings.json`. Production (e.g. Railway) uses env vars: `Resend__ApiToken`, `Email__From`, plus `App__FrontendBaseUrl`.
 
 ### 1.7 Change password (logged-in)
 
@@ -439,7 +436,7 @@ Short Ukrainian toasts after:
 - [ ] Current-user read and profile update support first name, last name, and optional phone; email cannot be changed.
 - [ ] `GET /auth/me` (and user DTO) expose nullable `passwordChangedAt` and `createdAt`.
 - [ ] Password reset request and token-based set-password work; unknown email on request does not reveal account existence; token lifetime is 60 minutes; reset link uses `App:FrontendBaseUrl`.
-- [ ] Email delivery: SMTP when `Email:Smtp:Host` is set; otherwise log-only stub (Development logs reset link). SMTP secrets via env in production, not committed config.
+- [ ] Email delivery: Resend when `Resend:ApiToken` is set; otherwise log-only stub (Development logs reset link). API token via env in production, not committed config.
 - [ ] Successful reset sets `passwordChangedAt` and invalidates all refresh sessions.
 - [ ] Change-password accepts `currentPassword` + `newPassword`; success is message-style; stays logged in on current device; invalidates other sessions; sets `passwordChangedAt`.
 - [ ] Password rules: min 8, max 128; email uniqueness/login is case-insensitive.

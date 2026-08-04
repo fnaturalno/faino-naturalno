@@ -6,6 +6,7 @@ using FaynoShop.API.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Resend;
 
 namespace FaynoShop.API.Extensions;
 
@@ -52,6 +53,9 @@ public static class ServiceCollectionExtensions
         services.AddOptions<EmailOptions>()
             .Bind(configuration.GetSection(EmailOptions.SectionName));
 
+        services.AddOptions<ResendOptions>()
+            .Bind(configuration.GetSection(ResendOptions.SectionName));
+
         services.AddOptions<NovaPoshtaOptions>()
             .Bind(configuration.GetSection(NovaPoshtaOptions.SectionName));
 
@@ -59,10 +63,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOrderService, OrderService>();
 
-        var smtpHost = configuration.GetSection(EmailOptions.SectionName).GetSection("Smtp")["Host"];
-        if (!string.IsNullOrWhiteSpace(smtpHost))
+        var resendToken = configuration.GetSection(ResendOptions.SectionName)["ApiToken"];
+        if (!string.IsNullOrWhiteSpace(resendToken))
         {
-            services.AddSingleton<IEmailSender, SmtpEmailSender>();
+            services.AddOptions();
+            services.AddHttpClient<ResendClient>();
+            services.Configure<ResendClientOptions>(o =>
+            {
+                o.ApiToken = resendToken;
+            });
+            services.AddTransient<IResend, ResendClient>();
+            services.AddScoped<IEmailSender, ResendEmailSender>();
         }
         else
         {
