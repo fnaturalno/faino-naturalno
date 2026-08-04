@@ -292,6 +292,14 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             >
               <app-icon name="pencil" [size]="15" />
             </a>
+            <button
+              type="button"
+              class="ad-act danger shrink-0"
+              [attr.aria-label]="'Видалити ' + product.name"
+              (click)="delete(product)"
+            >
+              <app-icon name="trash" [size]="15" />
+            </button>
           </article>
         }
       </div>

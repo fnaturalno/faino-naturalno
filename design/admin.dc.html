@@ -556,6 +556,15 @@
             <span style="width:34px;height:20px;border-radius:999px;background:{{ p.togBg }};position:relative;flex:0 0 34px;">
               <span style="position:absolute;top:2px;left:{{ p.togXm }};width:16px;height:16px;border-radius:999px;background:var(--white);box-shadow:var(--shadow-sm);"></span>
             </span>
+            <span style="width:34px;height:20px;border-radius:999px;background:{{ p.availBg }};position:relative;flex:0 0 34px;">
+              <span style="position:absolute;top:2px;left:{{ p.availXm }};width:16px;height:16px;border-radius:999px;background:var(--white);box-shadow:var(--shadow-sm);"></span>
+            </span>
+            <span class="ad-act" onClick="{{ goEdit }}" style="flex:0 0 34px;">
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="pencil" size="15" hint-size="15px,15px"></x-import>
+            </span>
+            <span class="ad-act danger" style="flex:0 0 34px;">
+              <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="trash-2" size="15" hint-size="15px,15px"></x-import>
+            </span>
           </div>
         </sc-for>
       </div>
@@ -744,6 +753,7 @@ class Component extends DCLogic {
           })),
           availBg: avail ? "var(--marigold-500)" : "var(--kraft-300)",
           availX: avail ? "18px" : "2px",
+          availXm: avail ? "16px" : "2px",
           availColor: avail ? "var(--marigold-600)" : "var(--text-muted)",
           availLabel: avail ? "Так" : "Ні",
         };

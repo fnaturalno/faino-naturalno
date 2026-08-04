@@ -230,7 +230,7 @@ All routes are admin-only. The **admin shell** (sidebar + top bar) is the primar
 
 - Shared shop navbar remains at the top (main menu via its hamburger).
 - Compact admin top bar: menu control for admin sections, title «Товари», initials avatar.
-- On the products page itself (mobile viewport): card list matching `design/admin.dc.html` mobile — thumbnail, name, «категорія · ціна ₴», switch toggle for active, pencil edit.
+- On the products page itself (mobile viewport): card list matching `design/admin.dc.html` mobile — thumbnail, name, «категорія · ціна ₴», switches for active / available, pencil edit, trash delete.
 - Admin menu opens navigation to Orders / Categories / Logout (same destinations as sidebar).
 
 ### 2.4 Products list
@@ -260,7 +260,7 @@ Matches `design/admin.dc.html` products view:
 
 **Mobile cards** (below `md`)
 
-- Vertical cards: thumb, name, «категорія · ціна ₴», compact active switch, edit icon (delete available on desktop table; confirm flow still required when deleting).
+- Vertical cards: thumb, name, «категорія · ціна ₴», compact active + available switches, edit and delete icons (same confirm flow as desktop).
 
 ### 2.5 Product form
 
