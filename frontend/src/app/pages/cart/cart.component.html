@@ -7,13 +7,13 @@
     <button
       type="button"
       class="grid size-[34px] place-items-center rounded-lg text-[var(--espresso-800)] hover:bg-[var(--kraft-100)]"
-      aria-label="Назад"
+      [attr.aria-label]="'common.back' | transloco"
       (click)="goBack()"
     >
       <app-icon name="chevron-left" [size]="22" />
     </button>
     <div class="flex items-baseline gap-2">
-      <h1 class="m-0 text-lg">Кошик</h1>
+      <h1 class="m-0 text-lg">{{ 'cart.title' | transloco }}</h1>
       @if (cart.loadStatus() === 'ready' && cart.items().length > 0) {
         <span class="text-sm text-[var(--text-muted)]">{{ countLabel() }}</span>
       }
@@ -25,7 +25,7 @@
     [class.pb-[150px]]="cart.loadStatus() === 'ready' && cart.items().length > 0"
   >
     @if (cart.loadStatus() === 'loading') {
-      <div class="space-y-3 px-4 py-2" aria-busy="true" aria-label="Завантаження кошика">
+      <div class="space-y-3 px-4 py-2" aria-busy="true" [attr.aria-label]="'cart.loading' | transloco">
         @for (_ of skeletonSlots; track $index) {
           <div class="flex gap-3 border-b border-[var(--border-subtle)] py-4">
             <div class="fn-cart-sk size-[72px] shrink-0 rounded-[var(--radius-md)]"></div>
@@ -48,7 +48,7 @@
           class="rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 py-3 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
           (click)="retry()"
         >
-          Спробувати ще
+          {{ 'common.retry' | transloco }}
         </button>
       </div>
     } @else if (cart.isEmpty()) {
@@ -58,15 +58,15 @@
         >
           <app-icon name="shopping-basket" [size]="60" />
         </div>
-        <h2 class="mb-2 text-xl">Кошик порожній</h2>
+        <h2 class="mb-2 text-xl">{{ 'cart.emptyTitle' | transloco }}</h2>
         <p class="mb-[26px] max-w-[280px] text-[var(--espresso-700)]">
-          Ще нічого не додали. Загляньте до каталогу — ми зібрали для вас багато смачного.
+          {{ 'cart.emptyBody' | transloco }}
         </p>
         <a
-          routerLink="/catalog"
+          [routerLink]="locale.commands('catalog')"
           class="inline-flex h-[54px] items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
         >
-          Перейти до каталогу
+          {{ 'cart.toCatalog' | transloco }}
         </a>
       </div>
     } @else {
@@ -91,17 +91,17 @@
     >
       <div class="mx-auto mb-3 flex max-w-lg items-baseline justify-between">
         <span class="font-[var(--font-display)] text-base font-extrabold text-[var(--espresso-900)]"
-          >Разом</span
+          >{{ 'cart.total' | transloco }}</span
         >
         <span class="font-[var(--font-accent)] text-xl font-bold text-[var(--espresso-900)]"
           >{{ cart.subtotal() | number: '1.0-2' }} ₴</span
         >
       </div>
       <a
-        routerLink="/checkout"
+        [routerLink]="locale.commands('checkout')"
         class="mx-auto flex h-[54px] w-full max-w-lg items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
       >
-        Оформити замовлення
+        {{ 'cart.checkout' | transloco }}
       </a>
     </footer>
   }

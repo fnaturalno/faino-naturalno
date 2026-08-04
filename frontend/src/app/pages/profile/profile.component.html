@@ -7,7 +7,7 @@
       <div class="flex flex-col gap-6">
         <section
           class="flex flex-col items-center rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-8 text-center shadow-[var(--shadow-xs)]"
-          aria-label="Профіль"
+          [attr.aria-label]="'profile.aria' | transloco"
         >
           @if (profileLoading()) {
             <div class="mb-4 size-[104px] animate-pulse rounded-full bg-[var(--kraft-200)]"></div>
@@ -17,7 +17,7 @@
           } @else if (profileError()) {
             <p class="mb-3 text-sm text-[var(--chili-700)]" role="alert">{{ profileError() }}</p>
             <button type="button" class="font-semibold text-[var(--cinnamon-700)] hover:underline" (click)="loadProfile()">
-              Спробувати ще
+              {{ 'common.retry' | transloco }}
             </button>
           } @else if (user(); as u) {
             <div
@@ -33,7 +33,7 @@
             </h1>
             <p class="mb-1 truncate text-[var(--espresso-700)]" [title]="u.email">{{ u.email }}</p>
             <span class="font-[family-name:var(--font-accent)] text-lg text-[var(--cinnamon-700)]">
-              з нами від {{ memberYear() }}
+              {{ 'profile.memberFrom' | transloco: { year: memberYear() } }}
             </span>
           }
         </section>
@@ -41,12 +41,12 @@
         <button
           type="button"
           class="hidden items-center justify-center gap-2 py-3 text-sm font-semibold text-[var(--chili-500)] hover:text-[var(--chili-700)] lg:inline-flex"
-          aria-label="Вийти з акаунту"
+          [attr.aria-label]="'profile.logoutAria' | transloco"
           [disabled]="loggingOut()"
           (click)="logout()"
         >
           <app-icon name="log-out" [size]="17" />
-          Вийти
+          {{ 'profile.logout' | transloco }}
         </button>
       </div>
 
@@ -54,8 +54,8 @@
       <div class="flex flex-col gap-6">
         <!-- Personal data -->
         <section class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-xs)] sm:p-8">
-          <span class="fn-eyebrow mb-1.5 block">Особисті дані</span>
-          <h2 class="mb-5 text-lg">Редагувати профіль</h2>
+          <span class="fn-eyebrow mb-1.5 block">{{ 'profile.personalEyebrow' | transloco }}</span>
+          <h2 class="mb-5 text-lg">{{ 'profile.editProfile' | transloco }}</h2>
 
           @if (profileLoading()) {
             <div class="space-y-4">
@@ -70,16 +70,16 @@
               }
               <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <div>
-                  <label for="profile-first" [class]="labelClasses">Ім'я</label>
+                  <label for="profile-first" [class]="labelClasses">{{ 'auth.firstName' | transloco }}</label>
                   <input id="profile-first" type="text" formControlName="firstName" [class]="fieldClasses" />
                 </div>
                 <div>
-                  <label for="profile-last" [class]="labelClasses">Прізвище</label>
+                  <label for="profile-last" [class]="labelClasses">{{ 'auth.lastName' | transloco }}</label>
                   <input id="profile-last" type="text" formControlName="lastName" [class]="fieldClasses" />
                 </div>
               </div>
               <div>
-                <label for="profile-phone" [class]="labelClasses">Телефон</label>
+                <label for="profile-phone" [class]="labelClasses">{{ 'checkout.phone' | transloco }}</label>
                 <input
                   id="profile-phone"
                   type="tel"
@@ -88,7 +88,7 @@
                   [class]="fieldClasses"
                 />
                 @if (phoneInvalid()) {
-                  <p [class]="errorClasses">Телефон має бути у форматі +380…</p>
+                  <p [class]="errorClasses">{{ 'profile.phoneHint' | transloco }}</p>
                 }
               </div>
               <div>
@@ -99,9 +99,9 @@
                 >
                   @if (profileSaving()) {
                     <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
-                    Зачекайте…
+                    {{ 'common.wait' | transloco }}
                   } @else {
-                    Зберегти зміни
+                    {{ 'profile.saveChanges' | transloco }}
                   }
                 </button>
               </div>
@@ -113,8 +113,8 @@
         <section class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-xs)] sm:p-8">
           <div class="mb-5 flex items-start justify-between gap-3">
             <div>
-              <span class="fn-eyebrow mb-1.5 block">Безпека</span>
-              <h2 class="text-lg">Змінити пароль</h2>
+              <span class="fn-eyebrow mb-1.5 block">{{ 'profile.securityEyebrow' | transloco }}</span>
+              <h2 class="text-lg">{{ 'profile.changePassword' | transloco }}</h2>
             </div>
             @if (!passwordExpanded() && !profileLoading()) {
               <button
@@ -122,7 +122,7 @@
                 [class]="linkClasses + ' text-sm whitespace-nowrap'"
                 (click)="openPasswordForm()"
               >
-                Змінити
+                {{ 'checkout.change' | transloco }}
               </button>
             }
           </div>
@@ -142,7 +142,7 @@
               <div class="min-w-0 flex-1">
                 <span class="block font-bold text-[var(--espresso-900)]">••••••••••</span>
                 <span class="text-sm text-[var(--text-muted)]">
-                  Остання зміна — {{ passwordChangedLabel() }}
+                  {{ 'profile.lastPasswordChange' | transloco: { date: passwordChangedLabel() } }}
                 </span>
               </div>
             </div>
@@ -153,7 +153,7 @@
               }
 
               <div>
-                <label for="pwd-current" [class]="labelClasses">Поточний пароль</label>
+                <label for="pwd-current" [class]="labelClasses">{{ 'profile.currentPassword' | transloco }}</label>
                 <input
                   id="pwd-current"
                   type="password"
@@ -163,34 +163,34 @@
                   [class]="fieldClasses"
                 />
                 @if (passwordForm.controls.currentPassword.invalid && (passwordForm.controls.currentPassword.dirty || passwordForm.controls.currentPassword.touched)) {
-                  <p [class]="errorClasses">Введіть поточний пароль</p>
+                  <p [class]="errorClasses">{{ 'profile.enterCurrentPassword' | transloco }}</p>
                 }
               </div>
 
               <div class="flex flex-col gap-2">
                 <div>
-                  <label for="pwd-new" [class]="labelClasses">Новий пароль</label>
+                  <label for="pwd-new" [class]="labelClasses">{{ 'profile.newPassword' | transloco }}</label>
                   <input
                     id="pwd-new"
                     type="password"
                     autocomplete="new-password"
                     formControlName="newPassword"
-                    placeholder="Мінімум 8 символів"
+                    [placeholder]="'auth.passwordPlaceholder' | transloco"
                     [class]="fieldClasses"
                     (input)="onNewPasswordInput()"
                   />
                   @if (passwordForm.controls.newPassword.invalid && (passwordForm.controls.newPassword.dirty || passwordForm.controls.newPassword.touched)) {
-                    <p [class]="errorClasses">Пароль має містити від 8 до 128 символів</p>
+                    <p [class]="errorClasses">{{ 'profile.passwordLen' | transloco }}</p>
                   }
                   @if (passwordForm.hasError('passwordSame') && (passwordForm.controls.newPassword.dirty || passwordForm.controls.newPassword.touched)) {
-                    <p [class]="errorClasses">Новий пароль має відрізнятися від поточного</p>
+                    <p [class]="errorClasses">{{ 'profile.passwordMustDiffer' | transloco }}</p>
                   }
                 </div>
                 <app-password-strength [password]="newPasswordValue()" />
               </div>
 
               <div>
-                <label for="pwd-confirm" [class]="labelClasses">Підтвердіть новий пароль</label>
+                <label for="pwd-confirm" [class]="labelClasses">{{ 'profile.confirmNewPassword' | transloco }}</label>
                 <input
                   id="pwd-confirm"
                   type="password"
@@ -200,7 +200,7 @@
                   [class]="fieldClasses"
                 />
                 @if (passwordForm.hasError('passwordMismatch') && (passwordForm.controls.confirmPassword.dirty || passwordForm.controls.confirmPassword.touched)) {
-                  <p [class]="errorClasses">Паролі не збігаються</p>
+                  <p [class]="errorClasses">{{ 'auth.passwordMismatch' | transloco }}</p>
                 }
               </div>
 
@@ -212,9 +212,9 @@
                 >
                   @if (passwordSaving()) {
                     <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
-                    Зачекайте…
+                    {{ 'common.wait' | transloco }}
                   } @else {
-                    Оновити пароль
+                    {{ 'profile.updatePassword' | transloco }}
                   }
                 </button>
                 <button
@@ -223,7 +223,7 @@
                   [disabled]="passwordSaving()"
                   (click)="cancelPasswordForm()"
                 >
-                  Скасувати
+                  {{ 'common.cancel' | transloco }}
                 </button>
               </div>
             </form>
@@ -234,12 +234,12 @@
         <section class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-xs)] sm:p-8">
           <div class="mb-5 flex items-start justify-between gap-3">
             <div>
-              <span class="fn-eyebrow mb-1.5 block">Доставка</span>
-              <h2 class="text-lg">Адреса доставки</h2>
+              <span class="fn-eyebrow mb-1.5 block">{{ 'profile.deliveryEyebrow' | transloco }}</span>
+              <h2 class="text-lg">{{ 'profile.deliveryAddress' | transloco }}</h2>
             </div>
             @if (savedAddress() && !editingAddress()) {
               <button type="button" [class]="linkClasses + ' text-sm whitespace-nowrap'" (click)="startEditAddress()">
-                Змінити
+                {{ 'checkout.change' | transloco }}
               </button>
             }
           </div>
@@ -249,7 +249,7 @@
           } @else if (addressError()) {
             <p class="mb-3 text-sm text-[var(--chili-700)]" role="alert">{{ addressError() }}</p>
             <button type="button" class="font-semibold text-[var(--cinnamon-700)] hover:underline" (click)="loadAddress()">
-              Спробувати ще
+              {{ 'common.retry' | transloco }}
             </button>
           } @else {
             @if (showSavedAddressCard()) {
@@ -258,7 +258,7 @@
                   <app-icon name="truck" [size]="20" />
                 </div>
                 <div class="min-w-0 flex-1">
-                  <span class="mb-0.5 block font-bold text-[var(--espresso-900)]">Нова Пошта</span>
+                  <span class="mb-0.5 block font-bold text-[var(--espresso-900)]">{{ 'checkout.novaPoshta' | transloco }}</span>
                   <span class="line-clamp-3 text-sm text-[var(--espresso-700)]">{{ savedAddress()!.summary }}</span>
                 </div>
               </div>
@@ -271,7 +271,7 @@
                 }
 
                 <div class="relative flex flex-col gap-1.5">
-                  <label for="city-search" [class]="labelClasses">Місто</label>
+                  <label for="city-search" [class]="labelClasses">{{ 'checkout.city' | transloco }}</label>
                   <div class="relative">
                     <span class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--kraft-500)]">
                       <app-icon name="search" [size]="17" />
@@ -280,7 +280,7 @@
                       id="city-search"
                       type="text"
                       autocomplete="off"
-                      placeholder="Почніть вводити місто…"
+                      [placeholder]="'checkout.cityPlaceholder' | transloco"
                       class="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white py-3 pr-3.5 pl-[42px] text-[var(--espresso-800)] outline-none focus-visible:border-[var(--marigold-400)]"
                       [value]="cityQuery()"
                       (input)="onCityInput($any($event.target).value)"
@@ -291,7 +291,7 @@
                     <ul
                       class="absolute top-full right-0 left-0 z-20 mt-1.5 max-h-[220px] overflow-y-auto rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white shadow-[var(--shadow-lg)]"
                       role="listbox"
-                      aria-label="Знайдені міста"
+                      [attr.aria-label]="'profile.citiesFound' | transloco"
                     >
                       @for (city of cityMatches(); track city.cityId) {
                         <li>
@@ -314,8 +314,8 @@
 
                   @if (showCityEmpty()) {
                     <span class="text-sm text-[var(--text-muted)]">
-                      <span class="sm:hidden">Нічого не знайдено</span>
-                      <span class="hidden sm:inline">Нічого не знайдено — перевірте написання</span>
+                      <span class="sm:hidden">{{ 'profile.nothingFound' | transloco }}</span>
+                      <span class="hidden sm:inline">{{ 'profile.nothingFoundHint' | transloco }}</span>
                     </span>
                   }
                 </div>
@@ -326,7 +326,7 @@
                     class="text-sm font-semibold"
                     [class.text-[var(--kraft-500)]]="!selectedCity()"
                     [class.text-[var(--espresso-800)]]="!!selectedCity()"
-                  >Відділення</label>
+                  >{{ 'checkout.branch' | transloco }}</label>
                   <div class="relative">
                     <select
                       id="branch-select"
@@ -336,7 +336,7 @@
                       (change)="onBranchChange($any($event.target).value)"
                     >
                       <option value="">
-                        {{ selectedCity() ? 'Оберіть відділення' : 'Спочатку оберіть місто' }}
+                        {{ selectedCity() ? ('checkout.selectBranch' | transloco) : ('checkout.selectCityFirst' | transloco) }}
                       </option>
                       @for (branch of branches(); track branch.branchId) {
                         <option [value]="branch.branchId">{{ branch.label }}</option>
@@ -357,9 +357,9 @@
                   >
                     @if (addressSaving()) {
                       <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
-                      Зачекайте…
+                      {{ 'common.wait' | transloco }}
                     } @else {
-                      Зберегти адресу
+                      {{ 'profile.saveAddress' | transloco }}
                     }
                   </button>
                   @if (savedAddress()) {
@@ -368,7 +368,7 @@
                       class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] px-5 font-semibold text-[var(--espresso-800)] hover:bg-[var(--kraft-100)]"
                       (click)="cancelAddressEdit()"
                     >
-                      Скасувати
+                      {{ 'common.cancel' | transloco }}
                     </button>
                   }
                 </div>
@@ -379,8 +379,8 @@
 
         <!-- Orders -->
         <section class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-xs)] sm:p-8">
-          <span class="fn-eyebrow mb-1.5 block">Історія</span>
-          <h2 class="mb-5 text-lg">Мої замовлення</h2>
+          <span class="fn-eyebrow mb-1.5 block">{{ 'profile.historyEyebrow' | transloco }}</span>
+          <h2 class="mb-5 text-lg">{{ 'profile.orders' | transloco }}</h2>
 
           @if (ordersLoading()) {
             <div class="flex flex-col gap-3">
@@ -391,10 +391,10 @@
           } @else if (ordersError()) {
             <p class="mb-3 text-sm text-[var(--chili-700)]" role="alert">{{ ordersError() }}</p>
             <button type="button" class="font-semibold text-[var(--cinnamon-700)] hover:underline" (click)="loadOrders()">
-              Спробувати ще
+              {{ 'common.retry' | transloco }}
             </button>
           } @else if (orders().length === 0) {
-            <p class="text-[var(--espresso-700)]">Поки немає замовлень</p>
+            <p class="text-[var(--espresso-700)]">{{ 'profile.noOrdersYet' | transloco }}</p>
           } @else {
             <ul class="flex flex-col gap-3">
               @for (order of orders(); track order.id) {
@@ -408,7 +408,7 @@
                     </div>
                     <div class="min-w-0 flex-1">
                       <span class="block truncate font-bold text-[var(--espresso-900)]">
-                        Замовлення №{{ order.orderNumber }}
+                        {{ 'profile.orderNumber' | transloco: { number: order.orderNumber } }}
                       </span>
                       <span class="hidden text-sm text-[var(--text-muted)] sm:block">{{ orderMeta(order) }}</span>
                       <span class="text-xs text-[var(--text-muted)] sm:hidden">{{ orderTotal(order) }}</span>
@@ -437,12 +437,12 @@
         <button
           type="button"
           class="inline-flex min-h-11 items-center justify-center gap-2 py-3 text-sm font-semibold text-[var(--chili-500)] hover:text-[var(--chili-700)] lg:hidden"
-          aria-label="Вийти з акаунту"
+          [attr.aria-label]="'profile.logoutAria' | transloco"
           [disabled]="loggingOut()"
           (click)="logout()"
         >
           <app-icon name="log-out" [size]="17" />
-          Вийти
+          {{ 'profile.logout' | transloco }}
         </button>
       </div>
     </div>

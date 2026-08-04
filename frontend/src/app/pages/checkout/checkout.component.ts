@@ -12,6 +12,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   Subject,
   debounceTime,
@@ -24,6 +25,7 @@ import {
 
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { LocaleService } from '../../i18n/locale.service';
 import { DeliveryAddressDto, NpBranch, NpCity } from '../../models/auth.models';
 import { cartItemCountLabel } from '../../models/cart.models';
 import { PlaceOrderRequest } from '../../models/order.models';
@@ -50,6 +52,7 @@ import {
     NavbarComponent,
     ReactiveFormsModule,
     RouterLink,
+    TranslocoPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './checkout.component.html',
@@ -85,6 +88,8 @@ import {
 export class CheckoutComponent {
   private readonly fb = inject(FormBuilder);
   private readonly cart = inject(CartService);
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   private readonly auth = inject(AuthService);
   private readonly orders = inject(OrderService);
   private readonly shipping = inject(ShippingService);
@@ -182,7 +187,11 @@ export class CheckoutComponent {
       this.submitting(),
   );
 
-  protected readonly countLabel = computed(() => cartItemCountLabel(this.cart.itemCount()));
+  protected readonly countLabel = computed(() => {
+    const count = this.cart.itemCount();
+    const form = this.locale.pluralForm(count);
+    return this.i18n.translate(`plural.cartItems.${form}`, { count });
+  });
 
   protected readonly skeletonSlots = [0, 1, 2];
 
@@ -216,13 +225,13 @@ export class CheckoutComponent {
           } else {
             this.cityMatches.set([]);
             if (!response.success) {
-              this.toasts.error(response.error ?? 'Не вдалося знайти місто');
+              this.toasts.error(response.error ?? this.i18n.translate('checkout.searchCitiesError'));
             }
           }
         },
         error: () => {
           this.cityMatches.set([]);
-          this.toasts.error('Не вдалося знайти місто');
+          this.toasts.error(this.i18n.translate('checkout.searchCitiesError'));
         },
       });
   }
@@ -234,7 +243,7 @@ export class CheckoutComponent {
       .subscribe({
         next: (response) => {
           if (response.success && response.data && (response.data.items?.length ?? 0) === 0) {
-            void this.router.navigateByUrl('/cart');
+            void this.router.navigate(this.locale.commands('cart'));
           }
         },
       });
@@ -245,7 +254,7 @@ export class CheckoutComponent {
       this.location.back();
       return;
     }
-    void this.router.navigateByUrl('/cart');
+    void this.router.navigate(this.locale.commands('cart'));
   }
 
   protected lineImage(url: string | null | undefined): string | null {
@@ -305,27 +314,27 @@ export class CheckoutComponent {
     if (control.hasError('required')) {
       switch (name) {
         case 'firstName':
-          return 'Вкажіть імʼя';
+          return this.i18n.translate('checkout.reqFirstName');
         case 'lastName':
-          return 'Вкажіть прізвище';
+          return this.i18n.translate('checkout.reqLastName');
         case 'phone':
-          return 'Вкажіть телефон';
+          return this.i18n.translate('checkout.reqPhone');
         case 'email':
-          return 'Вкажіть ел. пошту';
+          return this.i18n.translate('checkout.reqEmail');
         default:
-          return 'Обовʼязкове поле';
+          return this.i18n.translate('checkout.requiredField');
       }
     }
     if (control.hasError('email')) {
-      return 'Некоректна адреса ел. пошти';
+      return this.i18n.translate('checkout.invalidEmail');
     }
     if (control.hasError('phone')) {
-      return 'Телефон у форматі +380XXXXXXXXX';
+      return this.i18n.translate('checkout.invalidPhone');
     }
     if (control.hasError('maxlength')) {
-      return name === 'comment' ? 'Коментар занадто довгий (макс. 1000 символів)' : 'Занадто довге значення';
+      return name === 'comment' ? this.i18n.translate('checkout.commentTooLong') : this.i18n.translate('checkout.valueTooLong');
     }
-    return 'Перевірте поле';
+    return this.i18n.translate('checkout.checkField');
   }
 
   protected placeOrder(): void {
@@ -346,11 +355,11 @@ export class CheckoutComponent {
     }
 
     if (!city) {
-      this.cityError.set('Оберіть місто зі списку');
+      this.cityError.set(this.i18n.translate('checkout.pickCityList'));
       this.editingDelivery.set(true);
     }
     if (!branch) {
-      this.branchError.set('Оберіть відділення');
+      this.branchError.set(this.i18n.translate('checkout.pickBranch'));
       this.editingDelivery.set(true);
     }
 
@@ -394,16 +403,16 @@ export class CheckoutComponent {
       .subscribe({
         next: (response) => {
           if (!response.success || !response.data) {
-            this.toasts.error(response.error ?? 'Не вдалося оформити замовлення');
+            this.toasts.error(response.error ?? this.i18n.translate('checkout.placeError'));
             return;
           }
           this.cart.resetLocalState();
-          void this.router.navigate(['/order', response.data.id], {
+          void this.router.navigate(this.locale.commands('order', response.data.id), {
             queryParams: { token: response.data.confirmationToken },
           });
         },
         error: (err: unknown) => {
-          this.toasts.error(extractApiError(err, 'Не вдалося оформити замовлення'));
+          this.toasts.error(extractApiError(err, this.i18n.translate('checkout.placeError')));
         },
       });
   }
@@ -415,7 +424,7 @@ export class CheckoutComponent {
       .subscribe({
         next: (response) => {
           if (response.success && response.data && (response.data.items?.length ?? 0) === 0) {
-            void this.router.navigateByUrl('/cart');
+            void this.router.navigate(this.locale.commands('cart'));
             return;
           }
         },
@@ -487,12 +496,12 @@ export class CheckoutComponent {
             }
           } else {
             this.branches.set([]);
-            this.toasts.error(response.error ?? 'Не вдалося завантажити відділення');
+            this.toasts.error(response.error ?? this.i18n.translate('checkout.loadBranchesError'));
           }
         },
         error: () => {
           this.branches.set([]);
-          this.toasts.error('Не вдалося завантажити відділення');
+          this.toasts.error(this.i18n.translate('checkout.loadBranchesError'));
         },
       });
   }

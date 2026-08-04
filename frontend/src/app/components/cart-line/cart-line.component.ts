@@ -4,18 +4,21 @@ import {
   Component,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
+import { LocaleService } from '../../i18n/locale.service';
 import { CartLineDto, cartLineMaxQuantity } from '../../models/cart.models';
 import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'app-cart-line',
-  imports: [DecimalPipe, IconComponent],
+  imports: [DecimalPipe, IconComponent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article
@@ -26,7 +29,7 @@ import { IconComponent } from '../icon/icon.component';
         <button
           type="button"
           class="size-[72px] shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--kraft-100)] md:size-[76px]"
-          [attr.aria-label]="'Відкрити ' + line().name"
+          [attr.aria-label]="'cart.openProduct' | transloco: { name: line().name }"
           (click)="productClick.emit()"
         >
           @if (safeImage(); as src) {
@@ -34,7 +37,7 @@ import { IconComponent } from '../icon/icon.component';
           } @else {
             <span
               class="grid size-full place-items-center font-[var(--font-accent)] text-xs text-[var(--kraft-400)]"
-              >фото</span
+              >{{ 'common.photo' | transloco }}</span
             >
           }
         </button>
@@ -46,7 +49,9 @@ import { IconComponent } from '../icon/icon.component';
           @if (safeImage(); as src) {
             <img [src]="src" alt="" class="size-full object-cover" (error)="imageFailed.set(true)" />
           } @else {
-            <span class="font-[var(--font-accent)] text-xs text-[var(--kraft-400)]">фото</span>
+            <span class="font-[var(--font-accent)] text-xs text-[var(--kraft-400)]">{{
+              'common.photo' | transloco
+            }}</span>
           }
         </div>
       }
@@ -103,7 +108,7 @@ import { IconComponent } from '../icon/icon.component';
           <button
             type="button"
             class="inline-flex shrink-0 p-0.5 text-[var(--kraft-500)] transition-colors hover:text-[var(--chili-500)] disabled:cursor-not-allowed disabled:opacity-50"
-            [attr.aria-label]="'Видалити ' + line().name"
+            [attr.aria-label]="'cart.removeItem' | transloco: { name: line().name }"
             [disabled]="pending()"
             (click)="remove.emit()"
           >
@@ -116,12 +121,12 @@ import { IconComponent } from '../icon/icon.component';
             <div
               class="inline-flex h-8 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
               role="group"
-              aria-label="Кількість"
+              [attr.aria-label]="'product.quantity' | transloco"
             >
               <button
                 type="button"
                 class="grid w-8 place-items-center text-base font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-                aria-label="Зменшити кількість"
+                [attr.aria-label]="'product.decreaseQty' | transloco"
                 [disabled]="pending() || line().quantity <= 1"
                 (click)="quantityChange.emit(line().quantity - 1)"
               >
@@ -135,7 +140,7 @@ import { IconComponent } from '../icon/icon.component';
               <button
                 type="button"
                 class="grid w-8 place-items-center text-base font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-                aria-label="Збільшити кількість"
+                [attr.aria-label]="'product.increaseQty' | transloco"
                 [disabled]="pending() || line().quantity >= maxQty()"
                 (click)="quantityChange.emit(line().quantity + 1)"
               >
@@ -159,6 +164,9 @@ import { IconComponent } from '../icon/icon.component';
   `,
 })
 export class CartLineComponent {
+  private readonly i18n = inject(TranslocoService);
+  private readonly locale = inject(LocaleService);
+
   readonly line = input.required<CartLineDto>();
   readonly pending = input(false);
   /** Mobile list uses compact typography. */
@@ -197,8 +205,9 @@ export class CartLineComponent {
 
   protected readonly statusLabel = computed(() => {
     const line = this.line();
-    if (!line.isActive) return 'Недоступний';
-    if (line.isAvailable === false) return 'Немає в наявності';
+    this.locale.lang();
+    if (!line.isActive) return this.i18n.translate('cart.unavailable');
+    if (line.isAvailable === false) return this.i18n.translate('cart.outOfStock');
     return null;
   });
 }

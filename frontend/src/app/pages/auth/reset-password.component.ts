@@ -14,12 +14,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { finalize } from 'rxjs';
 
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { PasswordStrengthComponent } from '../../components/password-strength/password-strength.component';
 import { ToastHostComponent } from '../../components/toast-host/toast-host.component';
+import { LocaleService } from '../../i18n/locale.service';
 import { AuthService, extractApiError } from '../../services/auth.service';
 import {
   AUTH_CARD_CLASSES,
@@ -49,6 +51,7 @@ function isTokenError(message: string): boolean {
     ToastHostComponent,
     IconComponent,
     PasswordStrengthComponent,
+    TranslocoPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -57,12 +60,10 @@ function isTokenError(message: string): boolean {
       <div [class]="cardClasses">
         @if (!token()) {
           <div class="flex flex-col items-center text-center" role="alert">
-            <h1 class="mb-3 text-xl sm:text-2xl">Посилання недійсне</h1>
-            <p class="mb-6 text-sm text-[var(--chili-700)]">
-              Посилання для скидання пароля відсутнє, недійсне або застаріле.
-            </p>
-            <a routerLink="/auth/forgot-password" [class]="linkClasses">
-              Запросити нове посилання
+            <h1 class="mb-3 text-xl sm:text-2xl">{{ 'auth.invalidLinkTitle' | transloco }}</h1>
+            <p class="mb-6 text-sm text-[var(--chili-700)]">{{ 'auth.invalidLinkBody' | transloco }}</p>
+            <a [routerLink]="locale.commands('auth', 'forgot-password')" [class]="linkClasses">
+              {{ 'auth.requestNewLink' | transloco }}
             </a>
           </div>
         } @else if (done()) {
@@ -73,21 +74,17 @@ function isTokenError(message: string): boolean {
             >
               <app-icon name="check" [size]="38" />
             </div>
-            <h1 class="mb-2 text-xl sm:text-2xl">Пароль змінено</h1>
-            <p class="mb-7 max-w-[280px] text-sm text-[var(--espresso-700)]">
-              Тепер можна увійти з новим паролем.
-            </p>
-            <a routerLink="/auth/login" [class]="primaryBtn">Увійти</a>
+            <h1 class="mb-2 text-xl sm:text-2xl">{{ 'auth.passwordChangedTitle' | transloco }}</h1>
+            <p class="mb-7 max-w-[280px] text-sm text-[var(--espresso-700)]">{{ 'auth.passwordChangedBody' | transloco }}</p>
+            <a [routerLink]="locale.commands('auth', 'login')" [class]="primaryBtn">{{ 'auth.toLogin' | transloco }}</a>
           </div>
         } @else {
           <div class="mb-6 flex flex-col items-center text-center">
-            <a routerLink="/catalog" aria-label="Файно натурально">
-              <img src="/logo.png" alt="Файно натурально" class="mb-[18px] h-[52px] w-auto" />
+            <a [routerLink]="locale.commands('catalog')" [attr.aria-label]="'brand' | transloco">
+              <img src="/logo.png" [alt]="'brand' | transloco" class="mb-[18px] h-[52px] w-auto" />
             </a>
-            <h1 class="mb-2 text-xl sm:text-2xl">Новий пароль</h1>
-            <p class="text-sm text-[var(--espresso-700)]">
-              Придумайте надійний пароль — мінімум 8 символів.
-            </p>
+            <h1 class="mb-2 text-xl sm:text-2xl">{{ 'auth.newPasswordTitle' | transloco }}</h1>
+            <p class="text-sm text-[var(--espresso-700)]">{{ 'auth.newPasswordLead' | transloco }}</p>
           </div>
 
           <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
@@ -96,34 +93,35 @@ function isTokenError(message: string): boolean {
                 <p role="alert" [class]="errorClasses">{{ formError() }}</p>
                 @if (tokenInvalid()) {
                   <a
-                    routerLink="/auth/forgot-password"
+                    [routerLink]="locale.commands('auth', 'forgot-password')"
                     [class]="linkClasses + ' mt-2 inline-block text-sm'"
-                  >Запросити нове посилання</a>
+                    >{{ 'auth.requestNewLink' | transloco }}</a
+                  >
                 }
               </div>
             }
 
             <div class="flex flex-col gap-2">
               <div>
-                <label for="reset-password" [class]="labelClasses">Новий пароль</label>
+                <label for="reset-password" [class]="labelClasses">{{ 'auth.newPasswordLabel' | transloco }}</label>
                 <input
                   id="reset-password"
                   type="password"
                   autocomplete="new-password"
                   formControlName="password"
-                  placeholder="Мінімум 8 символів"
+                  [placeholder]="'auth.passwordPlaceholder' | transloco"
                   [class]="fieldClasses"
                   (input)="onPasswordInput()"
                 />
                 @if (form.controls.password.invalid && (form.controls.password.dirty || form.controls.password.touched)) {
-                  <p [class]="errorClasses">Пароль має містити від 8 до 128 символів</p>
+                  <p [class]="errorClasses">{{ 'auth.passwordLen' | transloco }}</p>
                 }
               </div>
               <app-password-strength [password]="passwordValue()" />
             </div>
 
             <div>
-              <label for="reset-confirm" [class]="labelClasses">Підтвердіть пароль</label>
+              <label for="reset-confirm" [class]="labelClasses">{{ 'auth.confirmPasswordLabel' | transloco }}</label>
               <input
                 id="reset-confirm"
                 type="password"
@@ -133,16 +131,16 @@ function isTokenError(message: string): boolean {
                 [class]="fieldClasses"
               />
               @if (form.hasError('passwordMismatch') && (form.controls.confirmPassword.dirty || form.controls.confirmPassword.touched)) {
-                <p [class]="errorClasses">Паролі не збігаються</p>
+                <p [class]="errorClasses">{{ 'auth.passwordMismatch' | transloco }}</p>
               }
             </div>
 
             <button type="submit" [class]="primaryBtn" [disabled]="submitting()">
               @if (submitting()) {
                 <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
-                Зачекайте…
+                {{ 'common.wait' | transloco }}
               } @else {
-                Зберегти пароль
+                {{ 'auth.resetSubmit' | transloco }}
               }
             </button>
           </form>
@@ -155,6 +153,8 @@ function isTokenError(message: string): boolean {
 export class ResetPasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -206,7 +206,8 @@ export class ResetPasswordComponent {
       .subscribe({
         next: (response) => {
           if (!response.success) {
-            const message = response.error ?? 'Не вдалося зберегти пароль.';
+            const message =
+              response.error?.trim() || this.i18n.translate('auth.resetError') || 'Error';
             this.formError.set(message);
             if (isTokenError(message)) {
               this.tokenInvalid.set(true);
@@ -216,7 +217,7 @@ export class ResetPasswordComponent {
           this.done.set(true);
         },
         error: (err: unknown) => {
-          const message = extractApiError(err, 'Не вдалося зберегти пароль. Спробуйте ще раз.');
+          const message = extractApiError(err, this.i18n.translate('auth.resetRetry'));
           this.formError.set(message);
           if (isTokenError(message)) {
             this.tokenInvalid.set(true);

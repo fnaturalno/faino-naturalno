@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 
@@ -18,7 +19,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 
 @Component({
   selector: 'app-admin-products',
-  imports: [RouterLink, IconComponent],
+  imports: [TranslocoPipe, RouterLink, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
     .ad-act {
@@ -55,7 +56,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
         <input
           type="search"
           class="w-full rounded-[10px] border border-[var(--border-strong)] bg-white py-2.5 pl-10 pr-3.5 text-sm text-[var(--espresso-800)] outline-none focus:border-[var(--marigold-500)]"
-          placeholder="Пошук товару…"
+          [placeholder]="'admin.searchProduct' | transloco"
           [value]="search()"
           (input)="onSearch($any($event.target).value)"
         />
@@ -67,7 +68,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
           [value]="category()"
           (change)="category.set($any($event.target).value); reload()"
         >
-          <option value="">Усі категорії</option>
+          <option value="">{{ 'common.allCategories' | transloco }}</option>
           @for (item of categories(); track item.id) {
             <option [value]="item.slug">{{ item.name }}</option>
             @for (child of item.children; track child.id) {
@@ -84,21 +85,21 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
         routerLink="/admin/products/new"
         class="ml-auto rounded-[10px] bg-[var(--marigold-400)] px-4 py-2.5 font-bold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
       >
-        + Додати товар
+        {{ 'admin.addProduct' | transloco }}
       </a>
     </div>
 
     @if (error()) {
       <div class="rounded-[10px] border border-[var(--chili-500)] bg-[var(--chili-100)] p-4 text-[var(--espresso-800)]">
         {{ error() }}
-        <button type="button" class="ml-2 underline" (click)="load()">Спробувати ще</button>
+        <button type="button" class="ml-2 underline" (click)="load()">{{ 'common.retry' | transloco }}</button>
       </div>
     } @else if (loading()) {
       <div class="h-72 animate-pulse rounded-[14px] bg-[var(--kraft-100)]"></div>
     } @else if (products().length === 0) {
       <div class="rounded-[14px] border border-[var(--border-subtle)] bg-white p-10 text-center shadow-sm">
-        Товарів не знайдено.
-        <a routerLink="/admin/products/new" class="font-bold text-[var(--cinnamon-700)] underline">Додати товар</a>
+        {{ 'admin.emptyProductsFound' | transloco }}
+        <a routerLink="/admin/products/new" class="font-bold text-[var(--cinnamon-700)] underline">{{ 'admin.addProductLink' | transloco }}</a>
       </div>
     } @else {
       <!-- Desktop / tablet table -->
@@ -110,12 +111,12 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
           [style.grid-template-columns]="tableCols"
         >
           <span class="fn-eyebrow text-[10px]"></span>
-          <span class="fn-eyebrow text-[10px]">Назва</span>
-          <span class="fn-eyebrow text-[10px]">Категорія</span>
-          <span class="fn-eyebrow text-[10px]">Ціна</span>
-          <span class="fn-eyebrow text-[10px]">Статус</span>
-          <span class="fn-eyebrow text-[10px]">В наявності</span>
-          <span class="fn-eyebrow text-right text-[10px]">Дії</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colName' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colCategory' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colPrice' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colStatus' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colAvailable' | transloco }}</span>
+          <span class="fn-eyebrow text-right text-[10px]">{{ 'admin.colActions' | transloco }}</span>
         </div>
 
         @for (product of products(); track product.id) {
@@ -134,7 +135,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
                   (error)="markImageFailed(product.id)"
                 />
               } @else {
-                фото
+                {{ 'common.photo' | transloco }}
               }
             </div>
 
@@ -153,7 +154,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             <button
               type="button"
               class="inline-flex items-center gap-2 justify-self-start bg-transparent p-0"
-              [attr.aria-label]="'Змінити статус товару ' + product.name"
+              [attr.aria-label]="'admin.toggleActiveAria' | transloco: { name: product.name }"
               [disabled]="togglingId() === product.id"
               (click)="toggleActive(product)"
             >
@@ -172,14 +173,14 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
                 [class.text-[var(--garden-700)]]="product.isActive"
                 [class.text-[var(--text-muted)]]="!product.isActive"
               >
-                {{ product.isActive ? 'Активний' : 'Прихований' }}
+                {{ product.isActive ? ('common.active' | transloco) : ('common.hidden' | transloco) }}
               </span>
             </button>
 
             <button
               type="button"
               class="inline-flex items-center gap-2 justify-self-start bg-transparent p-0"
-              [attr.aria-label]="'В наявності: ' + product.name"
+              [attr.aria-label]="'admin.toggleAvailableAria' | transloco: { name: product.name }"
               [disabled]="togglingId() === product.id"
               (click)="toggleAvailable(product)"
             >
@@ -198,7 +199,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
                 [class.text-[var(--marigold-600)]]="product.isAvailable !== false"
                 [class.text-[var(--text-muted)]]="product.isAvailable === false"
               >
-                {{ product.isAvailable !== false ? 'Так' : 'Ні' }}
+                {{ product.isAvailable !== false ? ('common.yes' | transloco) : ('common.no' | transloco) }}
               </span>
             </button>
 
@@ -206,14 +207,14 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
               <a
                 [routerLink]="['/admin/products', product.id, 'edit']"
                 class="ad-act"
-                [attr.aria-label]="'Редагувати ' + product.name"
+                [attr.aria-label]="'admin.editAria' | transloco: { name: product.name }"
               >
                 <app-icon name="pencil" [size]="15" />
               </a>
               <button
                 type="button"
                 class="ad-act danger"
-                [attr.aria-label]="'Видалити ' + product.name"
+                [attr.aria-label]="'admin.deleteAria' | transloco: { name: product.name }"
                 (click)="delete(product)"
               >
                 <app-icon name="trash" [size]="15" />
@@ -240,7 +241,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
                   (error)="markImageFailed(product.id)"
                 />
               } @else {
-                фото
+                {{ 'common.photo' | transloco }}
               }
             </div>
             <div class="min-w-0 flex-1">
@@ -252,7 +253,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             <button
               type="button"
               class="shrink-0"
-              [attr.aria-label]="'Змінити статус товару ' + product.name"
+              [attr.aria-label]="'admin.toggleActiveAria' | transloco: { name: product.name }"
               [disabled]="togglingId() === product.id"
               (click)="toggleActive(product)"
             >
@@ -270,7 +271,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             <button
               type="button"
               class="shrink-0"
-              [attr.aria-label]="'В наявності: ' + product.name"
+              [attr.aria-label]="'admin.toggleAvailableAria' | transloco: { name: product.name }"
               [disabled]="togglingId() === product.id"
               (click)="toggleAvailable(product)"
             >
@@ -288,14 +289,14 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             <a
               [routerLink]="['/admin/products', product.id, 'edit']"
               class="ad-act shrink-0"
-              [attr.aria-label]="'Редагувати ' + product.name"
+              [attr.aria-label]="'admin.editAria' | transloco: { name: product.name }"
             >
               <app-icon name="pencil" [size]="15" />
             </a>
             <button
               type="button"
               class="ad-act danger shrink-0"
-              [attr.aria-label]="'Видалити ' + product.name"
+              [attr.aria-label]="'admin.deleteAria' | transloco: { name: product.name }"
               (click)="delete(product)"
             >
               <app-icon name="trash" [size]="15" />
@@ -306,14 +307,14 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 
       <div class="mt-[18px] flex flex-wrap items-center justify-between gap-3">
         <span class="text-sm text-[var(--text-muted)]"
-          >Показано {{ first() }}–{{ last() }} з {{ page().totalCount }}</span
+          >{{ 'admin.shownRange' | transloco: { first: first(), last: last(), total: page().totalCount } }}</span
         >
         <div class="flex gap-1.5">
           <button
             type="button"
             class="grid size-9 place-items-center rounded-lg border border-[var(--border-subtle)] bg-white text-[var(--espresso-700)] disabled:opacity-40"
             [disabled]="page().page <= 1"
-            aria-label="Попередня сторінка"
+            [attr.aria-label]="'admin.prevPage' | transloco"
             (click)="goToPage(page().page - 1)"
           >
             <app-icon name="chevron-left" [size]="16" />
@@ -337,7 +338,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             type="button"
             class="grid size-9 place-items-center rounded-lg border border-[var(--border-subtle)] bg-white text-[var(--espresso-700)] disabled:opacity-40"
             [disabled]="page().page >= page().totalPages"
-            aria-label="Наступна сторінка"
+            [attr.aria-label]="'admin.nextPage' | transloco"
             (click)="goToPage(page().page + 1)"
           >
             <app-icon name="chevron-right" [size]="16" />
@@ -349,6 +350,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 })
 export class AdminProductsComponent {
   private readonly admin = inject(AdminService);
+  private readonly i18n = inject(TranslocoService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -432,12 +434,12 @@ export class AdminProductsComponent {
               totalPages: Math.max(data.totalPages ?? 1, 1),
             });
           } else {
-            this.error.set(response.error ?? 'Не вдалося завантажити товари');
+            this.error.set(response.error ?? this.i18n.translate('admin.loadProductsError'));
           }
           this.loading.set(false);
         },
         error: (error) => {
-          this.error.set(extractApiError(error, 'Не вдалося завантажити товари'));
+          this.error.set(extractApiError(error, this.i18n.translate('admin.loadProductsError')));
           this.loading.set(false);
         },
       });
@@ -483,12 +485,12 @@ export class AdminProductsComponent {
               ),
             }));
           } else {
-            this.toast.error(response.error ?? 'Не вдалося змінити статус');
+            this.toast.error(response.error ?? this.i18n.translate('admin.toggleActiveError'));
           }
         },
         error: (error) => {
           this.togglingId.set(null);
-          this.toast.error(extractApiError(error, 'Не вдалося змінити статус'));
+          this.toast.error(extractApiError(error, this.i18n.translate('admin.toggleActiveError')));
         },
       });
   }
@@ -513,31 +515,31 @@ export class AdminProductsComponent {
               ),
             }));
           } else {
-            this.toast.error(response.error ?? 'Не вдалося змінити наявність');
+            this.toast.error(response.error ?? this.i18n.translate('admin.toggleAvailableError'));
           }
         },
         error: (error) => {
           this.togglingId.set(null);
-          this.toast.error(extractApiError(error, 'Не вдалося змінити наявність'));
+          this.toast.error(extractApiError(error, this.i18n.translate('admin.toggleAvailableError')));
         },
       });
   }
 
   delete(product: AdminProduct): void {
-    if (!confirm(`Видалити товар «${product.name}»?`)) return;
+    if (!confirm(this.i18n.translate('admin.confirmDeleteProduct', { name: product.name }))) return;
     this.admin
       .deleteProduct(product.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.toast.success('Товар видалено');
+            this.toast.success(this.i18n.translate('admin.productDeleted'));
             this.load();
           } else {
-            this.toast.error(response.error ?? 'Не вдалося видалити товар');
+            this.toast.error(response.error ?? this.i18n.translate('admin.deleteProductError'));
           }
         },
-        error: (error) => this.toast.error(extractApiError(error, 'Не вдалося видалити товар')),
+        error: (error) => this.toast.error(extractApiError(error, this.i18n.translate('admin.deleteProductError'))),
       });
   }
 }

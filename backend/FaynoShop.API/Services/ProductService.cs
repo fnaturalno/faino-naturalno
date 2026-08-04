@@ -1,6 +1,7 @@
 using FaynoShop.API.Data;
 using FaynoShop.API.DTOs.Products;
 using FaynoShop.API.Exceptions;
+using FaynoShop.API.Localization;
 using FaynoShop.API.Models;
 using FaynoShop.API.Security;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ public sealed class ProductService : IProductService
 
     public async Task<ProductDetailDto> GetBySlugAsync(
         string slug,
+        string locale,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(slug))
@@ -39,16 +41,22 @@ public sealed class ProductService : IProductService
             throw new NotFoundException("Товар не знайдено.");
         }
 
+        var useEn = LocalizedContent.IsEnglish(locale);
+
         var product = await _db.Products
             .AsNoTracking()
             .Where(p => p.IsActive && p.Slug == slug)
             .Select(p => new
             {
                 p.Id,
-                p.Name,
+                Name = useEn && p.NameEn != null && p.NameEn != "" ? p.NameEn : p.NameUk,
                 p.Slug,
-                p.ShortDescription,
-                p.Description,
+                ShortDescription = useEn && p.ShortDescriptionEn != null && p.ShortDescriptionEn != ""
+                    ? p.ShortDescriptionEn
+                    : p.ShortDescriptionUk,
+                Description = useEn && p.DescriptionEn != null && p.DescriptionEn != ""
+                    ? p.DescriptionEn
+                    : p.DescriptionUk,
                 p.Price,
                 p.OldPrice,
                 p.ImageUrl,
@@ -59,7 +67,9 @@ public sealed class ProductService : IProductService
                 p.IsAvailable,
                 p.CreatedAt,
                 p.CategoryId,
-                CategoryName = p.Category.Name,
+                CategoryName = useEn && p.Category.NameEn != null && p.Category.NameEn != ""
+                    ? p.Category.NameEn
+                    : p.Category.NameUk,
                 CategorySlug = p.Category.Slug
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -80,9 +90,11 @@ public sealed class ProductService : IProductService
             .Take(SimilarProductsLimit)
             .Select(p => new ProductDto(
                 p.Id,
-                p.Name,
+                useEn && p.NameEn != null && p.NameEn != "" ? p.NameEn : p.NameUk,
                 p.Slug,
-                p.ShortDescription,
+                useEn && p.ShortDescriptionEn != null && p.ShortDescriptionEn != ""
+                    ? p.ShortDescriptionEn
+                    : p.ShortDescriptionUk,
                 p.Price,
                 p.OldPrice,
                 p.ImageUrl,
@@ -91,7 +103,9 @@ public sealed class ProductService : IProductService
                 p.IsFeatured,
                 p.CreatedAt,
                 p.CategoryId,
-                p.Category.Name,
+                useEn && p.Category.NameEn != null && p.Category.NameEn != ""
+                    ? p.Category.NameEn
+                    : p.Category.NameUk,
                 p.Category.Slug,
                 p.IsAvailable))
             .ToListAsync(cancellationToken);
@@ -123,12 +137,14 @@ public sealed class ProductService : IProductService
 
     public async Task<ProductListResponse> GetProductsAsync(
         ProductQuery query,
+        string locale,
         CancellationToken cancellationToken)
     {
         var normalized = ProductQueryNormalizer.Normalize(query);
         normalized = await ResolveValidCategorySlugsAsync(normalized, cancellationToken);
 
         var includeInactive = query.IncludeInactive;
+        var useEn = LocalizedContent.IsEnglish(locale);
         var products = _db.Products.AsNoTracking();
 
         if (!includeInactive)
@@ -166,9 +182,11 @@ public sealed class ProductService : IProductService
             .Take(normalized.PageSize)
             .Select(p => new ProductDto(
                 p.Id,
-                p.Name,
+                useEn && p.NameEn != null && p.NameEn != "" ? p.NameEn : p.NameUk,
                 p.Slug,
-                p.ShortDescription,
+                useEn && p.ShortDescriptionEn != null && p.ShortDescriptionEn != ""
+                    ? p.ShortDescriptionEn
+                    : p.ShortDescriptionUk,
                 p.Price,
                 p.OldPrice,
                 p.ImageUrl,
@@ -177,7 +195,9 @@ public sealed class ProductService : IProductService
                 p.IsFeatured,
                 p.CreatedAt,
                 p.CategoryId,
-                p.Category.Name,
+                useEn && p.Category.NameEn != null && p.Category.NameEn != ""
+                    ? p.Category.NameEn
+                    : p.Category.NameUk,
                 p.Category.Slug,
                 p.IsAvailable,
                 p.IsActive))
@@ -201,10 +221,28 @@ public sealed class ProductService : IProductService
             .AsNoTracking()
             .Where(p => p.Id == id)
             .Select(p => new AdminProductDto(
-                p.Id, p.Name, p.Slug, p.CategoryId, p.Category.Name, p.Category.Slug,
-                p.ShortDescription, p.Description, p.Price, p.OldPrice, p.Weight, p.WeightUnit,
-                p.ImageUrl, p.ImageUrls, p.IsActive, p.IsFeatured, p.IsAvailable,
-                p.CreatedAt, p.UpdatedAt))
+                p.Id,
+                p.NameUk,
+                p.NameEn,
+                p.Slug,
+                p.CategoryId,
+                p.Category.NameUk,
+                p.Category.Slug,
+                p.ShortDescriptionUk,
+                p.ShortDescriptionEn,
+                p.DescriptionUk,
+                p.DescriptionEn,
+                p.Price,
+                p.OldPrice,
+                p.Weight,
+                p.WeightUnit,
+                p.ImageUrl,
+                p.ImageUrls,
+                p.IsActive,
+                p.IsFeatured,
+                p.IsAvailable,
+                p.CreatedAt,
+                p.UpdatedAt))
             .FirstOrDefaultAsync(cancellationToken);
 
         return product ?? throw new NotFoundException("Товар не знайдено.");
@@ -215,17 +253,20 @@ public sealed class ProductService : IProductService
         CancellationToken cancellationToken)
     {
         await EnsureCategoryExistsAsync(request.CategoryId, cancellationToken);
-        var slug = await ResolveSlugAsync(request.Slug, request.Name, null, cancellationToken);
+        var slug = await ResolveSlugAsync(request.Slug, request.NameUk, null, cancellationToken);
         var now = DateTime.UtcNow;
         var imageUrls = NormalizeImageUrls(request.ImageUrl, request.ImageUrls);
 
         var product = new Product
         {
-            Name = request.Name.Trim(),
+            NameUk = request.NameUk.Trim(),
+            NameEn = TrimOrNull(request.NameEn),
             Slug = slug,
             CategoryId = request.CategoryId,
-            ShortDescription = TrimOrNull(request.ShortDescription),
-            Description = TrimOrNull(request.Description),
+            ShortDescriptionUk = TrimOrNull(request.ShortDescriptionUk),
+            ShortDescriptionEn = TrimOrNull(request.ShortDescriptionEn),
+            DescriptionUk = TrimOrNull(request.DescriptionUk),
+            DescriptionEn = TrimOrNull(request.DescriptionEn),
             Price = request.Price,
             OldPrice = request.OldPrice,
             Weight = request.Weight,
@@ -253,14 +294,17 @@ public sealed class ProductService : IProductService
             ?? throw new NotFoundException("Товар не знайдено.");
 
         await EnsureCategoryExistsAsync(request.CategoryId, cancellationToken);
-        var slug = await ResolveSlugAsync(request.Slug, request.Name, id, cancellationToken);
+        var slug = await ResolveSlugAsync(request.Slug, request.NameUk, id, cancellationToken);
         var imageUrls = NormalizeImageUrls(request.ImageUrl, request.ImageUrls);
 
-        product.Name = request.Name.Trim();
+        product.NameUk = request.NameUk.Trim();
+        product.NameEn = TrimOrNull(request.NameEn);
         product.Slug = slug;
         product.CategoryId = request.CategoryId;
-        product.ShortDescription = TrimOrNull(request.ShortDescription);
-        product.Description = TrimOrNull(request.Description);
+        product.ShortDescriptionUk = TrimOrNull(request.ShortDescriptionUk);
+        product.ShortDescriptionEn = TrimOrNull(request.ShortDescriptionEn);
+        product.DescriptionUk = TrimOrNull(request.DescriptionUk);
+        product.DescriptionEn = TrimOrNull(request.DescriptionEn);
         product.Price = request.Price;
         product.OldPrice = request.OldPrice;
         product.Weight = request.Weight;
@@ -341,11 +385,11 @@ public sealed class ProductService : IProductService
 
     private async Task<string> ResolveSlugAsync(
         string? requestedSlug,
-        string name,
+        string nameUk,
         int? currentProductId,
         CancellationToken cancellationToken)
     {
-        var source = string.IsNullOrWhiteSpace(requestedSlug) ? name : requestedSlug;
+        var source = string.IsNullOrWhiteSpace(requestedSlug) ? nameUk : requestedSlug;
         var slug = SlugGenerator.From(source, MaxSlugLength);
         if (string.IsNullOrWhiteSpace(slug))
         {
@@ -433,9 +477,11 @@ public sealed class ProductService : IProductService
         {
             var pattern = EscapeLikePattern(query.Search);
             source = source.Where(p =>
-                EF.Functions.ILike(p.Name, pattern, "\\") ||
+                EF.Functions.ILike(p.NameUk, pattern, "\\") ||
+                (p.NameEn != null && EF.Functions.ILike(p.NameEn, pattern, "\\")) ||
                 EF.Functions.ILike(p.Slug, pattern, "\\") ||
-                (p.ShortDescription != null && EF.Functions.ILike(p.ShortDescription, pattern, "\\")));
+                (p.ShortDescriptionUk != null && EF.Functions.ILike(p.ShortDescriptionUk, pattern, "\\")) ||
+                (p.ShortDescriptionEn != null && EF.Functions.ILike(p.ShortDescriptionEn, pattern, "\\")));
         }
 
         if (query.MinPrice.HasValue)

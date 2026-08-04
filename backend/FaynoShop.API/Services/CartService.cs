@@ -2,6 +2,7 @@ using FaynoShop.API.Constants;
 using FaynoShop.API.Data;
 using FaynoShop.API.DTOs.Cart;
 using FaynoShop.API.Exceptions;
+using FaynoShop.API.Localization;
 using FaynoShop.API.Models;
 using FaynoShop.API.Security;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ public sealed class CartService : ICartService
     public async Task<CartDto> GetCartAsync(
         string sessionId,
         int? userId,
+        string locale,
         CancellationToken cancellationToken)
     {
         ValidateSessionId(sessionId);
@@ -33,7 +35,7 @@ public sealed class CartService : ICartService
             return EmptyCart;
         }
 
-        return await BuildCartDtoAsync(cart.Id, cancellationToken);
+        return await BuildCartDtoAsync(cart.Id, locale, cancellationToken);
     }
 
     public async Task<CartDto> UpdateItemQuantityAsync(
@@ -41,6 +43,7 @@ public sealed class CartService : ICartService
         int? userId,
         int cartItemId,
         UpdateCartItemRequest request,
+        string locale,
         CancellationToken cancellationToken)
     {
         ValidateSessionId(sessionId);
@@ -82,13 +85,14 @@ public sealed class CartService : ICartService
         await _db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        return await BuildCartDtoAsync(cart.Id, cancellationToken);
+        return await BuildCartDtoAsync(cart.Id, locale, cancellationToken);
     }
 
     public async Task<CartDto> RemoveItemAsync(
         string sessionId,
         int? userId,
         int cartItemId,
+        string locale,
         CancellationToken cancellationToken)
     {
         ValidateSessionId(sessionId);
@@ -108,12 +112,13 @@ public sealed class CartService : ICartService
         cart.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
 
-        return await BuildCartDtoAsync(cart.Id, cancellationToken);
+        return await BuildCartDtoAsync(cart.Id, locale, cancellationToken);
     }
 
     public async Task<CartDto> ClearCartAsync(
         string sessionId,
         int? userId,
+        string locale,
         CancellationToken cancellationToken)
     {
         ValidateSessionId(sessionId);
@@ -317,8 +322,13 @@ public sealed class CartService : ICartService
                 cancellationToken);
     }
 
-    private async Task<CartDto> BuildCartDtoAsync(int cartId, CancellationToken cancellationToken)
+    private async Task<CartDto> BuildCartDtoAsync(
+        int cartId,
+        string locale,
+        CancellationToken cancellationToken)
     {
+        var useEn = LocalizedContent.IsEnglish(locale);
+
         var rows = await _db.CartItems
             .AsNoTracking()
             .Where(i => i.CartId == cartId)
@@ -328,9 +338,13 @@ public sealed class CartService : ICartService
                 i.Id,
                 i.ProductId,
                 i.Quantity,
-                i.Product.Name,
+                Name = useEn && i.Product.NameEn != null && i.Product.NameEn != ""
+                    ? i.Product.NameEn
+                    : i.Product.NameUk,
                 i.Product.Slug,
-                CategoryName = i.Product.Category.Name,
+                CategoryName = useEn && i.Product.Category.NameEn != null && i.Product.Category.NameEn != ""
+                    ? i.Product.Category.NameEn
+                    : i.Product.Category.NameUk,
                 i.Product.ImageUrl,
                 i.Product.Price,
                 i.Product.IsActive,

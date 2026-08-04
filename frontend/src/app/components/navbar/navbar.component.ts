@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
+import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
+import { LocaleService } from '../../i18n/locale.service';
 import { initialsOf } from '../../pages/auth/auth.helpers';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
@@ -8,7 +11,7 @@ import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, IconComponent],
+  imports: [RouterLink, RouterLinkActive, IconComponent, LanguageSwitcherComponent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-white">
@@ -16,40 +19,42 @@ import { IconComponent } from '../icon/icon.component';
         <button
           type="button"
           class="grid size-10 place-items-center rounded-lg text-[var(--espresso-800)] sm:hidden"
-          aria-label="Відкрити меню"
+          [attr.aria-label]="'nav.openMenu' | transloco"
           [attr.aria-expanded]="menuOpen()"
           (click)="menuOpen.update((open) => !open)"
         >
           <app-icon name="menu" [size]="22" />
         </button>
 
-        <a routerLink="/catalog" aria-label="Файно натурально — каталог" class="shrink-0">
-          <img src="/logo.png" alt="Файно натурально" class="h-[36px] w-auto sm:h-[42px] lg:h-[46px]" />
+        <a [routerLink]="locale.commands('catalog')" [attr.aria-label]="'nav.logoAria' | transloco" class="shrink-0">
+          <img src="/logo.png" [alt]="'brand' | transloco" class="h-[36px] w-auto sm:h-[42px] lg:h-[46px]" />
         </a>
 
-        <nav aria-label="Основна навігація" class="hidden items-center gap-6 sm:flex lg:gap-8">
+        <nav [attr.aria-label]="'nav.mainNav' | transloco" class="hidden items-center gap-6 sm:flex lg:gap-8">
           <a
-            routerLink="/catalog"
+            [routerLink]="locale.commands('catalog')"
             routerLinkActive="text-[var(--cinnamon-700)]"
             class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
-          >Каталог</a>
-          <a href="#about" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">Про нас</a>
-          <a href="#contacts" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">Контакти</a>
+          >{{ 'nav.catalog' | transloco }}</a>
+          <a href="#about" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">{{ 'nav.about' | transloco }}</a>
+          <a href="#contacts" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
             <a
               routerLink="/admin"
               routerLinkActive="text-[var(--cinnamon-700)]"
               class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
-            >Адмін</a>
+            >{{ 'nav.admin' | transloco }}</a>
           }
         </nav>
 
         <div class="flex items-center gap-1.5 sm:gap-2">
+          <app-language-switcher [mode]="switcherMode()" class="hidden sm:inline-flex" />
+
           @if (auth.isAuthenticated()) {
             <a
-              routerLink="/profile"
+              [routerLink]="locale.commands('profile')"
               class="flex items-center gap-2.5 rounded-xl py-1 pl-1 pr-0.5 text-[var(--espresso-800)] hover:opacity-90 sm:gap-3 sm:pl-2"
-              [attr.aria-label]="'Профіль: ' + fullName()"
+              [attr.aria-label]="'nav.profile' | transloco: { name: fullName() }"
             >
               <div class="hidden text-right sm:block">
                 <p class="text-sm font-bold leading-tight">{{ fullName() }}</p>
@@ -66,12 +71,12 @@ import { IconComponent } from '../icon/icon.component';
               [disabled]="loggingOut()"
               (click)="logout()"
             >
-              Вихід
+              {{ 'nav.logout' | transloco }}
             </button>
             <button
               type="button"
               class="grid size-10 place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)] hover:text-[var(--chili-500)] sm:hidden"
-              aria-label="Вихід"
+              [attr.aria-label]="'nav.logout' | transloco"
               [disabled]="loggingOut()"
               (click)="logout()"
             >
@@ -79,13 +84,13 @@ import { IconComponent } from '../icon/icon.component';
             </button>
           } @else {
             <a
-              routerLink="/auth/login"
+              [routerLink]="locale.commands('auth', 'login')"
               class="hidden rounded-xl px-3 py-2 text-sm font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)] sm:inline"
-            >Увійти</a>
+            >{{ 'nav.login' | transloco }}</a>
             <a
-              routerLink="/auth/login"
+              [routerLink]="locale.commands('auth', 'login')"
               class="grid size-10 place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)] sm:hidden"
-              aria-label="Увійти"
+              [attr.aria-label]="'nav.login' | transloco"
             >
               <app-icon name="user" [size]="20" />
             </a>
@@ -93,7 +98,7 @@ import { IconComponent } from '../icon/icon.component';
 
           <button
             type="button"
-            aria-label="Кошик"
+            [attr.aria-label]="'nav.cart' | transloco"
             class="relative grid size-10 place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)]"
             (click)="onCartClick()"
           >
@@ -101,7 +106,7 @@ import { IconComponent } from '../icon/icon.component';
             @if (cart.itemCount() > 0) {
               <span
                 class="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-white bg-[var(--chili-500)] px-1 text-[10px] font-extrabold text-white"
-                aria-label="{{ cart.itemCount() }} товарів у кошику"
+                [attr.aria-label]="'nav.cartBadge' | transloco: { count: cart.itemCount() }"
               >{{ cart.itemCount() }}</span>
             }
           </button>
@@ -109,15 +114,16 @@ import { IconComponent } from '../icon/icon.component';
       </div>
 
       @if (menuOpen()) {
-        <nav aria-label="Мобільна навігація" class="flex flex-col border-t border-[var(--border-subtle)] bg-white px-4 py-3 sm:hidden">
-          <a routerLink="/catalog" class="rounded-lg px-3 py-3 font-bold text-[var(--cinnamon-700)]">Каталог</a>
-          <a href="#about" class="rounded-lg px-3 py-3 font-semibold">Про нас</a>
-          <a href="#contacts" class="rounded-lg px-3 py-3 font-semibold">Контакти</a>
+        <nav [attr.aria-label]="'nav.mobileNav' | transloco" class="flex flex-col border-t border-[var(--border-subtle)] bg-white px-4 py-3 sm:hidden">
+          <div class="mb-2 px-3"><app-language-switcher [mode]="switcherMode()" /></div>
+          <a [routerLink]="locale.commands('catalog')" class="rounded-lg px-3 py-3 font-bold text-[var(--cinnamon-700)]">{{ 'nav.catalog' | transloco }}</a>
+          <a href="#about" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.about' | transloco }}</a>
+          <a href="#contacts" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
-            <a routerLink="/admin" class="rounded-lg px-3 py-3 font-semibold">Адмін</a>
+            <a routerLink="/admin" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.admin' | transloco }}</a>
           }
           @if (auth.isAuthenticated()) {
-            <a routerLink="/profile" class="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold">
+            <a [routerLink]="locale.commands('profile')" class="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold">
               <span
                 class="grid size-9 place-items-center rounded-full border border-[#c48a00] bg-[#f5b800] text-sm font-black"
                 aria-hidden="true"
@@ -133,10 +139,10 @@ import { IconComponent } from '../icon/icon.component';
               [disabled]="loggingOut()"
               (click)="logout()"
             >
-              Вихід
+              {{ 'nav.logout' | transloco }}
             </button>
           } @else {
-            <a routerLink="/auth/login" class="rounded-lg px-3 py-3 font-semibold">Увійти</a>
+            <a [routerLink]="locale.commands('auth', 'login')" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.login' | transloco }}</a>
           }
         </nav>
       }
@@ -146,13 +152,20 @@ import { IconComponent } from '../icon/icon.component';
 export class NavbarComponent {
   protected readonly cart = inject(CartService);
   protected readonly auth = inject(AuthService);
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   private readonly router = inject(Router);
   protected readonly menuOpen = signal(false);
+
+  /** Admin pages have no locale prefix — switcher only updates UI language. */
+  protected readonly switcherMode = computed(() =>
+    this.router.url.startsWith('/admin') ? 'ui' : 'storefront',
+  );
 
   protected readonly fullName = computed(() => {
     const user = this.auth.currentUser();
     const name = `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim();
-    return name || 'Користувач';
+    return name || this.i18n.translate('nav.user');
   });
 
   protected readonly initials = computed(() => {
@@ -161,7 +174,9 @@ export class NavbarComponent {
   });
 
   protected readonly roleLabel = computed(() =>
-    this.auth.currentUser()?.isAdmin ? 'Адміністратор' : 'Клієнт',
+    this.auth.currentUser()?.isAdmin
+      ? this.i18n.translate('nav.roleAdmin')
+      : this.i18n.translate('nav.roleClient'),
   );
 
   protected readonly loggingOut = signal(false);
@@ -173,22 +188,22 @@ export class NavbarComponent {
     this.auth.logout().subscribe({
       next: () => {
         this.loggingOut.set(false);
-        void this.router.navigateByUrl('/catalog');
+        void this.router.navigate(this.locale.commands('catalog'));
       },
       error: () => {
         this.auth.clearSession();
         this.loggingOut.set(false);
-        void this.router.navigateByUrl('/catalog');
+        void this.router.navigate(this.locale.commands('catalog'));
       },
     });
   }
 
-  /** Desktop: open drawer. Mobile: navigate to /cart. */
+  /** Desktop: open drawer. Mobile: navigate to /:lang/cart. */
   protected onCartClick(): void {
     if (typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches) {
       this.cart.openDrawer();
       return;
     }
-    void this.router.navigate(['/cart']);
+    void this.router.navigate(this.locale.commands('cart'));
   }
 }

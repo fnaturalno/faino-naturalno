@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-toast-host',
+  imports: [TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (toasts.toast(); as toastMessage) {
@@ -17,7 +19,7 @@ import { ToastService } from '../../services/toast.service';
         <button
           type="button"
           class="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md text-white/90 hover:text-white"
-          aria-label="Закрити сповіщення"
+          [attr.aria-label]="'common.closeToast' | transloco"
           (click)="toasts.dismiss()"
         >
           ×

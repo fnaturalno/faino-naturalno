@@ -1,11 +1,14 @@
 namespace FaynoShop.API.DTOs.Products;
 
 public sealed record SaveProductRequest(
-    string Name,
+    string NameUk,
+    string? NameEn,
     string? Slug,
     int CategoryId,
-    string? ShortDescription,
-    string? Description,
+    string? ShortDescriptionUk,
+    string? ShortDescriptionEn,
+    string? DescriptionUk,
+    string? DescriptionEn,
     decimal Price,
     decimal? OldPrice,
     decimal? Weight,

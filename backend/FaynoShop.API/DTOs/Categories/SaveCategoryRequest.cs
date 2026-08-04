@@ -1,7 +1,9 @@
 namespace FaynoShop.API.DTOs.Categories;
 
 public sealed record SaveCategoryRequest(
-    string Name,
+    string NameUk,
+    string? NameEn,
     string? Slug,
-    string? Description,
+    string? DescriptionUk,
+    string? DescriptionEn,
     int? ParentId);

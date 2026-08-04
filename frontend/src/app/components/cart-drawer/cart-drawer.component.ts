@@ -9,9 +9,11 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { fromEvent } from 'rxjs';
 
 import { cartItemCountLabel } from '../../models/cart.models';
+import { LocaleService } from '../../i18n/locale.service';
 import { CartService } from '../../services/cart.service';
 import { CartLineComponent } from '../cart-line/cart-line.component';
 import { IconComponent } from '../icon/icon.component';
@@ -24,6 +26,7 @@ import { IconComponent } from '../icon/icon.component';
     DecimalPipe,
     IconComponent,
     RouterLink,
+    TranslocoPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -32,7 +35,7 @@ import { IconComponent } from '../icon/icon.component';
         <button
           type="button"
           class="absolute inset-0 bg-[rgb(42_26_13_/_0.45)]"
-          aria-label="Закрити"
+          [attr.aria-label]="'common.close' | transloco"
           (click)="cart.closeDrawer()"
         ></button>
 
@@ -49,7 +52,7 @@ import { IconComponent } from '../icon/icon.component';
             class="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-[22px]"
           >
             <div class="flex items-baseline gap-2.5">
-              <h2 id="cart-drawer-title" class="m-0 text-xl">Кошик</h2>
+              <h2 id="cart-drawer-title" class="m-0 text-xl">{{ 'cart.title' | transloco }}</h2>
               @if (cart.loadStatus() === 'ready' && cart.items().length > 0) {
                 <span class="text-sm text-[var(--text-muted)]">{{ countLabel() }}</span>
               }
@@ -57,7 +60,7 @@ import { IconComponent } from '../icon/icon.component';
             <button
               type="button"
               class="grid size-9 place-items-center rounded-lg text-[var(--espresso-800)] hover:bg-[var(--kraft-100)]"
-              aria-label="Закрити"
+              [attr.aria-label]="'common.close' | transloco"
               (click)="cart.closeDrawer()"
             >
               <app-icon name="close" [size]="20" />
@@ -66,7 +69,7 @@ import { IconComponent } from '../icon/icon.component';
 
           <div class="flex min-h-0 flex-1 flex-col">
             @if (cart.loadStatus() === 'loading') {
-              <div class="flex-1 space-y-4 overflow-y-auto px-6 py-4" aria-busy="true" aria-label="Завантаження кошика">
+              <div class="flex-1 space-y-4 overflow-y-auto px-6 py-4" aria-busy="true" [attr.aria-label]="'cart.loading' | transloco">
                 @for (_ of skeletonSlots; track $index) {
                   <div class="flex gap-3.5 border-b border-[var(--border-subtle)] py-[18px]">
                     <div class="fn-cart-sk size-[76px] shrink-0 rounded-[var(--radius-md)]"></div>
@@ -89,7 +92,7 @@ import { IconComponent } from '../icon/icon.component';
                   class="rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 py-3 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
                   (click)="retry()"
                 >
-                  Спробувати ще
+                  {{ 'common.retry' | transloco }}
                 </button>
               </div>
             } @else if (cart.isEmpty()) {
@@ -99,16 +102,16 @@ import { IconComponent } from '../icon/icon.component';
                 >
                   <app-icon name="shopping-basket" [size]="60" />
                 </div>
-                <h3 class="mb-2 text-xl">Кошик порожній</h3>
+                <h3 class="mb-2 text-xl">{{ 'cart.emptyTitle' | transloco }}</h3>
                 <p class="mb-[26px] max-w-[280px] text-[var(--espresso-700)]">
-                  Ще нічого не додали. Загляньте до каталогу — ми зібрали для вас багато смачного.
+                  {{ 'cart.emptyBody' | transloco }}
                 </p>
                 <a
-                  routerLink="/catalog"
+                  [routerLink]="locale.commands('catalog')"
                   class="inline-flex h-[54px] items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
                   (click)="cart.closeDrawer()"
                 >
-                  Перейти до каталогу
+                  {{ 'cart.toCatalog' | transloco }}
                 </a>
               </div>
             } @else {
@@ -128,20 +131,20 @@ import { IconComponent } from '../icon/icon.component';
                 class="border-t border-[var(--border-subtle)] bg-[var(--surface-cream)] px-6 pb-[calc(20px+env(safe-area-inset-bottom))] pt-5"
               >
                 <div class="mb-1.5 flex items-center justify-between">
-                  <span class="text-[var(--espresso-700)]">Сума товарів</span>
+                  <span class="text-[var(--espresso-700)]">{{ 'cart.subtotal' | transloco }}</span>
                   <span class="text-[var(--espresso-800)]"
                     >{{ cart.subtotal() | number: '1.0-2' }} ₴</span
                   >
                 </div>
                 <div class="mb-4 flex items-center justify-between">
-                  <span class="text-[var(--espresso-700)]">Доставка</span>
-                  <span class="text-sm text-[var(--text-muted)]">за тарифами перевізника</span>
+                  <span class="text-[var(--espresso-700)]">{{ 'cart.delivery' | transloco }}</span>
+                  <span class="text-sm text-[var(--text-muted)]">{{ 'cart.deliveryHint' | transloco }}</span>
                 </div>
                 <div
                   class="mb-[18px] flex items-baseline justify-between border-t border-[var(--border-subtle)] pt-3.5"
                 >
                   <span class="font-[var(--font-display)] text-lg font-extrabold text-[var(--espresso-900)]"
-                    >Разом</span
+                    >{{ 'cart.total' | transloco }}</span
                   >
                   <span
                     class="font-[var(--font-accent)] text-2xl font-bold text-[var(--espresso-900)]"
@@ -149,11 +152,11 @@ import { IconComponent } from '../icon/icon.component';
                   >
                 </div>
                 <a
-                  routerLink="/checkout"
+                  [routerLink]="locale.commands('checkout')"
                   class="flex h-[54px] w-full items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
                   (click)="cart.closeDrawer()"
                 >
-                  Оформити замовлення
+                  {{ 'cart.checkout' | transloco }}
                 </a>
                 <div class="mt-3.5 text-center">
                   <button
@@ -161,7 +164,7 @@ import { IconComponent } from '../icon/icon.component';
                     class="text-sm font-semibold text-[var(--cinnamon-700)] hover:text-[var(--espresso-800)] hover:underline"
                     (click)="continueShopping()"
                   >
-                    ← Продовжити покупки
+                    {{ 'cart.continue' | transloco }}
                   </button>
                 </div>
               </footer>
@@ -189,6 +192,8 @@ import { IconComponent } from '../icon/icon.component';
 })
 export class CartDrawerComponent {
   protected readonly cart = inject(CartService);
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -214,7 +219,9 @@ export class CartDrawerComponent {
   }
 
   protected countLabel(): string {
-    return cartItemCountLabel(this.cart.itemCount());
+    const count = this.cart.itemCount();
+    const form = this.locale.pluralForm(count);
+    return this.i18n.translate(`plural.cartItems.${form}`, { count });
   }
 
   protected retry(): void {
@@ -223,7 +230,7 @@ export class CartDrawerComponent {
 
   protected goToProduct(slug: string): void {
     this.cart.closeDrawer();
-    void this.router.navigate(['/catalog', slug]);
+    void this.router.navigate(this.locale.commands('catalog', slug));
   }
 
   protected continueShopping(): void {

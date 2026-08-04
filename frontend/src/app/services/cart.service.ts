@@ -1,8 +1,10 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { Observable, catchError, finalize, of, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { LocaleService } from '../i18n/locale.service';
 import { CartMergeResponse } from '../models/auth.models';
 import {
   CartDto,
@@ -22,6 +24,8 @@ const SESSION_HEADER = 'X-Cart-Session-Id';
 export class CartService {
   private readonly http = inject(HttpClient);
   private readonly toasts = inject(ToastService);
+  private readonly i18n = inject(TranslocoService);
+  private readonly locale = inject(LocaleService);
   private sessionId = this.resolveSessionId();
 
   private readonly itemsSignal = signal<CartLineDto[]>([]);
@@ -43,6 +47,24 @@ export class CartService {
   readonly isEmpty = computed(
     () => this.loadStatusSignal() === 'ready' && this.itemsSignal().length === 0,
   );
+
+  constructor() {
+    let firstLocale = true;
+    effect(() => {
+      this.locale.lang();
+      if (firstLocale) {
+        firstLocale = false;
+        return;
+      }
+      // Only depend on locale — reading loadStatus/drawer inside the effect would loop.
+      untracked(() => {
+        this.hydrateOnInit();
+        if (this.drawerOpenSignal() || this.loadStatusSignal() !== 'idle') {
+          this.loadCart().subscribe();
+        }
+      });
+    });
+  }
 
   getSessionId(): string {
     return this.sessionId;
@@ -116,11 +138,11 @@ export class CartService {
             return;
           }
           this.loadStatusSignal.set('error');
-          this.loadErrorSignal.set(response.error ?? 'Не вдалося завантажити кошик.');
+          this.loadErrorSignal.set(response.error ?? this.i18n.translate('cart.loadError'));
         }),
         catchError((error: unknown) => {
           this.loadStatusSignal.set('error');
-          this.loadErrorSignal.set(extractApiError(error, 'Не вдалося завантажити кошик.'));
+          this.loadErrorSignal.set(extractApiError(error, this.i18n.translate('cart.loadError')));
           return of({
             success: false,
             data: null as unknown as CartDto,
@@ -196,7 +218,7 @@ export class CartService {
         next: (response) => {
           if (!response.success) {
             this.restore(snapshot);
-            this.toasts.error(response.error ?? 'Не вдалося оновити кошик');
+            this.toasts.error(response.error ?? this.i18n.translate('cart.updateError'));
             return;
           }
           if (response.data) {
@@ -206,7 +228,7 @@ export class CartService {
         },
         error: (error: unknown) => {
           this.restore(snapshot);
-          this.toasts.error(extractApiError(error, 'Не вдалося оновити кошик'));
+          this.toasts.error(extractApiError(error, this.i18n.translate('cart.updateError')));
         },
       });
   }
@@ -231,17 +253,17 @@ export class CartService {
         next: (response) => {
           if (!response.success) {
             this.restore(snapshot);
-            this.toasts.error(response.error ?? 'Не вдалося видалити');
+            this.toasts.error(response.error ?? this.i18n.translate('cart.removeError'));
             return;
           }
           if (response.data) {
             this.applyCart(response.data);
           }
-          this.toasts.success('Видалено з кошика');
+          this.toasts.success(this.i18n.translate('cart.removed'));
         },
         error: (error: unknown) => {
           this.restore(snapshot);
-          this.toasts.error(extractApiError(error, 'Не вдалося видалити'));
+          this.toasts.error(extractApiError(error, this.i18n.translate('cart.removeError')));
         },
       });
   }

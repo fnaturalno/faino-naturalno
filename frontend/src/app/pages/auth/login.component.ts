@@ -2,10 +2,12 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { finalize } from 'rxjs';
 
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ToastHostComponent } from '../../components/toast-host/toast-host.component';
+import { LocaleService } from '../../i18n/locale.service';
 import { AuthService, extractApiError } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import {
@@ -21,18 +23,18 @@ import {
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink, NavbarComponent, ToastHostComponent],
+  imports: [ReactiveFormsModule, RouterLink, NavbarComponent, ToastHostComponent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-navbar />
     <main class="flex min-h-[calc(100vh-60px)] items-start justify-center bg-[var(--bg-page)] px-4 py-10 sm:py-14">
       <div [class]="cardClasses">
         <div class="flex flex-col items-center text-center">
-          <a routerLink="/catalog" aria-label="Файно натурально">
-            <img src="/logo.png" alt="Файно натурально" class="mb-5 h-14 w-auto sm:mb-6 sm:h-16" />
+          <a [routerLink]="locale.commands('catalog')" [attr.aria-label]="'brand' | transloco">
+            <img src="/logo.png" [alt]="'brand' | transloco" class="mb-5 h-14 w-auto sm:mb-6 sm:h-16" />
           </a>
-          <h1 class="mb-1.5 text-xl sm:text-2xl">З поверненням!</h1>
-          <p class="mb-7 text-[var(--espresso-700)] sm:mb-8">Увійдіть, щоб продовжити покупки смачного</p>
+          <h1 class="mb-1.5 text-xl sm:text-2xl">{{ 'auth.welcomeBack' | transloco }}</h1>
+          <p class="mb-7 text-[var(--espresso-700)] sm:mb-8">{{ 'auth.loginLead' | transloco }}</p>
         </div>
 
         <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
@@ -41,7 +43,7 @@ import {
           }
 
           <div>
-            <label for="login-email" [class]="labelClasses">Ел. пошта</label>
+            <label for="login-email" [class]="labelClasses">{{ 'auth.email' | transloco }}</label>
             <input
               id="login-email"
               type="email"
@@ -51,14 +53,16 @@ import {
               [class]="fieldClasses"
             />
             @if (showError('email')) {
-              <p [class]="errorClasses">Вкажіть коректну електронну пошту</p>
+              <p [class]="errorClasses">{{ 'auth.invalidEmail' | transloco }}</p>
             }
           </div>
 
           <div>
             <div class="mb-1.5 flex items-center justify-between gap-3">
-              <label for="login-password" [class]="labelClasses + ' !mb-0'">Пароль</label>
-              <a routerLink="/auth/forgot-password" [class]="linkClasses + ' text-sm'">Забули пароль?</a>
+              <label for="login-password" [class]="labelClasses + ' !mb-0'">{{ 'auth.password' | transloco }}</label>
+              <a [routerLink]="locale.commands('auth', 'forgot-password')" [class]="linkClasses + ' text-sm'">{{
+                'auth.forgotLink' | transloco
+              }}</a>
             </div>
             <input
               id="login-password"
@@ -69,33 +73,37 @@ import {
               [class]="fieldClasses"
             />
             @if (showError('password')) {
-              <p [class]="errorClasses">Введіть пароль</p>
+              <p [class]="errorClasses">{{ 'auth.enterPassword' | transloco }}</p>
             }
           </div>
 
           <button type="submit" [class]="primaryBtn" [disabled]="submitting()">
             @if (submitting()) {
-              <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
-              Зачекайте…
+              <span
+                class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent"
+                aria-hidden="true"
+              ></span>
+              {{ 'common.wait' | transloco }}
             } @else {
-              Увійти
+              {{ 'auth.loginSubmit' | transloco }}
             }
           </button>
         </form>
 
         <div class="my-6 flex items-center gap-3.5">
           <span class="h-px flex-1 bg-[var(--border-subtle)]"></span>
-          <span class="text-sm text-[var(--text-muted)]">або</span>
+          <span class="text-sm text-[var(--text-muted)]">{{ 'common.or' | transloco }}</span>
           <span class="h-px flex-1 bg-[var(--border-subtle)]"></span>
         </div>
 
         <p class="text-center text-[var(--espresso-700)]">
-          Немає акаунту?
+          {{ 'auth.noAccountQ' | transloco }}
           <a
-            routerLink="/auth/register"
+            [routerLink]="locale.commands('auth', 'register')"
             [queryParams]="registerLinkQuery()"
             [class]="linkClasses"
-          >Зареєструватись</a>
+            >{{ 'auth.registerCta' | transloco }}</a
+          >
         </p>
       </div>
     </main>
@@ -105,6 +113,8 @@ import {
 export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toasts = inject(ToastService);
@@ -151,14 +161,14 @@ export class LoginComponent {
       .subscribe({
         next: (response) => {
           if (!response.success || !response.data) {
-            this.formError.set(response.error ?? 'Не вдалося увійти. Перевірте дані.');
+            this.formError.set(response.error ?? this.i18n.translate('auth.loginError'));
             return;
           }
-          this.toasts.success('Ви увійшли');
+          this.toasts.success(this.i18n.translate('auth.loginSuccess'));
           void this.router.navigateByUrl(this.returnUrl());
         },
         error: (err: unknown) => {
-          this.formError.set(extractApiError(err, 'Не вдалося увійти. Спробуйте ще раз.'));
+          this.formError.set(extractApiError(err, this.i18n.translate('auth.loginRetry')));
         },
       });
   }

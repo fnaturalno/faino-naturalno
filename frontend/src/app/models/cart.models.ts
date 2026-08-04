@@ -35,7 +35,7 @@ export interface UpdateCartItemRequest {
 
 export type CartLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
-/** Ukrainian plural for cart header: N товар / товари / товарів. */
+/** @deprecated Prefer LocaleService + Transloco plural keys. */
 export function cartItemCountLabel(count: number): string {
   const n = Math.abs(Math.trunc(count));
   const mod100 = n % 100;

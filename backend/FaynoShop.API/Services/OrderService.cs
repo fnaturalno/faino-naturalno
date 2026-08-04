@@ -4,6 +4,7 @@ using FaynoShop.API.Constants;
 using FaynoShop.API.Data;
 using FaynoShop.API.DTOs.Orders;
 using FaynoShop.API.Exceptions;
+using FaynoShop.API.Localization;
 using FaynoShop.API.Models;
 using FaynoShop.API.Security;
 using Microsoft.EntityFrameworkCore;
@@ -28,17 +29,22 @@ public interface IOrderService
         int id,
         string? confirmationToken,
         int? userId,
+        string locale,
         CancellationToken cancellationToken);
 
     Task<AdminOrderListResponse> GetAdminOrdersAsync(
         AdminOrderQuery query,
         CancellationToken cancellationToken);
 
-    Task<OrderDetailDto> GetAdminOrderByIdAsync(int id, CancellationToken cancellationToken);
+    Task<OrderDetailDto> GetAdminOrderByIdAsync(
+        int id,
+        string locale,
+        CancellationToken cancellationToken);
 
     Task<OrderDetailDto> UpdateStatusAsync(
         int id,
         UpdateOrderStatusRequest request,
+        string locale,
         CancellationToken cancellationToken);
 }
 
@@ -167,7 +173,7 @@ public sealed class OrderService : IOrderService
             if (!product.IsActive || !product.IsAvailable)
             {
                 throw new BadRequestException(
-                    $"Товар «{product.Name}» недоступний. Видаліть його з кошика та спробуйте знову.");
+                    $"Товар «{product.NameUk}» недоступний. Видаліть його з кошика та спробуйте знову.");
             }
 
             var unitPrice = product.Price;
@@ -247,8 +253,11 @@ public sealed class OrderService : IOrderService
         int id,
         string? confirmationToken,
         int? userId,
+        string locale,
         CancellationToken cancellationToken)
     {
+        var useEn = LocalizedContent.IsEnglish(locale);
+
         var order = await _db.Orders
             .AsNoTracking()
             .Where(o => o.Id == id)
@@ -271,10 +280,14 @@ public sealed class OrderService : IOrderService
                     .Select(i => new
                     {
                         i.ProductId,
-                        ProductName = i.Product.Name,
+                        ProductName = useEn && i.Product.NameEn != null && i.Product.NameEn != ""
+                            ? i.Product.NameEn
+                            : i.Product.NameUk,
                         i.Quantity,
                         i.UnitPrice,
-                        Category = (string?)i.Product.Category.Name,
+                        Category = (string?)(useEn && i.Product.Category.NameEn != null && i.Product.Category.NameEn != ""
+                            ? i.Product.Category.NameEn
+                            : i.Product.Category.NameUk),
                         ImageUrl = i.Product.ImageUrl
                     })
                     .ToList()
@@ -370,8 +383,13 @@ public sealed class OrderService : IOrderService
         return new AdminOrderListResponse(items, page, pageSize, totalCount, totalPages);
     }
 
-    public async Task<OrderDetailDto> GetAdminOrderByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<OrderDetailDto> GetAdminOrderByIdAsync(
+        int id,
+        string locale,
+        CancellationToken cancellationToken)
     {
+        var useEn = LocalizedContent.IsEnglish(locale);
+
         var order = await _db.Orders
             .AsNoTracking()
             .Where(o => o.Id == id)
@@ -390,10 +408,14 @@ public sealed class OrderService : IOrderService
                 Items = o.Items.OrderBy(i => i.Id).Select(i => new
                 {
                     i.ProductId,
-                    ProductName = i.Product.Name,
+                    ProductName = useEn && i.Product.NameEn != null && i.Product.NameEn != ""
+                        ? i.Product.NameEn
+                        : i.Product.NameUk,
                     i.Quantity,
                     i.UnitPrice,
-                    Category = (string?)i.Product.Category.Name,
+                    Category = (string?)(useEn && i.Product.Category.NameEn != null && i.Product.Category.NameEn != ""
+                        ? i.Product.Category.NameEn
+                        : i.Product.Category.NameUk),
                     ImageUrl = i.Product.ImageUrl
                 }).ToList()
             })
@@ -412,6 +434,7 @@ public sealed class OrderService : IOrderService
     public async Task<OrderDetailDto> UpdateStatusAsync(
         int id,
         UpdateOrderStatusRequest request,
+        string locale,
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<OrderStatus>(request.Status, true, out var nextStatus))
@@ -430,7 +453,7 @@ public sealed class OrderService : IOrderService
         order.Status = nextStatus;
         order.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
-        return await GetAdminOrderByIdAsync(id, cancellationToken);
+        return await GetAdminOrderByIdAsync(id, locale, cancellationToken);
     }
 
     private static bool IsAllowedTransition(OrderStatus current, OrderStatus next) =>

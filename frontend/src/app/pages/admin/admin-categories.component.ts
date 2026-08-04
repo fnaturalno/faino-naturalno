@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { IconComponent, IconName } from '../../components/icon/icon.component';
+import { LocaleService } from '../../i18n/locale.service';
 import { AdminCategory } from '../../models/admin.models';
 import { AdminService } from '../../services/admin.service';
 import { extractApiError } from '../../services/auth.service';
@@ -12,7 +14,7 @@ type DrawerMode = { id: number; parentId: number };
 
 @Component({
   selector: 'app-admin-categories',
-  imports: [ReactiveFormsModule, IconComponent],
+  imports: [TranslocoPipe, ReactiveFormsModule, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
     .ad-act {
@@ -44,29 +46,29 @@ type DrawerMode = { id: number; parentId: number };
     <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
       <p class="m-0 text-[var(--espresso-700)]">
         <strong class="text-[var(--espresso-900)]">{{ nodeCount() }} {{ plural() }}</strong>
-        <span class="text-[var(--text-muted)]"> (з підкатегоріями)</span>
+        <span class="text-[var(--text-muted)]"> {{ 'admin.withSubcategories' | transloco }}</span>
       </p>
       <button
         type="button"
         class="rounded-[10px] bg-[var(--marigold-400)] px-4 py-2.5 font-bold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
         (click)="openNew()"
       >
-        + Додати категорію
+        {{ 'admin.addCategory' | transloco }}
       </button>
     </div>
 
     @if (error()) {
       <div class="rounded-[10px] border border-[var(--chili-500,#b23a2e)] bg-[#f5dcd3] p-4 text-[var(--espresso-800)]">
         {{ error() }}
-        <button type="button" class="ml-2 underline" (click)="load()">Спробувати ще</button>
+        <button type="button" class="ml-2 underline" (click)="load()">{{ 'common.retry' | transloco }}</button>
       </div>
     } @else if (loading()) {
       <div class="h-72 animate-pulse rounded-[14px] bg-[var(--kraft-100)]"></div>
     } @else if (!categories().length) {
       <div class="rounded-[14px] border border-[var(--border-subtle)] bg-white p-10 text-center shadow-sm">
-        <p class="mb-4 text-[var(--espresso-700)]">Категорій ще немає.</p>
+        <p class="mb-4 text-[var(--espresso-700)]">{{ 'admin.emptyCategories' | transloco }}</p>
         <button type="button" class="font-bold text-[var(--cinnamon-700,#7a3e18)] underline" (click)="openNew()">
-          + Додати категорію
+          {{ 'admin.addCategory' | transloco }}
         </button>
       </div>
     } @else {
@@ -76,10 +78,10 @@ type DrawerMode = { id: number; parentId: number };
         <div
           class="hidden grid-cols-[minmax(0,1fr)_240px_110px_130px] gap-3 border-b border-[var(--border-subtle)] bg-[var(--kraft-100)] px-5 py-3.5 sm:grid"
         >
-          <span class="fn-eyebrow text-[10px]">Назва</span>
-          <span class="fn-eyebrow text-[10px]">URL (slug)</span>
-          <span class="fn-eyebrow text-[10px]">Товарів</span>
-          <span class="fn-eyebrow text-right text-[10px]">Дії</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colName' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colSlug' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colProducts' | transloco }}</span>
+          <span class="fn-eyebrow text-right text-[10px]">{{ 'admin.colActions' | transloco }}</span>
         </div>
 
         @for (parent of categories(); track parent.id) {
@@ -92,7 +94,7 @@ type DrawerMode = { id: number; parentId: number };
                 class="grid size-6 shrink-0 place-items-center rounded-md text-[var(--espresso-700)] transition-transform"
                 [class.rotate-90]="isOpen(parent.id)"
                 [attr.aria-expanded]="isOpen(parent.id)"
-                [attr.aria-label]="(isOpen(parent.id) ? 'Згорнути' : 'Розгорнути') + ' ' + parent.name"
+                [attr.aria-label]="(isOpen(parent.id) ? ('admin.collapse' | transloco) : ('admin.expand' | transloco)) + ' ' + parent.name"
                 (click)="toggle(parent.id)"
               >
                 <app-icon name="chevron-right" [size]="16" />
@@ -118,13 +120,13 @@ type DrawerMode = { id: number; parentId: number };
             >
             <span class="pl-8 text-sm text-[var(--espresso-700)] sm:pl-0">{{ parent.activeProductCount }}</span>
             <div class="flex justify-end gap-2 pl-8 sm:pl-0">
-              <button type="button" class="ad-act" title="Додати підкатегорію" [attr.aria-label]="'Додати підкатегорію до ' + parent.name" (click)="openNew(parent.id)">
+              <button type="button" class="ad-act" [title]="'admin.addSubcategory' | transloco" [attr.aria-label]="'admin.addSubTo' | transloco: { name: parent.name }" (click)="openNew(parent.id)">
                 <app-icon name="plus" [size]="15" />
               </button>
-              <button type="button" class="ad-act" [attr.aria-label]="'Редагувати ' + parent.name" (click)="openEdit(parent)">
+              <button type="button" class="ad-act" [attr.aria-label]="'admin.editAria' | transloco: { name: parent.name }" (click)="openEdit(parent)">
                 <app-icon name="pencil" [size]="15" />
               </button>
-              <button type="button" class="ad-act danger" [attr.aria-label]="'Видалити ' + parent.name" (click)="delete(parent)">
+              <button type="button" class="ad-act danger" [attr.aria-label]="'admin.deleteAria' | transloco: { name: parent.name }" (click)="delete(parent)">
                 <app-icon name="trash" [size]="15" />
               </button>
             </div>
@@ -155,10 +157,10 @@ type DrawerMode = { id: number; parentId: number };
                 >
                 <span class="pl-8 text-sm text-[var(--espresso-700)] sm:pl-0">{{ child.activeProductCount }}</span>
                 <div class="flex justify-end gap-2 pl-8 sm:pl-0">
-                  <button type="button" class="ad-act" [attr.aria-label]="'Редагувати ' + child.name" (click)="openEdit(child, parent.id)">
+                  <button type="button" class="ad-act" [attr.aria-label]="'admin.editAria' | transloco: { name: child.name }" (click)="openEdit(child, parent.id)">
                     <app-icon name="pencil" [size]="15" />
                   </button>
-                  <button type="button" class="ad-act danger" [attr.aria-label]="'Видалити ' + child.name" (click)="delete(child)">
+                  <button type="button" class="ad-act danger" [attr.aria-label]="'admin.deleteAria' | transloco: { name: child.name }" (click)="delete(child)">
                     <app-icon name="trash" [size]="15" />
                   </button>
                 </div>
@@ -179,7 +181,7 @@ type DrawerMode = { id: number; parentId: number };
       >
         <header class="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-5">
           <h2 class="m-0 text-lg font-black text-[var(--espresso-900)]">{{ drawerTitle() }}</h2>
-          <button type="button" class="ad-act" aria-label="Закрити" (click)="close()">
+          <button type="button" class="ad-act" [attr.aria-label]="'common.close' | transloco" (click)="close()">
             <app-icon name="close" [size]="18" />
           </button>
         </header>
@@ -188,7 +190,7 @@ type DrawerMode = { id: number; parentId: number };
           <div class="flex flex-1 flex-col gap-[18px] overflow-y-auto p-6">
             <div>
               <label class="mb-1.5 block text-sm font-semibold text-[var(--espresso-800)]" for="cat-parent"
-                >Батьківська категорія</label
+                >{{ 'admin.parentCategory' | transloco }}</label
               >
               <div class="relative">
                 <select
@@ -196,7 +198,7 @@ type DrawerMode = { id: number; parentId: number };
                   formControlName="parentId"
                   class="w-full appearance-none rounded-[10px] border border-[var(--border-strong)] bg-white px-3.5 py-3 pr-10 text-base text-[var(--espresso-800)] outline-none focus:border-[var(--marigold-500)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <option [ngValue]="0">— Коренева категорія —</option>
+                  <option [ngValue]="0">{{ 'admin.rootCategory' | transloco }}</option>
                   @for (parent of parentOptions(); track parent.id) {
                     <option [ngValue]="parent.id">{{ parent.name }}</option>
                   }
@@ -208,20 +210,34 @@ type DrawerMode = { id: number; parentId: number };
               <p class="mt-1.5 text-xs text-[var(--text-muted)]">{{ parentHint() }}</p>
             </div>
 
-            <label class="block text-sm font-semibold text-[var(--espresso-800)]"
-              >Назва категорії
-              <input
-                formControlName="name"
-                class="mt-1.5 w-full rounded-[10px] border border-[var(--border-strong)] px-3.5 py-3 font-normal outline-none focus:border-[var(--marigold-500)]"
-              />
-            </label>
-            @if (form.controls.name.invalid && (form.controls.name.touched || saving())) {
-              <p class="-mt-3 text-xs text-[var(--chili-500,#b23a2e)]">Вкажіть назву категорії.</p>
+            <div class="flex gap-1 rounded-lg bg-[var(--kraft-100)] p-1">
+              <button type="button" class="flex-1 rounded-md px-3 py-1.5 text-sm font-bold" [class.bg-white]="nameTab() === 'ua'" (click)="nameTab.set('ua')">{{ 'admin.tabUa' | transloco }}</button>
+              <button type="button" class="flex-1 rounded-md px-3 py-1.5 text-sm font-bold" [class.bg-white]="nameTab() === 'en'" (click)="nameTab.set('en')">{{ 'admin.tabEn' | transloco }}</button>
+            </div>
+            @if (nameTab() === 'ua') {
+              <label class="block text-sm font-semibold text-[var(--espresso-800)]"
+                >{{ 'admin.catNameUk' | transloco }}
+                <input
+                  formControlName="nameUk"
+                  class="mt-1.5 w-full rounded-[10px] border border-[var(--border-strong)] px-3.5 py-3 font-normal outline-none focus:border-[var(--marigold-500)]"
+                />
+              </label>
+              @if (form.controls.nameUk.invalid && (form.controls.nameUk.touched || saving())) {
+                <p class="-mt-1 text-xs text-[var(--chili-500,#b23a2e)]">{{ 'admin.reqCategoryName' | transloco }}</p>
+              }
+            } @else {
+              <label class="block text-sm font-semibold text-[var(--espresso-800)]"
+                >Name (English)
+                <input
+                  formControlName="nameEn"
+                  class="mt-1.5 w-full rounded-[10px] border border-[var(--border-strong)] px-3.5 py-3 font-normal outline-none focus:border-[var(--marigold-500)]"
+                />
+              </label>
             }
 
             <div>
               <p class="mb-1.5 text-sm font-semibold text-[var(--espresso-800)]">
-                URL (slug) <span class="font-normal text-[var(--text-muted)]">— генерується автоматично</span>
+                {{ 'admin.slugAuto' | transloco }} <span class="font-normal text-[var(--text-muted)]">{{ 'admin.slugAutoHint' | transloco }}</span>
               </p>
               <div
                 class="flex items-center gap-1.5 rounded-[10px] border border-[var(--border-subtle)] bg-[var(--kraft-100)] px-3.5 py-3 text-sm"
@@ -231,14 +247,29 @@ type DrawerMode = { id: number; parentId: number };
               </div>
             </div>
 
-            <label class="block text-sm font-semibold text-[var(--espresso-800)]"
-              >Опис <span class="font-normal text-[var(--text-muted)]">— необовʼязково</span>
-              <textarea
-                formControlName="description"
-                placeholder="Короткий опис категорії…"
-                class="mt-1.5 min-h-[88px] w-full resize-y rounded-[10px] border border-[var(--border-strong)] px-3.5 py-3 font-normal outline-none focus:border-[var(--marigold-500)]"
-              ></textarea>
-            </label>
+            <div class="flex gap-1 rounded-lg bg-[var(--kraft-100)] p-1">
+              <button type="button" class="flex-1 rounded-md px-3 py-1.5 text-sm font-bold" [class.bg-white]="descTab() === 'ua'" (click)="descTab.set('ua')">{{ 'admin.tabUa' | transloco }}</button>
+              <button type="button" class="flex-1 rounded-md px-3 py-1.5 text-sm font-bold" [class.bg-white]="descTab() === 'en'" (click)="descTab.set('en')">{{ 'admin.tabEn' | transloco }}</button>
+            </div>
+            @if (descTab() === 'ua') {
+              <label class="block text-sm font-semibold text-[var(--espresso-800)]"
+                >{{ 'admin.catDescUk' | transloco }} <span class="font-normal text-[var(--text-muted)]">{{ 'admin.descOptional' | transloco }}</span>
+                <textarea
+                  formControlName="descriptionUk"
+                  [placeholder]="'admin.descPlaceholder' | transloco"
+                  class="mt-1.5 min-h-[88px] w-full resize-y rounded-[10px] border border-[var(--border-strong)] px-3.5 py-3 font-normal outline-none focus:border-[var(--marigold-500)]"
+                ></textarea>
+              </label>
+            } @else {
+              <label class="block text-sm font-semibold text-[var(--espresso-800)]"
+                >Description (English)
+                <textarea
+                  formControlName="descriptionEn"
+                  placeholder="Short category description…"
+                  class="mt-1.5 min-h-[88px] w-full resize-y rounded-[10px] border border-[var(--border-strong)] px-3.5 py-3 font-normal outline-none focus:border-[var(--marigold-500)]"
+                ></textarea>
+              </label>
+            }
           </div>
 
           <div class="flex gap-3 border-t border-[var(--border-subtle)] px-6 py-[18px]">
@@ -247,14 +278,14 @@ type DrawerMode = { id: number; parentId: number };
               class="flex-1 rounded-[10px] bg-[var(--marigold-400)] py-3 font-bold text-[var(--espresso-900)] disabled:opacity-50"
               [disabled]="saving()"
             >
-              {{ saving() ? 'Зберігаємо…' : 'Зберегти' }}
+              {{ saving() ? ('common.saving' | transloco) : ('common.save' | transloco) }}
             </button>
             <button
               type="button"
               class="rounded-[10px] border border-[var(--border-strong)] px-4 py-3 font-bold text-[var(--espresso-800)]"
               (click)="close()"
             >
-              Скасувати
+              {{ 'common.cancel' | transloco }}
             </button>
           </div>
         </form>
@@ -264,6 +295,8 @@ type DrawerMode = { id: number; parentId: number };
 })
 export class AdminCategoriesComponent {
   private readonly admin = inject(AdminService);
+  private readonly i18n = inject(TranslocoService);
+  private readonly locale = inject(LocaleService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly destroyRef = inject(DestroyRef);
@@ -274,10 +307,14 @@ export class AdminCategoriesComponent {
   readonly saving = signal(false);
   readonly drawer = signal<DrawerMode | null>(null);
   readonly expanded = signal<Record<number, boolean>>({});
+  readonly nameTab = signal<'ua' | 'en'>('ua');
+  readonly descTab = signal<'ua' | 'en'>('ua');
 
   readonly form = this.fb.group({
-    name: ['', Validators.required],
-    description: [''],
+    nameUk: ['', Validators.required],
+    nameEn: [''],
+    descriptionUk: [''],
+    descriptionEn: [''],
     parentId: [0],
   });
 
@@ -291,7 +328,7 @@ export class AdminCategoriesComponent {
   });
 
   readonly slug = () =>
-    this.form.controls.name.value
+    this.form.controls.nameUk.value
       .toLowerCase()
       .trim()
       .replace(/['’]/g, '')
@@ -302,8 +339,8 @@ export class AdminCategoriesComponent {
     const current = this.drawer();
     if (!current) return '';
     const hasParent = (this.form.getRawValue().parentId ?? 0) > 0;
-    if (current.id) return hasParent ? 'Редагувати підкатегорію' : 'Редагувати категорію';
-    return hasParent ? 'Нова підкатегорія' : 'Нова категорія';
+    if (current.id) return hasParent ? this.i18n.translate('admin.editSubcategory') : this.i18n.translate('admin.editCategory');
+    return hasParent ? this.i18n.translate('admin.newSubcategory') : this.i18n.translate('admin.newCategory');
   }
 
   constructor() {
@@ -311,21 +348,11 @@ export class AdminCategoriesComponent {
   }
 
   plural(): string {
-    const n = this.nodeCount() % 100;
-    const last = n % 10;
-    if (n > 10 && n < 20) return 'категорій';
-    if (last === 1) return 'категорія';
-    if (last >= 2 && last <= 4) return 'категорії';
-    return 'категорій';
+    return this.i18n.translate(`plural.categories.${this.locale.pluralForm(this.nodeCount())}`);
   }
 
   subLabel(count: number): string {
-    const n = count % 100;
-    const last = n % 10;
-    if (n > 10 && n < 20) return `${count} підкатегорій`;
-    if (last === 1) return `${count} підкатегорія`;
-    if (last >= 2 && last <= 4) return `${count} підкатегорії`;
-    return `${count} підкатегорій`;
+    return this.i18n.translate(`plural.subcategories.${this.locale.pluralForm(count)}`, { count });
   }
 
   accent(category: AdminCategory): { icon: IconName; bg: string; color: string } {
@@ -358,16 +385,16 @@ export class AdminCategoriesComponent {
     const parentId = this.form.controls.parentId.value ?? 0;
     if (parentId) {
       const parent = this.categories().find((c) => c.id === parentId);
-      return parent ? `Буде вкладена в «${parent.name}»` : '';
+      return parent ? this.i18n.translate('admin.parentHintNested', { name: parent.name }) : '';
     }
-    return 'Категорія верхнього рівня — може містити підкатегорії';
+    return this.i18n.translate('admin.parentHintRoot');
   }
 
   load(): void {
     this.loading.set(true);
     this.error.set('');
     this.admin
-      .getCategories()
+      .getCategories({ bilingual: true })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
@@ -381,12 +408,12 @@ export class AdminCategoriesComponent {
               return next;
             });
           } else {
-            this.error.set(response.error ?? 'Не вдалося завантажити категорії');
+            this.error.set(response.error ?? this.i18n.translate('admin.loadCategoriesError'));
           }
           this.loading.set(false);
         },
         error: (error) => {
-          this.error.set(extractApiError(error, 'Не вдалося завантажити категорії'));
+          this.error.set(extractApiError(error, this.i18n.translate('admin.loadCategoriesError')));
           this.loading.set(false);
         },
       });
@@ -394,7 +421,9 @@ export class AdminCategoriesComponent {
 
   openNew(parentId = 0): void {
     this.drawer.set({ id: 0, parentId });
-    this.form.reset({ name: '', description: '', parentId });
+    this.form.reset({ nameUk: '', nameEn: '', descriptionUk: '', descriptionEn: '', parentId });
+    this.nameTab.set('ua');
+    this.descTab.set('ua');
     this.form.controls.parentId.enable({ emitEvent: false });
     if (parentId) {
       this.expanded.update((map) => ({ ...map, [parentId]: true }));
@@ -404,10 +433,14 @@ export class AdminCategoriesComponent {
   openEdit(category: AdminCategory, parentId = 0): void {
     this.drawer.set({ id: category.id, parentId: category.parentId ?? parentId });
     this.form.reset({
-      name: category.name,
-      description: category.description ?? '',
+      nameUk: category.nameUk ?? category.name,
+      nameEn: category.nameEn ?? '',
+      descriptionUk: category.descriptionUk ?? category.description ?? '',
+      descriptionEn: category.descriptionEn ?? '',
       parentId: category.parentId ?? parentId,
     });
+    this.nameTab.set('ua');
+    this.descTab.set('ua');
     if ((category.children?.length ?? 0) > 0) {
       this.form.controls.parentId.disable({ emitEvent: false });
     } else {
@@ -429,9 +462,11 @@ export class AdminCategoriesComponent {
       ? null
       : this.form.getRawValue().parentId || null;
     const payload = {
-      name: this.form.controls.name.value,
+      nameUk: this.form.controls.nameUk.value,
+      nameEn: this.form.controls.nameEn.value.trim() || null,
       slug: this.slug(),
-      description: this.form.controls.description.value || null,
+      descriptionUk: this.form.controls.descriptionUk.value.trim() || null,
+      descriptionEn: this.form.controls.descriptionEn.value.trim() || null,
       parentId,
     };
     const request = current.id
@@ -441,35 +476,35 @@ export class AdminCategoriesComponent {
       next: (response) => {
         this.saving.set(false);
         if (response.success) {
-          this.toast.success('Категорію збережено');
+          this.toast.success(this.i18n.translate('admin.categorySaved'));
           this.close();
           this.load();
         } else {
-          this.toast.error(response.error ?? 'Не вдалося зберегти категорію');
+          this.toast.error(response.error ?? this.i18n.translate('admin.saveCategoryError'));
         }
       },
       error: (error) => {
         this.saving.set(false);
-        this.toast.error(extractApiError(error, 'Не вдалося зберегти категорію'));
+        this.toast.error(extractApiError(error, this.i18n.translate('admin.saveCategoryError')));
       },
     });
   }
 
   delete(category: AdminCategory): void {
-    if (!confirm(`Видалити категорію «${category.name}»?`)) return;
+    if (!confirm(this.i18n.translate('admin.confirmDeleteCategory', { name: category.name }))) return;
     this.admin
       .deleteCategory(category.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.toast.success('Категорію видалено');
+            this.toast.success(this.i18n.translate('admin.categoryDeleted'));
             this.load();
           } else {
-            this.toast.error(response.error ?? 'Не вдалося видалити категорію');
+            this.toast.error(response.error ?? this.i18n.translate('admin.deleteCategoryError'));
           }
         },
-        error: (error) => this.toast.error(extractApiError(error, 'Не вдалося видалити категорію')),
+        error: (error) => this.toast.error(extractApiError(error, this.i18n.translate('admin.deleteCategoryError'))),
       });
   }
 

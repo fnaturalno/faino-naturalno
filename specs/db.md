@@ -12,9 +12,11 @@
 | Column | Type | Constraints |
 |--------|------|-------------|
 | id | serial | PK |
-| name | varchar(100) | NOT NULL |
-| slug | varchar(100) | UNIQUE NOT NULL |
-| description | text | |
+| name_uk | varchar(100) | NOT NULL — Ukrainian display name (required) |
+| name_en | varchar(100) | nullable — English; public API falls back to `name_uk` when empty |
+| slug | varchar(100) | UNIQUE NOT NULL — shared across locales |
+| description_uk | text | nullable — Ukrainian description |
+| description_en | text | nullable — English; falls back to `description_uk` when empty |
 | image_url | varchar(500) | |
 | sort_order | int | NOT NULL DEFAULT 0 |
 | parent_id | int | nullable; FK → categories (ON DELETE RESTRICT); null = top-level |
@@ -30,10 +32,13 @@
 | Column | Type | Constraints |
 |--------|------|-------------|
 | id | serial | PK |
-| name | varchar(200) | NOT NULL |
-| slug | varchar(200) | UNIQUE NOT NULL |
-| description | text | |
-| short_description | varchar(500) | |
+| name_uk | varchar(200) | NOT NULL — Ukrainian display name (required) |
+| name_en | varchar(200) | nullable — English; public API falls back to `name_uk` when empty |
+| slug | varchar(200) | UNIQUE NOT NULL — shared across locales |
+| description_uk | text | nullable — Ukrainian full description |
+| description_en | text | nullable — English; falls back to `description_uk` when empty |
+| short_description_uk | varchar(500) | nullable — Ukrainian catalog-card blurb |
+| short_description_en | varchar(500) | nullable — English; falls back to `short_description_uk` when empty |
 | price | numeric(10,2) | NOT NULL |
 | old_price | numeric(10,2) | |
 | image_url | varchar(500) | |
@@ -204,6 +209,7 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | `PasswordChangedAt` (`20260802160713_PasswordChangedAt`) | nullable `users.password_changed_at` (`timestamptz`) for profile «Остання зміна» and change/reset password flows |
 | `DropProductStockQuantity` (`20260804104214_DropProductStockQuantity`) | drop `products.stock_quantity` — inventory not tracked |
 | `AddProductIsAvailable` (`20260804105918_AddProductIsAvailable`) | add `products.is_available` (bool, default true) — catalog visibility vs cart purchasability |
+| `I18nSchema` (`20260804125712_I18nSchema`) | bilingual content: rename product/category text columns to `*_uk`, add nullable `*_en`; shared `slug` unchanged; existing row data preserved via rename |
 
 ### Connection String
 ```

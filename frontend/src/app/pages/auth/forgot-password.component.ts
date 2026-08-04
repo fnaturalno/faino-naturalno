@@ -2,11 +2,13 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { finalize } from 'rxjs';
 
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ToastHostComponent } from '../../components/toast-host/toast-host.component';
+import { LocaleService } from '../../i18n/locale.service';
 import { AuthService, extractApiError } from '../../services/auth.service';
 import {
   AUTH_CARD_CLASSES,
@@ -20,7 +22,14 @@ import {
 
 @Component({
   selector: 'app-forgot-password',
-  imports: [ReactiveFormsModule, RouterLink, NavbarComponent, ToastHostComponent, IconComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    NavbarComponent,
+    ToastHostComponent,
+    IconComponent,
+    TranslocoPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-navbar />
@@ -34,10 +43,8 @@ import {
             >
               <app-icon name="key-round" [size]="30" />
             </div>
-            <h1 class="mb-2 text-xl sm:text-2xl">Забули пароль?</h1>
-            <p class="text-sm text-[var(--espresso-700)]">
-              Вкажіть пошту — надішлемо посилання для відновлення.
-            </p>
+            <h1 class="mb-2 text-xl sm:text-2xl">{{ 'auth.forgotHeading' | transloco }}</h1>
+            <p class="text-sm text-[var(--espresso-700)]">{{ 'auth.forgotLead' | transloco }}</p>
           </div>
 
           <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
@@ -45,7 +52,7 @@ import {
               <p role="alert" [class]="errorClasses">{{ formError() }}</p>
             }
             <div>
-              <label for="forgot-email" [class]="labelClasses">Ел. пошта</label>
+              <label for="forgot-email" [class]="labelClasses">{{ 'auth.email' | transloco }}</label>
               <input
                 id="forgot-email"
                 type="email"
@@ -55,20 +62,22 @@ import {
                 [class]="fieldClasses"
               />
               @if (form.controls.email.invalid && (form.controls.email.dirty || form.controls.email.touched)) {
-                <p [class]="errorClasses">Вкажіть коректну електронну пошту</p>
+                <p [class]="errorClasses">{{ 'auth.invalidEmail' | transloco }}</p>
               }
             </div>
             <button type="submit" [class]="primaryBtn" [disabled]="submitting()">
               @if (submitting()) {
                 <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
-                Зачекайте…
+                {{ 'common.wait' | transloco }}
               } @else {
-                Надіслати посилання
+                {{ 'auth.forgotSubmit' | transloco }}
               }
             </button>
           </form>
           <p class="mt-5 text-center">
-            <a routerLink="/auth/login" [class]="linkClasses + ' text-sm'">← Назад до входу</a>
+            <a [routerLink]="locale.commands('auth', 'login')" [class]="linkClasses + ' text-sm'">{{
+              'auth.backToLogin' | transloco
+            }}</a>
           </p>
         } @else {
           <div class="flex flex-col items-center text-center" role="status">
@@ -78,10 +87,8 @@ import {
             >
               <app-icon name="mail-check" [size]="30" />
             </div>
-            <h1 class="mb-2 text-xl sm:text-2xl">Перевірте пошту</h1>
-            <p class="mb-1.5 text-sm text-[var(--espresso-700)]">
-              Ми надіслали посилання для відновлення на
-            </p>
+            <h1 class="mb-2 text-xl sm:text-2xl">{{ 'auth.checkEmailTitle' | transloco }}</h1>
+            <p class="mb-1.5 text-sm text-[var(--espresso-700)]">{{ 'auth.checkEmailLead' | transloco }}</p>
             <p
               class="mb-5 max-w-full truncate font-bold text-[var(--espresso-900)]"
               [title]="submittedEmail()"
@@ -90,31 +97,26 @@ import {
             <div
               class="mb-5 w-full rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-cream)] px-4 py-3.5 text-left"
             >
-              <p class="text-sm leading-relaxed text-[var(--espresso-700)]">
-                Не бачите листа? Подивіться у папці «Спам» — посилання діє 60 хвилин.
-              </p>
+              <p class="text-sm leading-relaxed text-[var(--espresso-700)]">{{ 'auth.checkEmailHint' | transloco }}</p>
             </div>
 
             @if (formError()) {
               <p role="alert" class="mb-3 w-full text-left" [class]="errorClasses">{{ formError() }}</p>
             }
 
-            <button
-              type="button"
-              [class]="secondaryBtn"
-              [disabled]="submitting()"
-              (click)="resend()"
-            >
+            <button type="button" [class]="secondaryBtn" [disabled]="submitting()" (click)="resend()">
               @if (submitting()) {
                 <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
-                Зачекайте…
+                {{ 'common.wait' | transloco }}
               } @else {
-                Надіслати ще раз
+                {{ 'auth.resendLink' | transloco }}
               }
             </button>
 
             <p class="mt-[18px]">
-              <a routerLink="/auth/login" [class]="linkClasses + ' text-sm'">← Назад до входу</a>
+              <a [routerLink]="locale.commands('auth', 'login')" [class]="linkClasses + ' text-sm'">{{
+                'auth.backToLogin' | transloco
+              }}</a>
             </p>
           </div>
         }
@@ -126,6 +128,8 @@ import {
 export class ForgotPasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly submitting = signal(false);
@@ -175,7 +179,7 @@ export class ForgotPasswordComponent {
       .subscribe({
         next: (response) => {
           if (!response.success) {
-            this.formError.set(response.error ?? 'Не вдалося надіслати посилання.');
+            this.formError.set(response.error ?? this.i18n.translate('auth.forgotError'));
             return;
           }
           this.submittedEmail.set(email);
@@ -184,9 +188,7 @@ export class ForgotPasswordComponent {
           }
         },
         error: (err: unknown) => {
-          this.formError.set(
-            extractApiError(err, 'Не вдалося надіслати посилання. Спробуйте ще раз.'),
-          );
+          this.formError.set(extractApiError(err, this.i18n.translate('auth.forgotRetry')));
         },
       });
   }

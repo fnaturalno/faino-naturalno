@@ -1,5 +1,6 @@
 using FaynoShop.API.DTOs;
 using FaynoShop.API.DTOs.Products;
+using FaynoShop.API.Extensions;
 using FaynoShop.API.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -22,15 +23,20 @@ public sealed class ProductsController : ControllerBase
     /// <summary>
     /// Filtered, sorted, paginated list of active products.
     /// Invalid query values fall back to safe defaults; pageSize defaults to 9.
+    /// Display names follow <c>?locale=</c> → Accept-Language → uk.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<ProductListResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<ProductListResponse>>> GetProducts(
         [FromQuery] ProductQuery query,
+        [FromQuery] string? locale,
         CancellationToken cancellationToken)
     {
         query.IncludeInactive = query.IncludeInactive && User.IsInRole("Admin");
-        var data = await _productService.GetProductsAsync(query, cancellationToken);
+        var data = await _productService.GetProductsAsync(
+            query,
+            Request.ResolveLocale(locale),
+            cancellationToken);
         return Ok(ApiResponse<ProductListResponse>.Ok(data));
     }
 
@@ -43,9 +49,13 @@ public sealed class ProductsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<ProductDetailDto>>> GetBySlug(
         string slug,
+        [FromQuery] string? locale,
         CancellationToken cancellationToken)
     {
-        var data = await _productService.GetBySlugAsync(slug, cancellationToken);
+        var data = await _productService.GetBySlugAsync(
+            slug,
+            Request.ResolveLocale(locale),
+            cancellationToken);
         return Ok(ApiResponse<ProductDetailDto>.Ok(data));
     }
 

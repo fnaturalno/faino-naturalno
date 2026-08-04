@@ -62,8 +62,12 @@ export class AdminService {
     return this.http.delete<ApiResponse<object>>(`${this.apiUrl}/products/${id}`);
   }
 
-  getCategories(): Observable<ApiResponse<AdminCategory[]>> {
-    return this.http.get<ApiResponse<AdminCategory[]>>(`${this.apiUrl}/categories`);
+  getCategories(options?: { bilingual?: boolean }): Observable<ApiResponse<AdminCategory[]>> {
+    let params = new HttpParams();
+    if (options?.bilingual) {
+      params = params.set('bilingual', 'true');
+    }
+    return this.http.get<ApiResponse<AdminCategory[]>>(`${this.apiUrl}/categories`, { params });
   }
 
   createCategory(payload: SaveCategoryRequest): Observable<ApiResponse<AdminCategory>> {

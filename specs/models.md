@@ -4,10 +4,13 @@
 | Field | Type | Notes |
 |-------|------|-------|
 | Id | int | PK |
-| Name | string | required |
-| Slug | string | unique, URL-friendly |
-| Description | string? | |
-| ShortDescription | string? | for catalog cards |
+| NameUk | string | required; Ukrainian display name |
+| NameEn | string? | English; public reads fall back to NameUk when empty |
+| Slug | string | unique, URL-friendly; shared across locales |
+| DescriptionUk | string? | Ukrainian full description |
+| DescriptionEn | string? | English; falls back to DescriptionUk when empty |
+| ShortDescriptionUk | string? | Ukrainian catalog-card blurb |
+| ShortDescriptionEn | string? | English; falls back to ShortDescriptionUk when empty |
 | Price | decimal | UAH |
 | OldPrice | decimal? | for discounts |
 | ImageUrl | string? | main image |
@@ -25,9 +28,11 @@
 | Field | Type | Notes |
 |-------|------|-------|
 | Id | int | PK |
-| Name | string | |
-| Slug | string | unique (global across parents and subcategories) |
-| Description | string? | |
+| NameUk | string | required; Ukrainian display name |
+| NameEn | string? | English; public reads fall back to NameUk when empty |
+| Slug | string | unique (global across parents and subcategories); shared across locales |
+| DescriptionUk | string? | Ukrainian description |
+| DescriptionEn | string? | English; falls back to DescriptionUk when empty |
 | ImageUrl | string? | |
 | SortOrder | int | display order among siblings |
 | ParentId | int? | FK → Category; null = top-level; max depth 2 (parent → subcategory only) |

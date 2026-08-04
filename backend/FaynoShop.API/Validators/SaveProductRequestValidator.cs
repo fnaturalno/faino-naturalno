@@ -9,12 +9,16 @@ public sealed class SaveProductRequestValidator : AbstractValidator<SaveProductR
 
     public SaveProductRequestValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("Вкажіть назву товару.").MaximumLength(200);
+        RuleFor(x => x.NameUk).NotEmpty().WithMessage("Вкажіть назву товару.").MaximumLength(200);
+        RuleFor(x => x.NameEn).MaximumLength(200).WithMessage("Англійська назва занадто довга.")
+            .When(x => !string.IsNullOrWhiteSpace(x.NameEn));
         RuleFor(x => x.Slug).MaximumLength(200).WithMessage("Slug не може перевищувати 200 символів.")
             .When(x => !string.IsNullOrWhiteSpace(x.Slug));
         RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("Оберіть категорію.");
-        RuleFor(x => x.ShortDescription).MaximumLength(500).WithMessage("Короткий опис занадто довгий.");
-        RuleFor(x => x.Description).MaximumLength(10_000).WithMessage("Повний опис занадто довгий.");
+        RuleFor(x => x.ShortDescriptionUk).MaximumLength(500).WithMessage("Короткий опис занадто довгий.");
+        RuleFor(x => x.ShortDescriptionEn).MaximumLength(500).WithMessage("Англійський короткий опис занадто довгий.");
+        RuleFor(x => x.DescriptionUk).MaximumLength(10_000).WithMessage("Повний опис занадто довгий.");
+        RuleFor(x => x.DescriptionEn).MaximumLength(10_000).WithMessage("Англійський повний опис занадто довгий.");
         RuleFor(x => x.Price).GreaterThan(0).WithMessage("Ціна має бути більшою за нуль.");
         RuleFor(x => x.OldPrice).GreaterThan(0).WithMessage("Стара ціна має бути більшою за нуль.")
             .When(x => x.OldPrice.HasValue);

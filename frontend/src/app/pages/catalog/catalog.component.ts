@@ -6,22 +6,27 @@ import {
   ElementRef,
   ViewChild,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { finalize } from 'rxjs';
 
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { LocaleService } from '../../i18n/locale.service';
+import { SeoService } from '../../i18n/seo.service';
 import { CatalogFilters, CatalogSort } from '../../models/catalog.models';
 import { CartService } from '../../services/cart.service';
 import { CatalogStore } from './catalog.store';
 
 @Component({
   selector: 'app-catalog',
-  imports: [A11yModule, IconComponent, NavbarComponent, ProductCardComponent],
+  imports: [A11yModule, IconComponent, NavbarComponent, ProductCardComponent, TranslocoPipe],
   providers: [CatalogStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './catalog.component.html',
@@ -30,14 +35,27 @@ export class CatalogComponent {
   protected readonly store = inject(CatalogStore);
   private readonly cart = inject(CartService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly i18n = inject(TranslocoService);
+  protected readonly locale = inject(LocaleService);
+  private readonly seo = inject(SeoService);
+  private readonly route = inject(ActivatedRoute);
   private toastTimer?: ReturnType<typeof setTimeout>;
 
   @ViewChild('mobileFilterButton') private mobileFilterButton?: ElementRef<HTMLButtonElement>;
 
   constructor() {
+    effect(() => {
+      this.locale.lang();
+      const isHome = this.route.snapshot.routeConfig?.path === '';
+      this.seo.setAlternates(
+        isHome ? '' : 'catalog',
+        this.i18n.translate(isHome ? 'brand' : 'catalog.title'),
+      );
+    });
     this.destroyRef.onDestroy(() => {
       clearTimeout(this.toastTimer);
       document.body.style.overflow = '';
+      this.seo.clear();
     });
   }
 
@@ -47,12 +65,19 @@ export class CatalogComponent {
   protected readonly toast = signal<{ message: string; error: boolean } | null>(null);
   protected readonly cartStatuses = signal<Record<number, 'idle' | 'adding' | 'added'>>({});
   protected readonly skeletons = Array.from({ length: 9 }, (_, index) => index);
-  protected readonly sortOptions: { value: CatalogSort; label: string }[] = [
-    { value: 'popular', label: 'За популярністю' },
-    { value: 'price-asc', label: 'За ціною ↑' },
-    { value: 'price-desc', label: 'За ціною ↓' },
-    { value: 'new', label: 'Новинки' },
+
+  protected readonly sortOptions: { value: CatalogSort; labelKey: string }[] = [
+    { value: 'popular', labelKey: 'catalog.sortPopular' },
+    { value: 'price-asc', labelKey: 'catalog.sortPriceAsc' },
+    { value: 'price-desc', labelKey: 'catalog.sortPriceDesc' },
+    { value: 'new', labelKey: 'catalog.sortNew' },
   ];
+
+  protected readonly productsCountLabel = computed(() => {
+    const count = this.store.page()?.totalCount ?? 0;
+    const form = this.locale.pluralForm(count);
+    return { key: `plural.products.${form}`, count };
+  });
 
   protected readonly activeFilterCount = computed(() => {
     const filters = this.store.filters();
@@ -158,14 +183,14 @@ export class CatalogComponent {
       .subscribe({
         next: (response) => {
           if (!response.success) {
-            this.showToast(response.error ?? 'Не вдалося додати товар у кошик.', true);
+            this.showToast(response.error ?? this.i18n.translate('catalog.addError'), true);
             return;
           }
           this.setCartStatus(productId, 'added');
-          this.showToast('Додано в кошик', false);
+          this.showToast(this.i18n.translate('catalog.added'), false);
           setTimeout(() => this.setCartStatus(productId, 'idle'), 1200);
         },
-        error: () => this.showToast('Не вдалося додати товар у кошик.', true),
+        error: () => this.showToast(this.i18n.translate('catalog.addError'), true),
       });
   }
 

@@ -112,20 +112,29 @@ namespace FaynoShop.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Description")
+                    b.Property<string>("DescriptionEn")
                         .HasColumnType("text")
-                        .HasColumnName("description");
+                        .HasColumnName("description_en");
+
+                    b.Property<string>("DescriptionUk")
+                        .HasColumnType("text")
+                        .HasColumnName("description_uk");
 
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("image_url");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name_en");
+
+                    b.Property<string>("NameUk")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("name");
+                        .HasColumnName("name_uk");
 
                     b.Property<int?>("ParentId")
                         .HasColumnType("integer")
@@ -367,9 +376,13 @@ namespace FaynoShop.API.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("DescriptionEn")
                         .HasColumnType("text")
-                        .HasColumnName("description");
+                        .HasColumnName("description_en");
+
+                    b.Property<string>("DescriptionUk")
+                        .HasColumnType("text")
+                        .HasColumnName("description_uk");
 
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
@@ -399,11 +412,16 @@ namespace FaynoShop.API.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_featured");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name_en");
+
+                    b.Property<string>("NameUk")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("name");
+                        .HasColumnName("name_uk");
 
                     b.Property<decimal?>("OldPrice")
                         .HasPrecision(10, 2)
@@ -415,10 +433,15 @@ namespace FaynoShop.API.Migrations
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("price");
 
-                    b.Property<string>("ShortDescription")
+                    b.Property<string>("ShortDescriptionEn")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
-                        .HasColumnName("short_description");
+                        .HasColumnName("short_description_en");
+
+                    b.Property<string>("ShortDescriptionUk")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("short_description_uk");
 
                     b.Property<string>("Slug")
                         .IsRequired()

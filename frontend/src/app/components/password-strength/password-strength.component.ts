@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 
 import { passwordStrength } from '../../pages/auth/auth.helpers';
 
@@ -25,5 +26,13 @@ import { passwordStrength } from '../../pages/auth/auth.helpers';
 })
 export class PasswordStrengthComponent {
   readonly password = input.required<string>();
-  protected readonly meter = computed(() => passwordStrength(this.password()));
+  private readonly i18n = inject(TranslocoService);
+
+  protected readonly meter = computed(() =>
+    passwordStrength(this.password(), {
+      weak: this.i18n.translate('auth.strengthWeak'),
+      medium: this.i18n.translate('auth.strengthMedium'),
+      strong: this.i18n.translate('auth.strengthStrong'),
+    }),
+  );
 }

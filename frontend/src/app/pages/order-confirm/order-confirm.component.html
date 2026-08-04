@@ -20,7 +20,7 @@
         >
           <app-icon name="x-circle" [size]="28" />
         </div>
-        <h1 class="mb-2 text-xl">Не вдалося відкрити замовлення</h1>
+        <h1 class="mb-2 text-xl">{{ 'order.openErrorTitle' | transloco }}</h1>
         <p class="mb-6 text-[var(--espresso-700)]">{{ error() }}</p>
         <div class="flex flex-wrap items-center justify-center gap-3">
           <button
@@ -28,13 +28,13 @@
             class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] border border-[var(--espresso-800)] px-5 font-bold text-[var(--espresso-800)]"
             (click)="retry()"
           >
-            Спробувати ще
+            {{ 'common.retry' | transloco }}
           </button>
           <a
-            routerLink="/catalog"
+            [routerLink]="locale.commands('catalog')"
             class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
           >
-            До каталогу
+            {{ 'order.toCatalog' | transloco }}
           </a>
         </div>
       </div>
@@ -48,10 +48,10 @@
           >
             <app-icon name="check-circle" [size]="36" />
           </div>
-          <span class="fn-eyebrow mb-2 block">Файно натурально</span>
-          <h1 class="mb-2 text-2xl sm:text-3xl">Замовлення оформлено</h1>
+          <span class="fn-eyebrow mb-2 block">{{ 'brand' | transloco }}</span>
+          <h1 class="mb-2 text-2xl sm:text-3xl">{{ 'order.confirmedTitle' | transloco }}</h1>
           <p class="m-0 text-[var(--espresso-700)]">
-            Номер
+            {{ 'order.numberShort' | transloco }}
             <span class="font-extrabold text-[var(--espresso-900)]">{{ o.orderNumber }}</span>
           </p>
           <span
@@ -73,11 +73,11 @@
           <p class="m-0 text-sm text-[var(--espresso-700)]">{{ o.phone }} · {{ o.email }}</p>
           <p class="mt-2 mb-0 text-sm text-[var(--espresso-700)]">{{ o.deliveryAddress }}</p>
           @if (o.comment) {
-            <p class="mt-2 mb-0 text-sm text-[var(--text-muted)]">Коментар: {{ o.comment }}</p>
+            <p class="mt-2 mb-0 text-sm text-[var(--text-muted)]">{{ 'order.commentPrefix' | transloco }} {{ o.comment }}</p>
           }
         </div>
 
-        <h2 class="mb-3 text-base">Склад замовлення</h2>
+        <h2 class="mb-3 text-base">{{ 'order.composition' | transloco }}</h2>
         <ul class="mb-5 flex flex-col gap-3">
           @for (line of o.items; track line.productId) {
             <li class="flex items-center gap-3">
@@ -87,7 +87,7 @@
                 @if (lineImage(line); as src) {
                   <img [src]="src" [alt]="line.productName" class="size-full object-cover" />
                 } @else {
-                  <span class="font-[var(--font-accent)] text-[10px] text-[var(--kraft-400)]">фото</span>
+                  <span class="font-[var(--font-accent)] text-[10px] text-[var(--kraft-400)]">{{ 'common.photo' | transloco }}</span>
                 }
               </div>
               <div class="min-w-0 flex-1">
@@ -115,7 +115,7 @@
           class="mb-6 flex items-baseline justify-between border-t border-[var(--border-subtle)] pt-4"
         >
           <span class="font-[var(--font-display)] text-lg font-extrabold text-[var(--espresso-900)]"
-            >Разом</span
+            >{{ 'cart.total' | transloco }}</span
           >
           <span class="font-[var(--font-accent)] text-2xl font-bold text-[var(--espresso-900)]">{{
             totalLabel()
@@ -123,14 +123,14 @@
         </div>
 
         <p class="mb-6 text-center text-sm text-[var(--text-muted)]">
-          Доставка оплачується за тарифами Нової Пошти.
+          {{ 'order.deliveryNpNote' | transloco }}
         </p>
 
         <a
-          routerLink="/catalog"
+          [routerLink]="locale.commands('catalog')"
           class="inline-flex min-h-14 w-full items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-5 text-base font-extrabold text-[var(--espresso-900)] transition hover:bg-[var(--marigold-500)]"
         >
-          Продовжити покупки
+          {{ 'order.continueShopping' | transloco }}
         </a>
       </div>
     }

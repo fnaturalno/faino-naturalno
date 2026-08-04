@@ -3,10 +3,13 @@ namespace FaynoShop.API.Models;
 public class Product
 {
     public int Id { get; set; }
-    public required string Name { get; set; }
+    public required string NameUk { get; set; }
+    public string? NameEn { get; set; }
     public required string Slug { get; set; }
-    public string? Description { get; set; }
-    public string? ShortDescription { get; set; }
+    public string? DescriptionUk { get; set; }
+    public string? DescriptionEn { get; set; }
+    public string? ShortDescriptionUk { get; set; }
+    public string? ShortDescriptionEn { get; set; }
     public decimal Price { get; set; }
     public decimal? OldPrice { get; set; }
     public string? ImageUrl { get; set; }

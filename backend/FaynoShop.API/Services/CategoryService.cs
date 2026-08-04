@@ -1,6 +1,7 @@
 using FaynoShop.API.Data;
 using FaynoShop.API.DTOs.Categories;
 using FaynoShop.API.Exceptions;
+using FaynoShop.API.Localization;
 using FaynoShop.API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,20 +18,25 @@ public sealed class CategoryService : ICategoryService
 
     public async Task<IReadOnlyList<CategoryDto>> GetCategoriesAsync(
         bool includeInactiveProductCount,
+        string locale,
         CancellationToken cancellationToken)
     {
+        var useEn = LocalizedContent.IsEnglish(locale);
+
         var categories = await _db.Categories
             .AsNoTracking()
             .OrderBy(c => c.SortOrder)
             .ThenBy(c => c.Id)
             .Select(c => new CategoryDto(
                 c.Id,
-                c.Name,
+                useEn && c.NameEn != null && c.NameEn != "" ? c.NameEn : c.NameUk,
                 c.Slug,
                 c.ParentId,
                 c.SortOrder,
                 0,
-                c.Description,
+                useEn && c.DescriptionEn != null && c.DescriptionEn != ""
+                    ? c.DescriptionEn
+                    : c.DescriptionUk,
                 Array.Empty<CategoryDto>()))
             .ToListAsync(cancellationToken);
 
@@ -70,17 +76,112 @@ public sealed class CategoryService : ICategoryService
             .ToArray();
     }
 
-    public async Task<CategoryDto> CreateAsync(
+    public async Task<IReadOnlyList<AdminCategoryDto>> GetAdminTreeAsync(CancellationToken cancellationToken)
+    {
+        var categories = await _db.Categories
+            .AsNoTracking()
+            .OrderBy(c => c.SortOrder)
+            .ThenBy(c => c.Id)
+            .Select(c => new AdminCategoryDto(
+                c.Id,
+                c.NameUk,
+                c.NameUk,
+                c.NameEn,
+                c.Slug,
+                c.ParentId,
+                c.SortOrder,
+                0,
+                c.DescriptionUk,
+                c.DescriptionEn,
+                Array.Empty<AdminCategoryDto>()))
+            .ToListAsync(cancellationToken);
+
+        var categoryIds = categories.Select(c => c.Id).ToArray();
+        var productCounts = await _db.Products
+            .AsNoTracking()
+            .Where(p => categoryIds.Contains(p.CategoryId))
+            .GroupBy(p => p.CategoryId)
+            .Select(group => new { CategoryId = group.Key, Count = group.Count() })
+            .ToDictionaryAsync(x => x.CategoryId, x => x.Count, cancellationToken);
+
+        var childrenByParent = categories
+            .Where(c => c.ParentId.HasValue)
+            .GroupBy(c => c.ParentId!.Value)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
+        return categories
+            .Where(c => c.ParentId is null)
+            .Select(parent =>
+            {
+                var children = childrenByParent.GetValueOrDefault(parent.Id, []);
+                var childNodes = children
+                    .Select(child => child with
+                    {
+                        ActiveProductCount = productCounts.GetValueOrDefault(child.Id)
+                    })
+                    .ToArray();
+
+                return parent with
+                {
+                    ActiveProductCount = productCounts.GetValueOrDefault(parent.Id) +
+                        childNodes.Sum(child => child.ActiveProductCount),
+                    Children = childNodes
+                };
+            })
+            .ToArray();
+    }
+
+    public async Task<AdminCategoryDto> GetForAdminAsync(int id, CancellationToken cancellationToken)
+    {
+        var category = await _db.Categories
+            .AsNoTracking()
+            .Where(c => c.Id == id)
+            .Select(c => new
+            {
+                c.Id,
+                c.NameUk,
+                c.NameEn,
+                c.Slug,
+                c.ParentId,
+                c.SortOrder,
+                c.DescriptionUk,
+                c.DescriptionEn
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("Категорію не знайдено.");
+
+        var isTopLevel = category.ParentId is null;
+        var count = await _db.Products.CountAsync(
+            p => p.CategoryId == id || (isTopLevel && p.Category.ParentId == id),
+            cancellationToken);
+
+        return new AdminCategoryDto(
+            category.Id,
+            category.NameUk,
+            category.NameUk,
+            category.NameEn,
+            category.Slug,
+            category.ParentId,
+            category.SortOrder,
+            count,
+            category.DescriptionUk,
+            category.DescriptionEn,
+            Array.Empty<AdminCategoryDto>());
+    }
+
+    public async Task<AdminCategoryDto> CreateAsync(
         SaveCategoryRequest request,
         CancellationToken cancellationToken)
     {
         await EnsureValidParentAsync(request.ParentId, null, false, cancellationToken);
-        var slug = await ResolveSlugAsync(request.Slug, request.Name, null, cancellationToken);
+        var slug = await ResolveSlugAsync(request.Slug, request.NameUk, null, cancellationToken);
         var category = new Category
         {
-            Name = request.Name.Trim(),
+            NameUk = request.NameUk.Trim(),
+            NameEn = TrimOrNull(request.NameEn),
             Slug = slug,
-            Description = TrimOrNull(request.Description),
+            DescriptionUk = TrimOrNull(request.DescriptionUk),
+            DescriptionEn = TrimOrNull(request.DescriptionEn),
             ParentId = request.ParentId,
             SortOrder = await _db.Categories
                 .Where(c => c.ParentId == request.ParentId)
@@ -90,18 +191,21 @@ public sealed class CategoryService : ICategoryService
 
         _db.Categories.Add(category);
         await _db.SaveChangesAsync(cancellationToken);
-        return new CategoryDto(
+        return new AdminCategoryDto(
             category.Id,
-            category.Name,
+            category.NameUk,
+            category.NameUk,
+            category.NameEn,
             category.Slug,
             category.ParentId,
             category.SortOrder,
             0,
-            category.Description,
-            Array.Empty<CategoryDto>());
+            category.DescriptionUk,
+            category.DescriptionEn,
+            Array.Empty<AdminCategoryDto>());
     }
 
-    public async Task<CategoryDto> UpdateAsync(
+    public async Task<AdminCategoryDto> UpdateAsync(
         int id,
         SaveCategoryRequest request,
         CancellationToken cancellationToken)
@@ -112,9 +216,11 @@ public sealed class CategoryService : ICategoryService
         var hasChildren = await _db.Categories.AnyAsync(c => c.ParentId == id, cancellationToken);
         await EnsureValidParentAsync(request.ParentId, id, hasChildren, cancellationToken);
 
-        category.Name = request.Name.Trim();
-        category.Slug = await ResolveSlugAsync(request.Slug, request.Name, id, cancellationToken);
-        category.Description = TrimOrNull(request.Description);
+        category.NameUk = request.NameUk.Trim();
+        category.NameEn = TrimOrNull(request.NameEn);
+        category.Slug = await ResolveSlugAsync(request.Slug, request.NameUk, id, cancellationToken);
+        category.DescriptionUk = TrimOrNull(request.DescriptionUk);
+        category.DescriptionEn = TrimOrNull(request.DescriptionEn);
         category.ParentId = request.ParentId;
         await _db.SaveChangesAsync(cancellationToken);
 
@@ -122,15 +228,18 @@ public sealed class CategoryService : ICategoryService
         var count = await _db.Products.CountAsync(
             p => p.CategoryId == id || (isTopLevel && p.Category.ParentId == id),
             cancellationToken);
-        return new CategoryDto(
+        return new AdminCategoryDto(
             category.Id,
-            category.Name,
+            category.NameUk,
+            category.NameUk,
+            category.NameEn,
             category.Slug,
             category.ParentId,
             category.SortOrder,
             count,
-            category.Description,
-            Array.Empty<CategoryDto>());
+            category.DescriptionUk,
+            category.DescriptionEn,
+            Array.Empty<AdminCategoryDto>());
     }
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
@@ -194,11 +303,11 @@ public sealed class CategoryService : ICategoryService
 
     private async Task<string> ResolveSlugAsync(
         string? requestedSlug,
-        string name,
+        string nameUk,
         int? currentCategoryId,
         CancellationToken cancellationToken)
     {
-        var source = string.IsNullOrWhiteSpace(requestedSlug) ? name : requestedSlug;
+        var source = string.IsNullOrWhiteSpace(requestedSlug) ? nameUk : requestedSlug;
         var slug = SlugGenerator.From(source, 100);
         if (string.IsNullOrWhiteSpace(slug))
         {

@@ -8,10 +8,12 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { finalize } from 'rxjs';
 
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ToastHostComponent } from '../../components/toast-host/toast-host.component';
+import { LocaleService } from '../../i18n/locale.service';
 import { AuthService, extractApiError } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import {
@@ -33,18 +35,18 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, NavbarComponent, ToastHostComponent],
+  imports: [ReactiveFormsModule, RouterLink, NavbarComponent, ToastHostComponent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-navbar />
     <main class="flex min-h-[calc(100vh-60px)] items-start justify-center bg-[var(--bg-page)] px-4 py-10 sm:py-14">
       <div [class]="cardClasses">
         <div class="flex flex-col items-center text-center">
-          <a routerLink="/catalog" aria-label="Файно натурально">
-            <img src="/logo.png" alt="Файно натурально" class="mb-5 h-14 w-auto sm:mb-6 sm:h-16" />
+          <a [routerLink]="locale.commands('catalog')" [attr.aria-label]="'brand' | transloco">
+            <img src="/logo.png" [alt]="'brand' | transloco" class="mb-5 h-14 w-auto sm:mb-6 sm:h-16" />
           </a>
-          <h1 class="mb-1.5 text-xl sm:text-2xl">Приєднуйтесь</h1>
-          <p class="mb-7 text-[var(--espresso-700)] sm:mb-8">Створіть акаунт — і смачне буде ближче</p>
+          <h1 class="mb-1.5 text-xl sm:text-2xl">{{ 'auth.joinTitle' | transloco }}</h1>
+          <p class="mb-7 text-[var(--espresso-700)] sm:mb-8">{{ 'auth.joinLead' | transloco }}</p>
         </div>
 
         <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
@@ -54,23 +56,23 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 
           <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <div>
-              <label for="reg-first" [class]="labelClasses">Ім'я</label>
-              <input id="reg-first" type="text" autocomplete="given-name" formControlName="firstName" placeholder="Олена" [class]="fieldClasses" />
+              <label for="reg-first" [class]="labelClasses">{{ 'auth.firstName' | transloco }}</label>
+              <input id="reg-first" type="text" autocomplete="given-name" formControlName="firstName" [placeholder]="'auth.firstNamePh' | transloco" [class]="fieldClasses" />
               @if (showError('firstName')) {
-                <p [class]="errorClasses">Вкажіть ім'я</p>
+                <p [class]="errorClasses">{{ 'auth.reqFirstName' | transloco }}</p>
               }
             </div>
             <div>
-              <label for="reg-last" [class]="labelClasses">Прізвище</label>
-              <input id="reg-last" type="text" autocomplete="family-name" formControlName="lastName" placeholder="Коваль" [class]="fieldClasses" />
+              <label for="reg-last" [class]="labelClasses">{{ 'auth.lastName' | transloco }}</label>
+              <input id="reg-last" type="text" autocomplete="family-name" formControlName="lastName" [placeholder]="'auth.lastNamePh' | transloco" [class]="fieldClasses" />
               @if (showError('lastName')) {
-                <p [class]="errorClasses">Вкажіть прізвище</p>
+                <p [class]="errorClasses">{{ 'auth.reqLastName' | transloco }}</p>
               }
             </div>
           </div>
 
           <div>
-            <label for="reg-email" [class]="labelClasses">Ел. пошта</label>
+            <label for="reg-email" [class]="labelClasses">{{ 'auth.email' | transloco }}</label>
             <input id="reg-email" type="email" autocomplete="email" formControlName="email" placeholder="olena@example.com" [class]="fieldClasses" />
             @if (showError('email')) {
               <p [class]="errorClasses">{{ emailError() }}</p>
@@ -78,34 +80,34 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
           </div>
 
           <div>
-            <label for="reg-password" [class]="labelClasses">Пароль</label>
-            <input id="reg-password" type="password" autocomplete="new-password" formControlName="password" placeholder="Мінімум 8 символів" [class]="fieldClasses" />
+            <label for="reg-password" [class]="labelClasses">{{ 'auth.password' | transloco }}</label>
+            <input id="reg-password" type="password" autocomplete="new-password" formControlName="password" [placeholder]="'auth.passwordPlaceholder' | transloco" [class]="fieldClasses" />
             @if (showError('password')) {
-              <p [class]="errorClasses">Пароль має містити щонайменше 8 символів</p>
+              <p [class]="errorClasses">{{ 'auth.passwordMin8' | transloco }}</p>
             }
           </div>
 
           <div>
-            <label for="reg-confirm" [class]="labelClasses">Підтвердіть пароль</label>
+            <label for="reg-confirm" [class]="labelClasses">{{ 'auth.confirmPasswordLabel' | transloco }}</label>
             <input id="reg-confirm" type="password" autocomplete="new-password" formControlName="confirmPassword" placeholder="••••••••" [class]="fieldClasses" />
             @if (form.hasError('passwordMismatch') && (form.controls.confirmPassword.dirty || form.controls.confirmPassword.touched)) {
-              <p [class]="errorClasses">Паролі не збігаються</p>
+              <p [class]="errorClasses">{{ 'auth.passwordMismatch' | transloco }}</p>
             }
           </div>
 
           <button type="submit" [class]="primaryBtn" [disabled]="submitting()">
             @if (submitting()) {
               <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
-              Зачекайте…
+              {{ 'common.wait' | transloco }}
             } @else {
-              Зареєструватись
+              {{ 'auth.registerCta' | transloco }}
             }
           </button>
         </form>
 
         <p class="mt-6 text-center text-[var(--espresso-700)]">
-          Вже маєте акаунт?
-          <a routerLink="/auth/login" [queryParams]="loginLinkQuery()" [class]="linkClasses">Увійти</a>
+          {{ 'auth.hasAccountQ' | transloco }}
+          <a [routerLink]="locale.commands('auth', 'login')" [queryParams]="loginLinkQuery()" [class]="linkClasses">{{ 'auth.toLogin' | transloco }}</a>
         </p>
       </div>
     </main>
@@ -115,6 +117,8 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 export class RegisterComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toasts = inject(ToastService);
@@ -147,9 +151,9 @@ export class RegisterComponent {
 
   protected emailError(): string {
     if (this.form.controls.email.hasError('emailTaken')) {
-      return 'Ця електронна пошта вже зареєстрована';
+      return this.i18n.translate('auth.emailTaken');
     }
-    return 'Вкажіть коректну електронну пошту';
+    return this.i18n.translate('auth.invalidEmail');
   }
 
   protected loginLinkQuery(): Record<string, string> | null {
@@ -186,7 +190,8 @@ export class RegisterComponent {
       .subscribe({
         next: (response) => {
           if (!response.success || !response.data) {
-            const message = response.error ?? 'Не вдалося створити акаунт.';
+            const message =
+              response.error?.trim() || this.i18n.translate('auth.registerError') || 'Error';
             if (/email|пошт/i.test(message)) {
               this.form.controls.email.setErrors({ emailTaken: true });
             } else {
@@ -194,13 +199,13 @@ export class RegisterComponent {
             }
             return;
           }
-          this.toasts.success('Акаунт створено');
+          this.toasts.success(this.i18n.translate('auth.registerSuccess'));
           void this.router.navigateByUrl(
             resolveReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
           );
         },
         error: (err: unknown) => {
-          const message = extractApiError(err, 'Не вдалося створити акаунт. Спробуйте ще раз.');
+          const message = extractApiError(err, this.i18n.translate('auth.registerRetry'));
           if (/email|пошт|already|існує/i.test(message)) {
             this.form.controls.email.setErrors({ emailTaken: true });
           } else {

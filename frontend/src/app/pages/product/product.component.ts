@@ -5,11 +5,13 @@ import {
   Component,
   DestroyRef,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   Subject,
   catchError,
@@ -25,6 +27,8 @@ import {
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { LocaleService } from '../../i18n/locale.service';
+import { SeoService } from '../../i18n/seo.service';
 import { ProductDetail } from '../../models/catalog.models';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
@@ -41,6 +45,7 @@ type CartUiStatus = 'idle' | 'adding' | 'added';
     NavbarComponent,
     ProductCardComponent,
     RouterLink,
+    TranslocoPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product.component.html',
@@ -80,6 +85,9 @@ export class ProductComponent {
   private readonly location = inject(Location);
   private readonly productsApi = inject(ProductService);
   private readonly cart = inject(CartService);
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
+  private readonly seo = inject(SeoService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly retry$ = new Subject<void>();
@@ -125,6 +133,7 @@ export class ProductComponent {
   protected readonly badge = computed(() => {
     const detail = this.product();
     if (!detail) return null;
+    this.locale.lang(); // recompute on locale change
     if (detail.oldPrice && detail.oldPrice > detail.price) {
       return {
         label: `-${Math.round(((detail.oldPrice - detail.price) / detail.oldPrice) * 100)}%`,
@@ -133,7 +142,7 @@ export class ProductComponent {
     }
     const age = Date.now() - new Date(detail.createdAt).getTime();
     if (age >= 0 && age <= 30 * 24 * 60 * 60 * 1000) {
-      return { label: 'Новинка', kind: 'new' as const };
+      return { label: this.i18n.translate('product.newBadge'), kind: 'new' as const };
     }
     return null;
   });
@@ -141,7 +150,8 @@ export class ProductComponent {
   protected readonly unitLabel = computed(() => {
     const detail = this.product();
     if (!detail?.weight || !detail.weightUnit) return null;
-    return `${detail.weight.toLocaleString('uk-UA')} ${detail.weightUnit}`;
+    // weightUnit is product data (г / кг / шт) — keep as-is
+    return `${this.locale.formatNumber(detail.weight)} ${detail.weightUnit}`;
   });
 
   protected readonly maxQuantity = computed(() => 12);
@@ -203,6 +213,16 @@ export class ProductComponent {
         }
         this.applyProductDetail(detail);
       });
+
+    let firstLocale = true;
+    effect(() => {
+      this.locale.lang();
+      if (firstLocale) {
+        firstLocale = false;
+        return;
+      }
+      this.retry$.next();
+    });
   }
 
   protected goBack(): void {
@@ -210,7 +230,7 @@ export class ProductComponent {
       this.location.back();
       return;
     }
-    void this.router.navigateByUrl('/catalog');
+    void this.router.navigate(this.locale.commands('catalog'));
   }
 
   protected retry(): void {
@@ -263,7 +283,7 @@ export class ProductComponent {
         next: (response) => {
           if (!response.success) {
             this.showToast(
-              response.error ?? 'Не вдалося додати товар у кошик.',
+              response.error || this.i18n.translate('product.addError'),
               null,
               true,
             );
@@ -272,10 +292,10 @@ export class ProductComponent {
           this.addStatus.set('added');
           clearTimeout(this.addedTimer);
           this.addedTimer = setTimeout(() => this.addStatus.set('idle'), 1600);
-          this.showToast('Додано в кошик', `${detail.name} × ${qty}`, false);
+          this.showToast(this.i18n.translate('product.addedToast'), `${detail.name} × ${qty}`, false);
         },
         error: () =>
-          this.showToast('Не вдалося додати товар у кошик.', null, true),
+          this.showToast(this.i18n.translate('product.addError'), null, true),
       });
   }
 
@@ -299,18 +319,18 @@ export class ProductComponent {
         next: (response) => {
           if (!response.success) {
             this.showToast(
-              response.error ?? 'Не вдалося додати товар у кошик.',
+              response.error || this.i18n.translate('product.addError'),
               null,
               true,
             );
             return;
           }
           this.setSimilarStatus(productId, 'added');
-          this.showToast('Додано в кошик', `${similar.name} × 1`, false);
+          this.showToast(this.i18n.translate('product.addedToast'), `${similar.name} × 1`, false);
           this.scheduleSimilarAddedReset(productId);
         },
         error: () =>
-          this.showToast('Не вдалося додати товар у кошик.', null, true),
+          this.showToast(this.i18n.translate('product.addError'), null, true),
       });
   }
 
@@ -339,6 +359,7 @@ export class ProductComponent {
       imageUrls: detail.imageUrls ?? [],
       similarProducts: detail.similarProducts ?? [],
     });
+    this.seo.setAlternates(`catalog/${detail.slug}`, detail.name);
     this.quantity.set(1);
     this.status.set('ready');
   }

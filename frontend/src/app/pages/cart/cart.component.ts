@@ -7,11 +7,13 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { CartLineComponent } from '../../components/cart-line/cart-line.component';
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { cartItemCountLabel } from '../../models/cart.models';
+import { LocaleService } from '../../i18n/locale.service';
 import { CartService } from '../../services/cart.service';
 
 @Component({
@@ -22,6 +24,7 @@ import { CartService } from '../../services/cart.service';
     IconComponent,
     NavbarComponent,
     RouterLink,
+    TranslocoPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './cart.component.html',
@@ -43,6 +46,8 @@ import { CartService } from '../../services/cart.service';
 })
 export class CartComponent {
   protected readonly cart = inject(CartService);
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly destroyRef = inject(DestroyRef);
@@ -55,7 +60,9 @@ export class CartComponent {
   }
 
   protected countLabel(): string {
-    return cartItemCountLabel(this.cart.itemCount());
+    const count = this.cart.itemCount();
+    const form = this.locale.pluralForm(count);
+    return this.i18n.translate(`plural.cartItems.${form}`, { count });
   }
 
   protected retry(): void {
@@ -67,10 +74,10 @@ export class CartComponent {
       this.location.back();
       return;
     }
-    void this.router.navigate(['/catalog']);
+    void this.router.navigate(this.locale.commands('catalog'));
   }
 
   protected goToProduct(slug: string): void {
-    void this.router.navigate(['/catalog', slug]);
+    void this.router.navigate(this.locale.commands('catalog', slug));
   }
 }

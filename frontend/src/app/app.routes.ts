@@ -2,9 +2,20 @@ import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
+import {
+  legacyUkRedirect,
+  localeActivate,
+  localeCanMatch,
+  rootLocaleRedirect,
+} from './i18n/locale.guards';
 
-export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'catalog' },
+const storefrontChildren: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./pages/catalog/catalog.component').then((module) => module.CatalogComponent),
+  },
   {
     path: 'catalog',
     loadComponent: () =>
@@ -66,6 +77,9 @@ export const routes: Routes = [
         (module) => module.OrderConfirmComponent,
       ),
   },
+];
+
+export const routes: Routes = [
   {
     path: 'admin',
     canActivate: [adminGuard],
@@ -76,7 +90,9 @@ export const routes: Routes = [
       {
         path: 'products',
         loadComponent: () =>
-          import('./pages/admin/admin-products.component').then((module) => module.AdminProductsComponent),
+          import('./pages/admin/admin-products.component').then(
+            (module) => module.AdminProductsComponent,
+          ),
       },
       {
         path: 'products/new',
@@ -95,7 +111,9 @@ export const routes: Routes = [
       {
         path: 'orders',
         loadComponent: () =>
-          import('./pages/admin/admin-orders.component').then((module) => module.AdminOrdersComponent),
+          import('./pages/admin/admin-orders.component').then(
+            (module) => module.AdminOrdersComponent,
+          ),
       },
       {
         path: 'categories',
@@ -106,5 +124,21 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: 'catalog' },
+  {
+    path: '',
+    pathMatch: 'full',
+    canActivate: [rootLocaleRedirect],
+    children: [],
+  },
+  {
+    path: ':lang',
+    canMatch: [localeCanMatch],
+    canActivate: [localeActivate],
+    children: storefrontChildren,
+  },
+  {
+    path: '**',
+    canActivate: [legacyUkRedirect],
+    children: [],
+  },
 ];

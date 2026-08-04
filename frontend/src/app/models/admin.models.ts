@@ -4,12 +4,19 @@ export type AdminOrderStatus = 'Pending' | 'Confirmed' | 'Shipped' | 'Delivered'
 
 export interface AdminProduct {
   id: number;
+  /** Display name (locale-resolved) — list views. */
   name: string;
+  nameUk?: string;
+  nameEn?: string | null;
   slug: string;
   categoryId: number;
   categoryName: string;
   shortDescription?: string | null;
+  shortDescriptionUk?: string | null;
+  shortDescriptionEn?: string | null;
   description?: string | null;
+  descriptionUk?: string | null;
+  descriptionEn?: string | null;
   price: number;
   oldPrice?: number | null;
   weight?: number | null;
@@ -29,23 +36,47 @@ export interface AdminProductPage {
   totalPages: number;
 }
 
-export type SaveProductRequest = Omit<AdminProduct, 'id' | 'categoryName'>;
+export interface SaveProductRequest {
+  nameUk: string;
+  nameEn?: string | null;
+  slug?: string;
+  categoryId: number;
+  shortDescriptionUk?: string | null;
+  shortDescriptionEn?: string | null;
+  descriptionUk?: string | null;
+  descriptionEn?: string | null;
+  price: number;
+  oldPrice?: number | null;
+  weight?: number | null;
+  weightUnit?: string | null;
+  imageUrl?: string | null;
+  imageUrls: string[];
+  isActive: boolean;
+  isFeatured: boolean;
+  isAvailable: boolean;
+}
 
 export interface AdminCategory {
   id: number;
   name: string;
+  nameUk?: string;
+  nameEn?: string | null;
   slug: string;
   parentId: number | null;
   sortOrder: number;
   description?: string | null;
+  descriptionUk?: string | null;
+  descriptionEn?: string | null;
   activeProductCount: number;
   children: AdminCategory[];
 }
 
 export interface SaveCategoryRequest {
-  name: string;
+  nameUk: string;
+  nameEn?: string | null;
   slug?: string;
-  description?: string | null;
+  descriptionUk?: string | null;
+  descriptionEn?: string | null;
   parentId?: number | null;
 }
 

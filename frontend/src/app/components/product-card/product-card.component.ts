@@ -1,20 +1,22 @@
-import { DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
+import { LocaleService } from '../../i18n/locale.service';
 import { CatalogProduct } from '../../models/catalog.models';
 import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 
 @Component({
   selector: 'app-product-card',
-  imports: [DecimalPipe, RouterLink],
+  imports: [RouterLink, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block h-full' },
   template: `
@@ -22,9 +24,9 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
       class="group flex h-full min-w-0 flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white shadow-[var(--shadow-xs)] transition duration-200 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[var(--shadow-md)]"
     >
       <a
-        [routerLink]="['/catalog', product().slug]"
+        [routerLink]="locale.commands('catalog', product().slug)"
         class="relative block aspect-square overflow-hidden bg-[var(--kraft-100)] focus-visible:z-10"
-        [attr.aria-label]="'Переглянути ' + product().name"
+        [attr.aria-label]="'productCard.addAria' | transloco: { name: product().name }"
       >
         @if (safeImageUrl(); as imageUrl) {
           <img
@@ -35,7 +37,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             (error)="imageFailed.set(true)"
           />
         } @else {
-          <span class="grid h-full place-items-center font-[var(--font-accent)] text-xl text-[var(--kraft-400)]">фото</span>
+          <span class="grid h-full place-items-center font-[var(--font-accent)] text-xl text-[var(--kraft-400)]">{{ 'admin.photoFallback' | transloco }}</span>
         }
         @if (badge(); as badge) {
           <span
@@ -49,7 +51,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
       <div class="flex flex-1 flex-col gap-1.5 p-2.5 sm:p-3.5 lg:p-4">
         <span class="fn-eyebrow hidden text-[11px] lg:block">{{ product().categoryName }}</span>
         <a
-          [routerLink]="['/catalog', product().slug]"
+          [routerLink]="locale.commands('catalog', product().slug)"
           class="line-clamp-2 min-h-[2.4em] font-bold leading-[1.2] text-[var(--espresso-900)] hover:text-[var(--cinnamon-700)] hover:no-underline sm:text-base lg:text-lg"
         >{{ product().name }}</a>
         @if (product().shortDescription) {
@@ -60,10 +62,10 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
           <div class="min-w-0">
             <div class="flex flex-wrap items-baseline gap-x-1.5">
               <strong class="font-[var(--font-accent)] text-xl text-[var(--espresso-900)] sm:text-2xl">
-                {{ product().price | number: '1.0-2' }} ₴
+                {{ locale.formatPrice(product().price) }}
               </strong>
               @if (product().oldPrice && product().oldPrice! > product().price) {
-                <del class="text-xs text-[var(--kraft-500)]">{{ product().oldPrice | number: '1.0-2' }} ₴</del>
+                <del class="text-xs text-[var(--kraft-500)]">{{ locale.formatPrice(product().oldPrice!) }}</del>
               }
             </div>
             @if (unit(); as unit) {
@@ -79,13 +81,13 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             (click)="add.emit(product().id)"
           >
             @if (!canAdd()) {
-              Немає в наявності
+              {{ 'product.outOfStock' | transloco }}
             } @else if (status() === 'adding') {
-              Додаємо…
+              {{ 'product.adding' | transloco }}
             } @else if (status() === 'added') {
-              Додано
+              {{ 'product.added' | transloco }}
             } @else {
-              В кошик
+              {{ 'product.addToCart' | transloco }}
             }
           </button>
         </div>
@@ -97,6 +99,8 @@ export class ProductCardComponent {
   readonly product = input.required<CatalogProduct>();
   readonly status = input<'idle' | 'adding' | 'added'>('idle');
   readonly add = output<number>();
+  protected readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   protected readonly imageFailed = signal(false);
 
   protected readonly safeImageUrl = computed(() => {
@@ -107,6 +111,7 @@ export class ProductCardComponent {
   });
 
   protected readonly badge = computed(() => {
+    this.locale.lang();
     const product = this.product();
     if (product.oldPrice && product.oldPrice > product.price) {
       return {
@@ -116,15 +121,16 @@ export class ProductCardComponent {
     }
     const age = Date.now() - new Date(product.createdAt).getTime();
     if (age >= 0 && age <= 30 * 24 * 60 * 60 * 1000) {
-      return { label: 'Новинка', kind: 'new' as const };
+      return { label: this.i18n.translate('productCard.newBadge'), kind: 'new' as const };
     }
     return null;
   });
 
   protected readonly unit = computed(() => {
+    this.locale.lang();
     const product = this.product();
     return product.weight && product.weightUnit
-      ? `${product.weight.toLocaleString('uk-UA')} ${product.weightUnit}`
+      ? `${this.locale.formatNumber(product.weight)} ${product.weightUnit}`
       : null;
   });
 

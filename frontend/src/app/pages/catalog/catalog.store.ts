@@ -1,6 +1,7 @@
-import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { DestroyRef, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslocoService } from '@jsverse/transloco';
 import {
   catchError,
   debounceTime,
@@ -12,6 +13,7 @@ import {
   tap,
 } from 'rxjs';
 
+import { LocaleService } from '../../i18n/locale.service';
 import {
   CatalogFilters,
   CatalogSort,
@@ -37,6 +39,8 @@ export class CatalogStore {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly i18n = inject(TranslocoService);
+  private readonly locale = inject(LocaleService);
   private readonly loadRequests = new Subject<CatalogFilters>();
   private readonly priceRequests = new Subject<Pick<CatalogFilters, 'minPrice' | 'maxPrice'>>();
   private readonly previewRequests = new Subject<CatalogFilters>();
@@ -69,6 +73,20 @@ export class CatalogStore {
     this.bindPreviewRequests();
     this.bindUrl();
     this.loadCategories();
+
+    let firstLocale = true;
+    effect(() => {
+      this.locale.lang();
+      if (firstLocale) {
+        firstLocale = false;
+        return;
+      }
+      // Do not track filters/loading signals here — only refetch when locale changes.
+      untracked(() => {
+        this.loadCategories();
+        this.loadRequests.next(this.filtersState());
+      });
+    });
   }
 
   updateCategories(categories: string[]): void {
@@ -164,12 +182,12 @@ export class CatalogStore {
           this.productsApi.getProducts(filters).pipe(
             map((response) => {
               if (!response.success) {
-                throw new Error(response.error ?? 'Не вдалося завантажити товари.');
+                throw new Error(response.error ?? this.i18n.translate('catalog.errorLoad'));
               }
               return response.data;
             }),
             catchError(() => {
-              this.errorState.set('Не вдалося завантажити товари. Перевірте з’єднання та спробуйте ще.');
+              this.errorState.set(this.i18n.translate('catalog.errorBody'));
               this.initialLoadingState.set(false);
               this.refetchingState.set(false);
               return EMPTY;

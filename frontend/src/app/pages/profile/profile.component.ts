@@ -15,12 +15,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subject, debounceTime, distinctUntilChanged, finalize, of, switchMap } from 'rxjs';
 
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { PasswordStrengthComponent } from '../../components/password-strength/password-strength.component';
 import { ToastHostComponent } from '../../components/toast-host/toast-host.component';
+import { LocaleService } from '../../i18n/locale.service';
 import {
   DeliveryAddressDto,
   NpBranch,
@@ -36,9 +38,6 @@ import {
   AUTH_FIELD_CLASSES,
   AUTH_LABEL_CLASSES,
   AUTH_LINK_CLASSES,
-  formatItemCount,
-  formatMoney,
-  formatUaDate,
   initialsOf,
   isValidUaPhone,
   memberSinceYear,
@@ -61,7 +60,7 @@ function passwordsDiffer(group: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-profile',
-  imports: [
+  imports: [TranslocoPipe, 
     ReactiveFormsModule,
     RouterLink,
     NavbarComponent,
@@ -75,6 +74,8 @@ function passwordsDiffer(group: AbstractControl): ValidationErrors | null {
 export class ProfileComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
   private readonly ordersApi = inject(OrderService);
   private readonly shipping = inject(ShippingService);
   private readonly toasts = inject(ToastService);
@@ -151,7 +152,7 @@ export class ProfileComponent {
       return '';
     }
     const iso = u.passwordChangedAt ?? u.createdAt;
-    return formatUaDate(iso);
+    return this.locale.formatDate(iso);
   });
   protected readonly showCityList = computed(() => {
     return (
@@ -240,7 +241,7 @@ export class ProfileComponent {
       .subscribe({
         next: (response) => {
           if (!response.success || !response.data) {
-            this.profileError.set(response.error ?? 'Не вдалося завантажити профіль.');
+            this.profileError.set(response.error ?? this.i18n.translate('profile.loadProfileError'));
             return;
           }
           this.profileForm.patchValue({
@@ -250,7 +251,7 @@ export class ProfileComponent {
           });
         },
         error: (err: unknown) => {
-          this.profileError.set(extractApiError(err, 'Не вдалося завантажити профіль.'));
+          this.profileError.set(extractApiError(err, this.i18n.translate('profile.loadProfileError')));
         },
       });
   }
@@ -267,7 +268,7 @@ export class ProfileComponent {
       .subscribe({
         next: (response) => {
           if (!response.success) {
-            this.addressError.set(response.error ?? 'Не вдалося завантажити адресу.');
+            this.addressError.set(response.error ?? this.i18n.translate('profile.loadAddressError'));
             return;
           }
           this.savedAddress.set(response.data ?? null);
@@ -276,7 +277,7 @@ export class ProfileComponent {
           }
         },
         error: (err: unknown) => {
-          this.addressError.set(extractApiError(err, 'Не вдалося завантажити адресу.'));
+          this.addressError.set(extractApiError(err, this.i18n.translate('profile.loadAddressError')));
         },
       });
   }
@@ -293,13 +294,13 @@ export class ProfileComponent {
       .subscribe({
         next: (response) => {
           if (!response.success || !response.data) {
-            this.ordersError.set(response.error ?? 'Не вдалося завантажити замовлення.');
+            this.ordersError.set(response.error ?? this.i18n.translate('profile.loadOrdersError'));
             return;
           }
           this.orders.set(response.data);
         },
         error: (err: unknown) => {
-          this.ordersError.set(extractApiError(err, 'Не вдалося завантажити замовлення.'));
+          this.ordersError.set(extractApiError(err, this.i18n.translate('profile.loadOrdersError')));
         },
       });
   }
@@ -331,14 +332,14 @@ export class ProfileComponent {
       .subscribe({
         next: (response) => {
           if (!response.success || !response.data) {
-            this.profileFormError.set(response.error ?? 'Не вдалося зберегти зміни.');
+            this.profileFormError.set(response.error ?? this.i18n.translate('profile.saveChangesError'));
             return;
           }
-          this.toasts.success('Зміни збережено');
+          this.toasts.success(this.i18n.translate('profile.saveChangesSuccess'));
         },
         error: (err: unknown) => {
-          this.profileFormError.set(extractApiError(err, 'Не вдалося зберегти зміни.'));
-          this.toasts.error('Не вдалося зберегти зміни.');
+          this.profileFormError.set(extractApiError(err, this.i18n.translate('profile.saveChangesError')));
+          this.toasts.error(this.i18n.translate('profile.saveChangesError'));
         },
       });
   }
@@ -376,10 +377,10 @@ export class ProfileComponent {
       .subscribe({
         next: (response) => {
           if (!response.success) {
-            this.passwordFormError.set(response.error ?? 'Не вдалося оновити пароль.');
+            this.passwordFormError.set(response.error ?? this.i18n.translate('profile.updatePasswordError'));
             return;
           }
-          this.toasts.success('Пароль оновлено');
+          this.toasts.success(this.i18n.translate('profile.updatePasswordSuccess'));
           this.cancelPasswordForm();
           this.auth
             .me()
@@ -388,7 +389,7 @@ export class ProfileComponent {
         },
         error: (err: unknown) => {
           this.passwordFormError.set(
-            extractApiError(err, 'Не вдалося оновити пароль. Спробуйте ще раз.'),
+            extractApiError(err, this.i18n.translate('profile.updatePasswordRetry')),
           );
         },
       });
@@ -469,16 +470,16 @@ export class ProfileComponent {
       .subscribe({
         next: (response) => {
           if (!response.success || !response.data) {
-            this.addressFormError.set(response.error ?? 'Не вдалося зберегти адресу.');
+            this.addressFormError.set(response.error ?? this.i18n.translate('profile.saveAddressError'));
             return;
           }
           this.savedAddress.set(response.data);
           this.editingAddress.set(false);
-          this.toasts.success('Адресу збережено');
+          this.toasts.success(this.i18n.translate('profile.saveAddressSuccess'));
         },
         error: (err: unknown) => {
-          this.addressFormError.set(extractApiError(err, 'Не вдалося зберегти адресу.'));
-          this.toasts.error('Не вдалося зберегти адресу.');
+          this.addressFormError.set(extractApiError(err, this.i18n.translate('profile.saveAddressError')));
+          this.toasts.error(this.i18n.translate('profile.saveAddressError'));
         },
       });
   }
@@ -496,27 +497,29 @@ export class ProfileComponent {
       )
       .subscribe({
         next: () => {
-          this.toasts.success('Ви вийшли');
-          void this.router.navigateByUrl('/catalog');
+          this.toasts.success(this.i18n.translate('profile.logoutSuccess'));
+          void this.router.navigate(this.locale.commands('catalog'));
         },
         error: () => {
           this.auth.clearSession();
-          this.toasts.success('Ви вийшли');
-          void this.router.navigateByUrl('/catalog');
+          this.toasts.success(this.i18n.translate('profile.logoutSuccess'));
+          void this.router.navigate(this.locale.commands('catalog'));
         },
       });
   }
 
   protected orderMeta(order: OrderSummary): string {
-    return `${formatUaDate(order.createdAt)} · ${formatItemCount(order.itemCount)}`;
+    const form = this.locale.pluralForm(order.itemCount);
+    const countLabel = this.i18n.translate(`plural.products.${form}`, { count: order.itemCount });
+    return `${this.locale.formatDate(order.createdAt)} · ${countLabel}`;
   }
 
   protected orderTotal(order: OrderSummary): string {
-    return formatMoney(order.totalAmount);
+    return this.locale.formatPrice(order.totalAmount);
   }
 
   protected statusLabel(order: OrderSummary): string {
-    return orderStatusLabel(order.status);
+    return orderStatusLabel(order.status, (key) => this.i18n.translate(key));
   }
 
   protected statusTone(order: OrderSummary): string {

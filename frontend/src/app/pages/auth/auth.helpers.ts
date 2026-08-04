@@ -3,14 +3,14 @@
 /** Safe post-auth redirect target from ?returnUrl= (defaults to /profile). */
 export function resolveReturnUrl(raw: string | null | undefined): string {
   if (!raw) {
-    return '/profile';
+    return '/ua/profile';
   }
 
   let decoded: string;
   try {
     decoded = decodeURIComponent(raw.trim());
   } catch {
-    return '/profile';
+    return '/ua/profile';
   }
 
   // Relative in-app path only: single leading slash, no scheme, no protocol-relative, no backslash.
@@ -24,7 +24,7 @@ export function resolveReturnUrl(raw: string | null | undefined): string {
     return decoded;
   }
 
-  return '/profile';
+  return '/ua/profile';
 }
 
 /** Query params to preserve returnUrl when switching between auth pages. */
@@ -32,7 +32,7 @@ export function returnUrlQueryParams(
   raw: string | null | undefined,
 ): Record<string, string> | null {
   const target = resolveReturnUrl(raw);
-  return target === '/profile' ? null : { returnUrl: target };
+  return /\/(ua|uk|en)\/profile\/?$/.test(target) || target === '/profile' ? null : { returnUrl: target };
 }
 
 export function initialsOf(firstName: string, lastName: string): string {
@@ -60,15 +60,21 @@ export function formatUaDate(iso: string): string {
     .replace(/\s*р\.?$/u, '');
 }
 
-export function formatItemCount(count: number): string {
+/** Prefer LocaleService.pluralForm + Transloco `plural.products.*` at call sites. */
+export function formatItemCount(count: number, labels?: { one: string; few: string; many: string }): string {
   const mod10 = count % 10;
   const mod100 = count % 100;
-  if (mod10 === 1 && mod100 !== 11) {
-    return `${count} товар`;
+  let form: 'one' | 'few' | 'many' = 'many';
+  if (!(mod100 > 10 && mod100 < 20)) {
+    if (mod10 === 1) form = 'one';
+    else if (mod10 >= 2 && mod10 <= 4) form = 'few';
   }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return `${count} товари`;
+  if (labels) {
+    return labels[form].replace('{{count}}', String(count));
   }
+  // Legacy UK fallback when callers omit labels
+  if (form === 'one') return `${count} товар`;
+  if (form === 'few') return `${count} товари`;
   return `${count} товарів`;
 }
 
@@ -96,23 +102,46 @@ export function isRequiredUaPhone(value: string): boolean {
 
 export type OrderBadgeTone = 'fresh' | 'marigold' | 'ink' | 'chili';
 
-export function orderStatusLabel(status: string | number): string {
+/** Maps API status to Transloco key segment under `orderStatus.*`. */
+export function orderStatusI18nKey(status: string | number): string {
   const key = normalizeStatus(status);
   switch (key) {
     case 'Pending':
     case '0':
-      return 'Очікує підтвердження';
+      return 'Pending';
     case 'Confirmed':
     case '1':
-      return 'В обробці';
+      return 'Confirmed';
     case 'Shipped':
     case '2':
-      return 'Відправлено';
+      return 'Shipped';
     case 'Delivered':
     case '3':
-      return 'Доставлено';
+      return 'Delivered';
     case 'Cancelled':
     case '4':
+      return 'Cancelled';
+    default:
+      return key;
+  }
+}
+
+export function orderStatusLabel(status: string | number, translate?: (key: string) => string): string {
+  const segment = orderStatusI18nKey(status);
+  if (translate && ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'].includes(segment)) {
+    return translate(`orderStatus.${segment}`);
+  }
+  // Legacy UK fallback
+  switch (segment) {
+    case 'Pending':
+      return 'Очікує підтвердження';
+    case 'Confirmed':
+      return 'В обробці';
+    case 'Shipped':
+      return 'Відправлено';
+    case 'Delivered':
+      return 'Доставлено';
+    case 'Cancelled':
       return 'Скасовано';
     default:
       return String(status);
@@ -169,7 +198,7 @@ export interface PasswordStrength {
   label: string;
 }
 
-export function passwordStrength(value: string): PasswordStrength {
+export function passwordStrength(value: string, labels?: { weak: string; medium: string; strong: string }): PasswordStrength {
   if (!value) {
     return { width: '0%', color: 'var(--kraft-400)', label: '' };
   }
@@ -180,11 +209,15 @@ export function passwordStrength(value: string): PasswordStrength {
   if (/[0-9]/.test(value)) score++;
   if (/[^A-Za-zА-Яа-яЇїІіЄєҐґ0-9]/.test(value)) score++;
 
+  const weak = labels?.weak ?? 'Слабкий';
+  const medium = labels?.medium ?? 'Середній';
+  const strong = labels?.strong ?? 'Надійний';
+
   if (score <= 1) {
-    return { width: '33%', color: 'var(--chili-500)', label: 'Слабкий' };
+    return { width: '33%', color: 'var(--chili-500)', label: weak };
   }
   if (score <= 3) {
-    return { width: '66%', color: 'var(--marigold-600)', label: 'Середній' };
+    return { width: '66%', color: 'var(--marigold-600)', label: medium };
   }
-  return { width: '100%', color: 'var(--garden-700)', label: 'Надійний' };
+  return { width: '100%', color: 'var(--garden-700)', label: strong };
 }

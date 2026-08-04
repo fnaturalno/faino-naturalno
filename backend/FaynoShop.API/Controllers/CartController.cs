@@ -32,18 +32,20 @@ public sealed class CartController : ControllerBase
     /// <summary>
     /// Returns the current cart with live prices, stock, and availability flags.
     /// Send <c>X-Cart-Session-Id</c>. When authenticated after merge, the user cart is preferred.
-    /// An empty cart is a successful empty payload.
+    /// An empty cart is a successful empty payload. Line names follow request locale.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<CartDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<CartDto>>> GetCart(
         [FromHeader(Name = CartSessionHeaders.SessionId)] string? sessionId,
+        [FromQuery] string? locale,
         CancellationToken cancellationToken)
     {
         var data = await _cartService.GetCartAsync(
             sessionId ?? string.Empty,
             OptionalUserId(),
+            Request.ResolveLocale(locale),
             cancellationToken);
         return Ok(ApiResponse<CartDto>.Ok(data));
     }
@@ -88,6 +90,7 @@ public sealed class CartController : ControllerBase
         int id,
         [FromBody] UpdateCartItemRequest request,
         [FromHeader(Name = CartSessionHeaders.SessionId)] string? sessionId,
+        [FromQuery] string? locale,
         CancellationToken cancellationToken)
     {
         await _updateValidator.ValidateAndThrowAsync(request, cancellationToken);
@@ -97,6 +100,7 @@ public sealed class CartController : ControllerBase
             OptionalUserId(),
             id,
             request,
+            Request.ResolveLocale(locale),
             cancellationToken);
         return Ok(ApiResponse<CartDto>.Ok(data));
     }
@@ -111,12 +115,14 @@ public sealed class CartController : ControllerBase
     public async Task<ActionResult<ApiResponse<CartDto>>> RemoveItem(
         int id,
         [FromHeader(Name = CartSessionHeaders.SessionId)] string? sessionId,
+        [FromQuery] string? locale,
         CancellationToken cancellationToken)
     {
         var data = await _cartService.RemoveItemAsync(
             sessionId ?? string.Empty,
             OptionalUserId(),
             id,
+            Request.ResolveLocale(locale),
             cancellationToken);
         return Ok(ApiResponse<CartDto>.Ok(data));
     }
@@ -131,11 +137,13 @@ public sealed class CartController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<ApiResponse<CartDto>>> ClearCart(
         [FromHeader(Name = CartSessionHeaders.SessionId)] string? sessionId,
+        [FromQuery] string? locale,
         CancellationToken cancellationToken)
     {
         var data = await _cartService.ClearCartAsync(
             sessionId ?? string.Empty,
             OptionalUserId(),
+            Request.ResolveLocale(locale),
             cancellationToken);
         return Ok(ApiResponse<CartDto>.Ok(data));
     }

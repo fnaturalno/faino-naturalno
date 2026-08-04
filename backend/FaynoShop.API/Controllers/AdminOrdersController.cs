@@ -1,5 +1,6 @@
 using FaynoShop.API.DTOs;
 using FaynoShop.API.DTOs.Orders;
+using FaynoShop.API.Extensions;
 using FaynoShop.API.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -35,9 +36,13 @@ public sealed class AdminOrdersController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<OrderDetailDto>>> GetOrder(
         int id,
+        [FromQuery] string? locale,
         CancellationToken cancellationToken)
     {
-        var data = await _orders.GetAdminOrderByIdAsync(id, cancellationToken);
+        var data = await _orders.GetAdminOrderByIdAsync(
+            id,
+            Request.ResolveLocale(locale),
+            cancellationToken);
         return Ok(ApiResponse<OrderDetailDto>.Ok(data));
     }
 
@@ -48,10 +53,15 @@ public sealed class AdminOrdersController : ControllerBase
         int id,
         [FromBody] UpdateOrderStatusRequest request,
         [FromServices] IValidator<UpdateOrderStatusRequest> validator,
+        [FromQuery] string? locale,
         CancellationToken cancellationToken)
     {
         await validator.ValidateAndThrowAsync(request, cancellationToken);
-        var data = await _orders.UpdateStatusAsync(id, request, cancellationToken);
+        var data = await _orders.UpdateStatusAsync(
+            id,
+            request,
+            Request.ResolveLocale(locale),
+            cancellationToken);
         return Ok(ApiResponse<OrderDetailDto>.Ok(data));
     }
 }

@@ -6,7 +6,7 @@
       <div
         class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-lg)] sm:p-8"
         aria-busy="true"
-        aria-label="Завантаження товару"
+        [attr.aria-label]="'product.loading' | transloco"
       >
         <div class="grid gap-6 md:grid-cols-[minmax(0,240px)_1fr] lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10">
           <div class="flex flex-col gap-3">
@@ -39,33 +39,33 @@
     } @else if (status() === 'not-found') {
       <div class="grid min-h-[50vh] place-items-center text-center">
         <div class="max-w-md">
-          <p class="fn-eyebrow mb-3">Товар</p>
-          <h1 class="mb-3 text-2xl sm:text-3xl">Товар не знайдено</h1>
+          <p class="fn-eyebrow mb-3">{{ 'product.eyebrow' | transloco }}</p>
+          <h1 class="mb-3 text-2xl sm:text-3xl">{{ 'product.notFound' | transloco }}</h1>
           <p class="mb-6 text-[var(--espresso-700)]">
-            Цього товару немає в каталозі або він більше недоступний.
+            {{ 'product.notFoundBody' | transloco }}
           </p>
           <a
-            routerLink="/catalog"
+            [routerLink]="locale.commands('catalog')"
             class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
           >
-            Повернутися до каталогу
+            {{ 'product.backToCatalog' | transloco }}
           </a>
         </div>
       </div>
     } @else if (status() === 'error') {
       <div class="grid min-h-[50vh] place-items-center text-center">
         <div class="max-w-md">
-          <p class="fn-eyebrow mb-3">Помилка</p>
-          <h1 class="mb-3 text-2xl sm:text-3xl">Не вдалося завантажити товар</h1>
+          <p class="fn-eyebrow mb-3">{{ 'product.errorEyebrow' | transloco }}</p>
+          <h1 class="mb-3 text-2xl sm:text-3xl">{{ 'product.loadErrorTitle' | transloco }}</h1>
           <p class="mb-6 text-[var(--espresso-700)]">
-            Перевірте з’єднання та спробуйте ще раз.
+            {{ 'product.loadErrorBody' | transloco }}
           </p>
           <button
             type="button"
             class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
             (click)="retry()"
           >
-            Спробувати ще
+            {{ 'common.retry' | transloco }}
           </button>
         </div>
       </div>
@@ -77,7 +77,7 @@
         (click)="goBack()"
       >
         <app-icon name="chevron-left" [size]="18" />
-        Назад
+        {{ 'common.back' | transloco }}
       </button>
 
       <div
@@ -85,16 +85,16 @@
       >
         <!-- Breadcrumb -->
         <nav
-          aria-label="Навігаційний шлях"
+          [attr.aria-label]="'product.breadcrumbAria' | transloco"
           class="mb-5 flex flex-wrap items-center gap-2 text-sm md:mb-6"
         >
           <a
-            routerLink="/catalog"
+            [routerLink]="locale.commands('catalog')"
             class="font-[var(--font-body)] text-[var(--cinnamon-700)] hover:text-[var(--espresso-800)] hover:underline"
-          >Каталог</a>
+          >{{ 'nav.catalog' | transloco }}</a>
           <span class="text-[var(--kraft-400)]" aria-hidden="true">›</span>
           <a
-            routerLink="/catalog"
+            [routerLink]="locale.commands('catalog')"
             [queryParams]="{ category: detail.categorySlug }"
             class="font-[var(--font-body)] text-[var(--cinnamon-700)] hover:text-[var(--espresso-800)] hover:underline"
           >{{ detail.categoryName }}</a>
@@ -116,7 +116,9 @@
                   (error)="onMainImageError()"
                 />
               } @else {
-                <span class="font-[var(--font-accent)] text-2xl text-[var(--kraft-400)]">фото товару</span>
+                <span class="font-[var(--font-accent)] text-2xl text-[var(--kraft-400)]">{{
+                  'product.photoFallback' | transloco
+                }}</span>
               }
 
               @if (badge(); as productBadge) {
@@ -134,7 +136,7 @@
               <div
                 class="flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:pb-0"
                 role="list"
-                aria-label="Мініатюри"
+                [attr.aria-label]="'product.thumbnails' | transloco"
               >
                 @for (thumb of gallery(); track $index) {
                   <button
@@ -143,7 +145,7 @@
                     class="aspect-square w-14 shrink-0 overflow-hidden rounded-[var(--radius-md)] border-2 bg-[var(--kraft-100)] md:w-auto"
                     [class.border-[var(--marigold-400)]]="activeThumb() === $index"
                     [class.border-[var(--border-subtle)]]="activeThumb() !== $index"
-                    [attr.aria-label]="'Зображення ' + ($index + 1)"
+                    [attr.aria-label]="'product.imageN' | transloco: { n: $index + 1 }"
                     [attr.aria-pressed]="activeThumb() === $index"
                     (click)="selectThumb($index)"
                   >
@@ -199,7 +201,7 @@
             <div class="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
               @if (unitLabel(); as unit) {
                 <span class="text-sm text-[var(--espresso-700)]">
-                  Фасування: <strong>{{ unit }}</strong>
+                  {{ 'product.packaging' | transloco }} <strong>{{ unit }}</strong>
                 </span>
               }
             </div>
@@ -210,12 +212,12 @@
                 <div
                   class="inline-flex h-10 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
                   role="group"
-                  aria-label="Кількість"
+                  [attr.aria-label]="'product.quantity' | transloco"
                 >
                   <button
                     type="button"
                     class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-                    aria-label="Зменшити кількість"
+                    [attr.aria-label]="'product.decreaseQty' | transloco"
                     [disabled]="quantity() <= 1 || addStatus() === 'adding'"
                     (click)="decreaseQty()"
                   >−</button>
@@ -226,7 +228,7 @@
                   <button
                     type="button"
                     class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-                    aria-label="Збільшити кількість"
+                    [attr.aria-label]="'product.increaseQty' | transloco"
                     [disabled]="quantity() >= maxQuantity() || addStatus() === 'adding'"
                     (click)="increaseQty()"
                   >+</button>
@@ -247,15 +249,15 @@
                 (click)="addToCart()"
               >
                 @if (!isAvailable()) {
-                  Немає в наявності
+                  {{ 'product.outOfStock' | transloco }}
                 } @else if (addStatus() === 'adding') {
-                  Додаємо…
+                  {{ 'product.adding' | transloco }}
                 } @else if (addStatus() === 'added') {
                   <app-icon name="check" [size]="20" />
-                  Додано
+                  {{ 'product.added' | transloco }}
                 } @else {
                   <app-icon name="bag" [size]="19" />
-                  В кошик
+                  {{ 'product.addToCart' | transloco }}
                 }
               </button>
             </div>
@@ -265,16 +267,16 @@
             >
               <div class="inline-flex items-center gap-2.5 text-sm text-[var(--espresso-700)]">
                 <app-icon name="truck" [size]="18" class="text-[var(--cinnamon-700)]" />
-                Доставка Новою Поштою
+                {{ 'checkout.novaPoshtaDelivery' | transloco }}
               </div>
               <div class="inline-flex items-center gap-2.5 text-sm text-[var(--espresso-700)]">
                 <app-icon name="leaf" [size]="18" class="text-[var(--garden-700)]" />
-                100% натуральний склад
+                {{ 'product.naturalClaim' | transloco }}
               </div>
             </div>
 
             @if (detail.description) {
-              <h2 class="mb-2.5 text-lg">Опис</h2>
+              <h2 class="mb-2.5 text-lg">{{ 'product.description' | transloco }}</h2>
               <div class="whitespace-pre-line text-[var(--espresso-700)] leading-relaxed">
                 {{ detail.description }}
               </div>
@@ -287,14 +289,14 @@
         <section class="mt-10" aria-labelledby="similar-heading">
           <div class="mb-5 flex items-baseline justify-between gap-4">
             <h2 id="similar-heading" class="font-[var(--font-display)] text-xl sm:text-2xl">
-              Схожі товари
+              {{ 'product.similar' | transloco }}
             </h2>
             <a
-              routerLink="/catalog"
+              [routerLink]="locale.commands('catalog')"
               [queryParams]="{ category: detail.categorySlug }"
               class="shrink-0 text-sm font-semibold text-[var(--cinnamon-700)] hover:text-[var(--espresso-800)] hover:underline"
             >
-              Усі {{ detail.categoryName }} →
+              {{ 'product.allInCategory' | transloco: { name: detail.categoryName } }}
             </a>
           </div>
 
@@ -338,12 +340,12 @@
       <div
         class="inline-flex h-10 shrink-0 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
         role="group"
-        aria-label="Кількість"
+        [attr.aria-label]="'product.quantity' | transloco"
       >
         <button
           type="button"
           class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-          aria-label="Зменшити кількість"
+          [attr.aria-label]="'product.decreaseQty' | transloco"
           [disabled]="quantity() <= 1 || addStatus() === 'adding'"
           (click)="decreaseQty()"
         >−</button>
@@ -354,7 +356,7 @@
         <button
           type="button"
           class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-          aria-label="Збільшити кількість"
+          [attr.aria-label]="'product.increaseQty' | transloco"
           [disabled]="quantity() >= maxQuantity() || addStatus() === 'adding'"
           (click)="increaseQty()"
         >+</button>
@@ -374,13 +376,13 @@
       (click)="addToCart()"
     >
       @if (!isAvailable()) {
-        Немає в наявності
+        {{ 'product.outOfStock' | transloco }}
       } @else if (addStatus() === 'adding') {
-        Додаємо…
+        {{ 'product.adding' | transloco }}
       } @else if (addStatus() === 'added') {
-        Додано ✓
+        {{ 'product.addedCheck' | transloco }}
       } @else {
-        В кошик
+        {{ 'product.addToCart' | transloco }}
       }
     </button>
   </div>

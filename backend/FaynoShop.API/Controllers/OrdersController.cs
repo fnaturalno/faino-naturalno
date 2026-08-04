@@ -53,6 +53,7 @@ public sealed class OrdersController : ControllerBase
     /// <summary>
     /// Order confirmation details. Requires opaque <c>?token=</c> from place response
     /// (guest-friendly), or JWT of the order owner. Unknown / unauthorized → 404 envelope.
+    /// Line product names follow request locale (live Product lookup).
     /// </summary>
     [HttpGet("{id:int}")]
     [EnableRateLimiting(RateLimitingExtensions.OrderConfirmPolicy)]
@@ -62,14 +63,21 @@ public sealed class OrdersController : ControllerBase
     public async Task<ActionResult<ApiResponse<OrderDetailDto>>> GetById(
         int id,
         [FromQuery] string? token,
+        [FromQuery] string? locale,
         CancellationToken cancellationToken)
     {
-        var data = await _orders.GetByIdAsync(id, token, OptionalUserId(), cancellationToken);
+        var data = await _orders.GetByIdAsync(
+            id,
+            token,
+            OptionalUserId(),
+            Request.ResolveLocale(locale),
+            cancellationToken);
         return Ok(ApiResponse<OrderDetailDto>.Ok(data));
     }
 
     /// <summary>
     /// Authenticated user's orders, newest first. Defaults to 20 (profile UI cap).
+    /// List items have no product names (locale not required).
     /// </summary>
     [HttpGet]
     [Authorize]

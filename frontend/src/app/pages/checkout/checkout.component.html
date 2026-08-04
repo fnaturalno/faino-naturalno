@@ -8,21 +8,21 @@
     <button
       type="button"
       class="grid size-[34px] place-items-center rounded-[var(--radius-md)] text-[var(--espresso-800)] hover:bg-[var(--kraft-100)]"
-      aria-label="Назад"
+      [attr.aria-label]="'common.back' | transloco"
       (click)="goBack()"
     >
       <app-icon name="chevron-left" [size]="22" />
     </button>
-    <h1 class="m-0 text-lg">Оформлення</h1>
+    <h1 class="m-0 text-lg">{{ 'checkout.title' | transloco }}</h1>
   </div>
 
   <div class="mx-auto max-w-[1200px] px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
     <!-- Desktop header -->
     <header class="mb-6 hidden max-w-[1000px] lg:block">
-      <span class="fn-eyebrow">Файно натурально — оформлення</span>
-      <h1 class="mt-2 mb-1.5 text-3xl">Оформлення замовлення</h1>
+      <span class="fn-eyebrow">{{ 'checkout.eyebrow' | transloco }}</span>
+      <h1 class="mt-2 mb-1.5 text-3xl">{{ 'checkout.heading' | transloco }}</h1>
       <p class="m-0 max-w-xl text-[var(--espresso-700)]">
-        Форма замовлення ліворуч, підсумок праворуч. Доставка Новою Поштою.
+        {{ 'checkout.intro' | transloco }}
       </p>
     </header>
 
@@ -38,13 +38,13 @@
               class="grid size-[30px] shrink-0 place-items-center rounded-full bg-[var(--espresso-800)] text-sm font-extrabold text-[var(--kraft-50)]"
               >1</span
             >
-            <h2 class="m-0 text-base sm:text-lg">Контактні дані</h2>
+            <h2 class="m-0 text-base sm:text-lg">{{ 'checkout.contact' | transloco }}</h2>
           </div>
 
           <div class="flex flex-col gap-3 sm:gap-4">
             <div class="grid grid-cols-2 gap-2.5 sm:gap-3.5">
               <div>
-                <label for="co-first" [class]="labelClasses">Імʼя</label>
+                <label for="co-first" [class]="labelClasses">{{ 'checkout.firstName' | transloco }}</label>
                 <input
                   id="co-first"
                   type="text"
@@ -58,7 +58,7 @@
                 }
               </div>
               <div>
-                <label for="co-last" [class]="labelClasses">Прізвище</label>
+                <label for="co-last" [class]="labelClasses">{{ 'checkout.lastName' | transloco }}</label>
                 <input
                   id="co-last"
                   type="text"
@@ -75,7 +75,7 @@
 
             <div class="grid gap-3 sm:grid-cols-2 sm:gap-3.5">
               <div>
-                <label for="co-phone" [class]="labelClasses">Телефон</label>
+                <label for="co-phone" [class]="labelClasses">{{ 'checkout.phone' | transloco }}</label>
                 <input
                   id="co-phone"
                   type="tel"
@@ -90,7 +90,7 @@
                 }
               </div>
               <div>
-                <label for="co-email" [class]="labelClasses">Ел. пошта</label>
+                <label for="co-email" [class]="labelClasses">{{ 'checkout.email' | transloco }}</label>
                 <input
                   id="co-email"
                   type="email"
@@ -118,8 +118,8 @@
                 >2</span
               >
               <h2 class="m-0 text-base sm:text-lg">
-                <span class="sm:hidden">Нова Пошта</span>
-                <span class="hidden sm:inline">Доставка Новою Поштою</span>
+                <span class="sm:hidden">{{ 'checkout.novaPoshta' | transloco }}</span>
+                <span class="hidden sm:inline">{{ 'checkout.novaPoshtaDelivery' | transloco }}</span>
               </h2>
             </div>
             <span
@@ -127,10 +127,10 @@
             >
               <span
                 class="grid size-3.5 place-items-center rounded-[3px] bg-white text-[10px] font-black text-[#DA291C] sm:size-4 sm:text-xs"
-                >Н</span
+                >{{ 'checkout.novaPoshtaShort' | transloco }}</span
               >
               <span class="text-[11px] font-extrabold tracking-wide text-white sm:text-xs"
-                >Нова Пошта</span
+                >{{ 'checkout.novaPoshta' | transloco }}</span
               >
             </span>
           </div>
@@ -144,7 +144,7 @@
               </span>
               <div class="min-w-0 flex-1">
                 <span class="mb-0.5 block text-sm font-bold text-[var(--espresso-900)]"
-                  >Збережена адреса підставлена</span
+                  >{{ 'checkout.savedAddressApplied' | transloco }}</span
                 >
                 <span class="text-sm text-[var(--espresso-700)]">{{ savedAddress()!.summary }}</span>
               </div>
@@ -154,7 +154,7 @@
                 [disabled]="formLocked()"
                 (click)="changeSavedAddress()"
               >
-                Змінити
+                {{ 'checkout.change' | transloco }}
               </button>
             </div>
           }
@@ -162,7 +162,7 @@
           @if (showDeliveryEditors()) {
             <div class="flex flex-col gap-4">
               <div class="relative flex flex-col gap-1.5">
-                <label for="co-city" [class]="labelClasses">Місто</label>
+                <label for="co-city" [class]="labelClasses">{{ 'checkout.city' | transloco }}</label>
                 <div class="relative">
                   <span
                     class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--kraft-500)]"
@@ -175,7 +175,7 @@
                     type="text"
                     role="combobox"
                     autocomplete="off"
-                    placeholder="Почніть вводити місто…"
+                    [placeholder]="'checkout.cityPlaceholder' | transloco"
                     class="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white py-3 pr-3.5 pl-[42px] text-[var(--espresso-800)] outline-none focus-visible:border-[var(--marigold-400)] disabled:cursor-not-allowed disabled:opacity-60"
                     [value]="cityQuery()"
                     [disabled]="formLocked()"
@@ -191,7 +191,7 @@
                     id="co-city-list"
                     class="absolute top-full right-0 left-0 z-20 mt-1.5 max-h-[230px] overflow-y-auto rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white shadow-[var(--shadow-lg)]"
                     role="listbox"
-                    aria-label="Знайдені міста"
+                    [attr.aria-label]="'checkout.citiesFound' | transloco"
                   >
                     @for (city of cityMatches(); track city.cityId) {
                       <li>
@@ -216,7 +216,7 @@
 
                 @if (showCityEmpty()) {
                   <span class="text-sm text-[var(--text-muted)]"
-                    >Нічого не знайдено — перевірте написання</span
+                    >{{ 'checkout.nothingFound' | transloco }}</span
                   >
                 }
                 @if (cityError()) {
@@ -230,7 +230,7 @@
                   class="text-sm font-semibold"
                   [class.text-[var(--kraft-500)]]="!selectedCity()"
                   [class.text-[var(--espresso-800)]]="!!selectedCity()"
-                  >Відділення</label
+                  >{{ 'checkout.branch' | transloco }}</label
                 >
 
                 @if (branchesLoading()) {
@@ -239,7 +239,7 @@
                     aria-live="polite"
                   >
                     <span class="fn-co-spin" aria-hidden="true"></span>
-                    Завантажуємо відділення…
+                    {{ 'checkout.loadingBranches' | transloco }}
                   </div>
                 } @else {
                   <div class="relative">
@@ -252,7 +252,7 @@
                       (change)="onBranchChange($any($event.target).value)"
                     >
                       <option value="">
-                        {{ selectedCity() ? 'Оберіть відділення' : 'Спочатку оберіть місто' }}
+                        {{ selectedCity() ? ('checkout.selectBranch' | transloco) : ('checkout.selectCityFirst' | transloco) }}
                       </option>
                       @for (branch of branches(); track branch.branchId) {
                         <option [value]="branch.branchId">{{ branch.label }}</option>
@@ -272,13 +272,13 @@
 
               <div class="inline-flex items-center gap-2 text-sm text-[var(--garden-700)]">
                 <app-icon name="clock" [size]="16" />
-                Орієнтовно: 2–3 робочі дні
+                {{ 'checkout.eta' | transloco }}
               </div>
             </div>
           } @else {
             <div class="inline-flex items-center gap-2 text-sm text-[var(--garden-700)]">
               <app-icon name="clock" [size]="16" />
-              Орієнтовно: 2–3 робочі дні
+              {{ 'checkout.eta' | transloco }}
             </div>
           }
         </section>
@@ -294,12 +294,12 @@
             >
             <h2 id="co-comment-heading" class="m-0 text-base sm:text-lg">
               <span class="sm:hidden"
-                >Коментар
-                <span class="text-sm font-normal text-[var(--text-muted)]">— необовʼязково</span></span
+                >{{ 'checkout.commentLabel' | transloco }}
+                <span class="text-sm font-normal text-[var(--text-muted)]">{{ 'checkout.commentOptional' | transloco }}</span></span
               >
               <span class="hidden sm:inline"
-                >Коментар до замовлення
-                <span class="text-sm font-normal text-[var(--text-muted)]">— необовʼязково</span></span
+                >{{ 'checkout.commentOrderLabel' | transloco }}
+                <span class="text-sm font-normal text-[var(--text-muted)]">{{ 'checkout.commentOptional' | transloco }}</span></span
               >
             </h2>
           </div>
@@ -307,7 +307,7 @@
             id="co-comment"
             rows="3"
             formControlName="comment"
-            placeholder="Побажання щодо замовлення чи доставки…"
+            [placeholder]="'checkout.commentPlaceholder' | transloco"
             class="min-h-[72px] w-full resize-y rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white px-3.5 py-3 text-[var(--espresso-800)] outline-none placeholder:text-[var(--kraft-500)] focus-visible:border-[var(--marigold-400)] sm:min-h-24"
             aria-labelledby="co-comment-heading"
             [attr.aria-invalid]="fieldInvalid('comment')"
@@ -329,9 +329,9 @@
               class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent"
               aria-hidden="true"
             ></span>
-            Оформлюємо…
+            {{ 'checkout.placing' | transloco }}
           } @else {
-            Оформити замовлення
+            {{ 'checkout.placeOrder' | transloco }}
           }
         </button>
       </div>
@@ -347,15 +347,15 @@
           } @else if (loadStatus() === 'error') {
             <p class="mb-2 text-sm text-[var(--chili-700)]" role="alert">{{ loadError() }}</p>
             <button type="button" [class]="linkClasses + ' text-sm'" (click)="retryCart()">
-              Спробувати ще
+              {{ 'common.retry' | transloco }}
             </button>
           } @else {
             <div class="mb-2.5 flex items-center justify-between">
-              <span class="font-bold text-[var(--espresso-900)]">Замовлення · {{ countLabel() }}</span>
-              <a routerLink="/cart" [class]="linkClasses + ' text-sm'">Редагувати</a>
+              <span class="font-bold text-[var(--espresso-900)]">{{ 'checkout.summary' | transloco }} · {{ countLabel() }}</span>
+              <a [routerLink]="locale.commands('cart')" [class]="linkClasses + ' text-sm'">{{ 'checkout.editCart' | transloco }}</a>
             </div>
             <div class="flex items-baseline justify-between">
-              <span class="text-sm text-[var(--espresso-700)]">Разом</span>
+              <span class="text-sm text-[var(--espresso-700)]">{{ 'cart.total' | transloco }}</span>
               <span
                 class="font-[var(--font-accent)] text-xl font-bold text-[var(--espresso-900)]"
                 >{{ subtotal() | number: '1.0-0' }} ₴</span
@@ -369,8 +369,8 @@
           class="hidden rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-cream)] p-7 shadow-[var(--shadow-xs)] lg:block"
         >
           <div class="mb-5 flex items-center justify-between">
-            <h2 class="m-0 text-lg">Ваше замовлення</h2>
-            <a routerLink="/cart" [class]="linkClasses + ' text-sm'">Редагувати</a>
+            <h2 class="m-0 text-lg">{{ 'checkout.summary' | transloco }}</h2>
+            <a [routerLink]="locale.commands('cart')" [class]="linkClasses + ' text-sm'">{{ 'checkout.editCart' | transloco }}</a>
           </div>
 
           @if (loadStatus() === 'loading' || loadStatus() === 'idle') {
@@ -389,7 +389,7 @@
             <div class="mb-5" role="alert">
               <p class="mb-2 text-sm text-[var(--chili-700)]">{{ loadError() }}</p>
               <button type="button" [class]="linkClasses + ' text-sm'" (click)="retryCart()">
-                Спробувати ще
+                {{ 'common.retry' | transloco }}
               </button>
             </div>
           } @else {
@@ -403,7 +403,7 @@
                       <img [src]="src" [alt]="line.name" class="size-full object-cover" />
                     } @else {
                       <span class="font-[var(--font-accent)] text-[10px] text-[var(--kraft-400)]"
-                        >фото</span
+                        >{{ 'common.photo' | transloco }}</span
                       >
                     }
                     <span
@@ -430,20 +430,20 @@
 
           <div class="mb-4 h-px bg-[var(--border-subtle)]"></div>
           <div class="mb-2 flex items-center justify-between">
-            <span class="text-[var(--espresso-700)]">Сума товарів</span>
+            <span class="text-[var(--espresso-700)]">{{ 'cart.subtotal' | transloco }}</span>
             <span class="text-[var(--espresso-800)]"
               >{{ loadStatus() === 'ready' ? (subtotal() | number: '1.0-0') : '—' }} ₴</span
             >
           </div>
           <div class="mb-4 flex items-start justify-between gap-3">
-            <span class="text-[var(--espresso-700)]">Доставка</span>
-            <span class="text-right text-sm text-[var(--text-muted)]">за тарифами Нової Пошти</span>
+            <span class="text-[var(--espresso-700)]">{{ 'cart.delivery' | transloco }}</span>
+            <span class="text-right text-sm text-[var(--text-muted)]">{{ 'checkout.deliveryNpRates' | transloco }}</span>
           </div>
           <div
             class="flex items-baseline justify-between border-t border-[var(--border-subtle)] pt-4"
           >
             <span class="font-[var(--font-display)] text-lg font-extrabold text-[var(--espresso-900)]"
-              >Разом</span
+              >{{ 'cart.total' | transloco }}</span
             >
             <span
               class="font-[var(--font-accent)] text-2xl font-bold text-[var(--espresso-900)]"

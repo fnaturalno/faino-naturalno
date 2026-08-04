@@ -20,12 +20,13 @@ public interface ICartService
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns the current cart with live product prices.
+    /// Returns the current cart with live product prices and locale-aware display names.
     /// Empty cart is a successful empty payload (no 404).
     /// </summary>
     Task<CartDto> GetCartAsync(
         string sessionId,
         int? userId,
+        string locale,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -36,6 +37,7 @@ public interface ICartService
         int? userId,
         int cartItemId,
         UpdateCartItemRequest request,
+        string locale,
         CancellationToken cancellationToken);
 
     /// <summary>Removes one line and returns the updated cart.</summary>
@@ -43,11 +45,13 @@ public interface ICartService
         string sessionId,
         int? userId,
         int cartItemId,
+        string locale,
         CancellationToken cancellationToken);
 
     /// <summary>Clears all lines for the current cart (API-only; no UI control).</summary>
     Task<CartDto> ClearCartAsync(
         string sessionId,
         int? userId,
+        string locale,
         CancellationToken cancellationToken);
 }

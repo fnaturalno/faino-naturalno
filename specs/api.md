@@ -3,47 +3,64 @@
 Base URL: `/api`
 All responses: `{ success: bool, data: T, error: string? }`
 
+## Locale (content reads)
+
+Reads that return product/category **display names** resolve locale in order:
+
+1. Query `?locale=ua|en` (case-insensitive; invalid values ignored)
+2. `Accept-Language` (`uk*` / `ua*` → `ua`, `en*` → `en`)
+3. Fallback `ua`
+
+Public DTOs keep a single `name` / `shortDescription` / `description` / `categoryName` — the service picks UK or EN (EN only when non-empty). Writes are not locale-driven; admin bilingual fields are sent explicitly.
+
+Applies to: `GET /products`, `GET /products/:slug`, `GET /categories`, `GET /cart` (and cart mutations that return the cart), `GET /orders/:id`, `GET /admin/orders/:id`, admin order status update response.
+
 ## Products
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| GET | /products | — / Admin | List with filters (`includeInactive` only for Admin) |
-| GET | /products/:slug | — | Single active product (public detail) |
-| GET | /products/:id | Admin | Single product for admin edit form |
-| POST | /products | Admin | Create |
-| PUT | /products/:id | Admin | Full update |
+| GET | /products | — / Admin | List with filters (`includeInactive` only for Admin); `?locale=` |
+| GET | /products/:slug | — | Single active product (public detail); `?locale=` |
+| GET | /products/:id | Admin | Single product for admin edit form (bilingual fields) |
+| POST | /products | Admin | Create (bilingual: `nameUk` required, `nameEn` optional, …) |
+| PUT | /products/:id | Admin | Full update (same bilingual payload; slug from `nameUk` when omitted) |
 | PUT | /products/:id/active | Admin | Toggle `isActive` only |
 | DELETE | /products/:id | Admin | Delete |
 
-**GET /products query params:** `category` (slug(s); parent slug expands to parent-direct + subcategory products), `search`, `minPrice`, `maxPrice`, `page`, `pageSize`, `sortBy`, `includeInactive` (Admin only)
+**GET /products query params:** `category` (slug(s); parent slug expands to parent-direct + subcategory products), `search` (matches UK+EN name/short + slug), `minPrice`, `maxPrice`, `page`, `pageSize`, `sortBy`, `includeInactive` (Admin only), `locale`
+
+**Admin product payload:** `nameUk`, `nameEn?`, `shortDescriptionUk?`, `shortDescriptionEn?`, `descriptionUk?`, `descriptionEn?`, plus price/images/flags/`categoryId`/`slug?` as before. Empty EN allowed.
 
 ## Categories
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| GET | /categories | — / Admin | Nested tree: top-level nodes with `children[]`, `parentId`, counts (parent = direct + children; admin count may include inactive) |
-| POST | /categories | Admin | Create (optional `parentId`; max depth 2) |
-| PUT | /categories/:id | Admin | Update (name / slug / description / `parentId` with hierarchy rules) |
+| GET | /categories | — / Admin | Nested tree: top-level nodes with `children[]`, `parentId`, counts; `?locale=` for public monolingual names. Admin may pass `bilingual=true` for UK/EN fields |
+| GET | /categories/:id | Admin | Single category for admin edit (bilingual) |
+| POST | /categories | Admin | Create (optional `parentId`; max depth 2; bilingual) |
+| PUT | /categories/:id | Admin | Update (bilingual name/description / `parentId` with hierarchy rules) |
 | DELETE | /categories/:id | Admin | Delete (fails if products or child categories remain) |
+
+**Admin category payload:** `nameUk`, `nameEn?`, `descriptionUk?`, `descriptionEn?`, `slug?` (auto from `nameUk`), `parentId?`. Empty EN allowed.
 
 Hierarchy details: `specs/features/subcategories.md`.
 
 ## Cart
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| GET | /cart | — | Get cart (by session) |
+| GET | /cart | — | Get cart (by session); `?locale=` for line names |
 | POST | /cart/items | — | Add item |
-| PUT | /cart/items/:id | — | Update quantity |
-| DELETE | /cart/items/:id | — | Remove item |
+| PUT | /cart/items/:id | — | Update quantity (returns cart; `?locale=`) |
+| DELETE | /cart/items/:id | — | Remove item (returns cart; `?locale=`) |
 | DELETE | /cart | — | Clear cart |
 
 ## Orders
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
 | POST | /orders | — | Place order (returns confirmationToken) |
-| GET | /orders/:id | — (token or owner) | Get order confirmation (`?token=` or JWT owner) |
-| GET | /orders | User | User's orders |
+| GET | /orders/:id | — (token or owner) | Get order confirmation (`?token=` or JWT owner); `?locale=` for line product names from live Product |
+| GET | /orders | User | User's orders (no product names) |
 | GET | /admin/orders | Admin | All orders (search / status / pagination) |
-| GET | /admin/orders/:id | Admin | Order detail for admin drawer |
-| PUT | /admin/orders/:id/status | Admin | Update status |
+| GET | /admin/orders/:id | Admin | Order detail for admin drawer; `?locale=` |
+| PUT | /admin/orders/:id/status | Admin | Update status; `?locale=` on returned detail |
 
 ## Uploads
 | Method | Route | Auth | Description |

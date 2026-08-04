@@ -2,7 +2,7 @@
 
 <main class="min-h-[calc(100vh-60px)] bg-[var(--bg-page)] px-3 pb-28 pt-4 sm:px-6 sm:pb-12 sm:pt-5 lg:px-8 lg:py-7">
   <div class="mx-auto max-w-[1216px]">
-    <section class="mb-4 hidden sm:block lg:hidden" aria-label="Фільтри товарів">
+    <section class="mb-4 hidden sm:block lg:hidden" [attr.aria-label]="'catalog.filtersAria' | transloco">
       <button
         type="button"
         class="flex min-h-12 w-full items-center justify-between rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white px-4 font-bold shadow-[var(--shadow-xs)]"
@@ -10,14 +10,14 @@
         aria-controls="tablet-filters"
         (click)="tabletFiltersOpen.update((open) => !open)"
       >
-        <span class="flex items-center gap-2"><app-icon name="filter" [size]="18" /> Фільтри</span>
+        <span class="flex items-center gap-2"><app-icon name="filter" [size]="18" /> {{ 'catalog.filters' | transloco }}</span>
         <app-icon name="chevron-down" [size]="18" />
       </button>
       @if (tabletFiltersOpen()) {
         <div id="tablet-filters" class="mt-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white p-4 shadow-[var(--shadow-xs)]">
           <div class="flex flex-wrap items-center gap-2">
             @if (store.categoryError()) {
-              <span class="text-sm text-[var(--chili-700)]">Категорії тимчасово недоступні</span>
+              <span class="text-sm text-[var(--chili-700)]">{{ 'catalog.categoriesUnavailable' | transloco }}</span>
             } @else {
               <div class="flex w-full flex-col gap-1.5">
                 @for (category of store.categories(); track category.id) {
@@ -52,7 +52,7 @@
           </div>
           <div class="mt-4 flex max-w-sm items-end gap-2">
             <label class="flex-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-              від
+              {{ 'catalog.from' | transloco }}
               <input
                 type="number"
                 min="0"
@@ -63,7 +63,7 @@
             </label>
             <span class="pb-3 text-[var(--kraft-500)]">–</span>
             <label class="flex-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-              до
+              {{ 'catalog.to' | transloco }}
               <input
                 type="number"
                 min="0"
@@ -72,7 +72,7 @@
                 (input)="updateAppliedPrice('max', $any($event.target).value)"
               />
             </label>
-            <button type="button" class="min-h-11 rounded-lg px-3 font-semibold text-[var(--cinnamon-700)]" (click)="store.reset()">Скинути</button>
+            <button type="button" class="min-h-11 rounded-lg px-3 font-semibold text-[var(--cinnamon-700)]" (click)="store.reset()">{{ 'catalog.reset' | transloco }}</button>
           </div>
         </div>
       }
@@ -81,18 +81,18 @@
     <div class="flex items-start gap-8">
       <aside
         class="sticky top-[104px] hidden w-[260px] shrink-0 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white p-5 shadow-[var(--shadow-xs)] lg:block"
-        aria-label="Фільтри товарів"
+        [attr.aria-label]="'catalog.filtersAria' | transloco"
       >
         <div class="mb-5 flex items-center justify-between">
-          <h2 class="m-0 text-xl">Фільтри</h2>
-          <button type="button" class="text-sm font-semibold text-[var(--cinnamon-700)]" (click)="store.reset()">Скинути</button>
+          <h2 class="m-0 text-xl">{{ 'catalog.filters' | transloco }}</h2>
+          <button type="button" class="text-sm font-semibold text-[var(--cinnamon-700)]" (click)="store.reset()">{{ 'catalog.reset' | transloco }}</button>
         </div>
         <div class="mb-5 border-t border-[var(--border-subtle)] pt-4">
-          <h3 class="fn-eyebrow mb-3">Категорії</h3>
+          <h3 class="fn-eyebrow mb-3">{{ 'catalog.categories' | transloco }}</h3>
           @if (store.categoryError()) {
-            <p class="text-sm text-[var(--chili-700)]">Не вдалося завантажити категорії.</p>
+            <p class="text-sm text-[var(--chili-700)]">{{ 'catalog.categoriesLoadError' | transloco }}</p>
           } @else if (!store.categories().length) {
-            <div class="space-y-3" aria-label="Завантаження категорій">
+            <div class="space-y-3" [attr.aria-label]="'catalog.categoriesLoading' | transloco">
               <div class="h-6 animate-pulse rounded bg-[var(--kraft-200)]"></div>
               <div class="h-6 animate-pulse rounded bg-[var(--kraft-200)]"></div>
               <div class="h-6 animate-pulse rounded bg-[var(--kraft-200)]"></div>
@@ -128,7 +128,7 @@
         </div>
 
         <div class="border-t border-[var(--border-subtle)] pt-4">
-          <h3 class="fn-eyebrow mb-4">Ціна, ₴</h3>
+          <h3 class="fn-eyebrow mb-4">{{ 'catalog.price' | transloco }}</h3>
           <div class="relative mx-1 mb-5 h-1.5 rounded-full bg-[var(--kraft-200)]">
             <div class="absolute inset-y-0 left-[12%] right-[12%] rounded-full bg-[var(--marigold-400)]"></div>
             <span class="absolute left-[12%] top-1/2 size-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--espresso-800)] bg-white shadow"></span>
@@ -136,7 +136,7 @@
           </div>
           <div class="flex items-end gap-2">
             <label class="min-w-0 flex-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-              від
+              {{ 'catalog.from' | transloco }}
               <input
                 type="number"
                 min="0"
@@ -147,7 +147,7 @@
             </label>
             <span class="pb-2.5 text-[var(--kraft-500)]">–</span>
             <label class="min-w-0 flex-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-              до
+              {{ 'catalog.to' | transloco }}
               <input
                 type="number"
                 min="0"
@@ -161,27 +161,29 @@
             type="button"
             class="mt-6 min-h-11 w-full rounded-lg border border-[var(--espresso-800)] font-bold"
             (click)="store.reset()"
-          >Скинути фільтри</button>
+          >{{ 'catalog.resetFilters' | transloco }}</button>
         </div>
       </aside>
 
       <section class="min-w-0 flex-1" aria-labelledby="catalog-heading">
-        <h1 id="catalog-heading" class="sr-only">Каталог товарів</h1>
+        <h1 id="catalog-heading" class="sr-only">{{ 'catalog.title' | transloco }}</h1>
         <div class="mb-4 flex items-center justify-between gap-3 sm:mb-5">
           <p class="m-0 text-sm text-[var(--espresso-700)] sm:text-base" aria-live="polite">
-            <strong class="text-[var(--espresso-900)]">{{ store.page()?.totalCount ?? 0 }} товари</strong>
+            <strong class="text-[var(--espresso-900)]">{{
+              productsCountLabel().key | transloco: { count: productsCountLabel().count }
+            }}</strong>
           </p>
           <label class="flex items-center gap-2">
-            <span class="hidden text-sm text-[var(--text-muted)] lg:inline">Сортувати:</span>
+            <span class="hidden text-sm text-[var(--text-muted)] lg:inline">{{ 'catalog.sort' | transloco }}</span>
             <span class="relative">
               <select
                 class="min-h-10 appearance-none rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white py-2 pl-3 pr-9 text-sm font-semibold"
-                aria-label="Сортування товарів"
+                [attr.aria-label]="'catalog.sortAria' | transloco"
                 [value]="store.filters().sortBy"
                 (change)="updateSort($any($event.target).value)"
               >
                 @for (option of sortOptions; track option.value) {
-                  <option [value]="option.value">{{ option.label }}</option>
+                  <option [value]="option.value">{{ option.labelKey | transloco }}</option>
                 }
               </select>
               <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"><app-icon name="chevron-down" [size]="15" /></span>
@@ -190,14 +192,14 @@
         </div>
 
         <div aria-live="polite" aria-atomic="true" class="sr-only">
-          @if (store.initialLoading()) { Завантаження товарів }
-          @else if (store.refetching()) { Оновлення товарів }
-          @else if (store.error()) { Помилка завантаження товарів }
-          @else { Показано {{ store.page()?.totalCount ?? 0 }} товарів }
+          @if (store.initialLoading()) { {{ 'catalog.loading' | transloco }} }
+          @else if (store.refetching()) { {{ 'catalog.updating' | transloco }} }
+          @else if (store.error()) { {{ 'catalog.loadErrorLive' | transloco }} }
+          @else { {{ 'catalog.shown' | transloco: { count: store.page()?.totalCount ?? 0 } }} }
         </div>
 
         @if (store.initialLoading()) {
-          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:gap-[22px]" aria-label="Завантаження товарів">
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:gap-[22px]" [attr.aria-label]="'catalog.loading' | transloco">
             @for (skeleton of skeletons; track skeleton) {
               <div class="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white">
                 <div class="aspect-square animate-pulse bg-[var(--kraft-200)]"></div>
@@ -215,18 +217,18 @@
           </div>
         } @else if (store.error()) {
           <div class="rounded-[var(--radius-lg)] border border-[var(--chili-100)] bg-white px-6 py-14 text-center" role="alert">
-            <h2 class="mb-3 text-xl">Щось пішло не так</h2>
+            <h2 class="mb-3 text-xl">{{ 'catalog.errorTitle' | transloco }}</h2>
             <p class="mx-auto mb-6 max-w-md text-[var(--espresso-700)]">{{ store.error() }}</p>
-            <button type="button" class="rounded-lg bg-[var(--marigold-400)] px-5 py-3 font-extrabold" (click)="store.retry()">Спробувати ще</button>
+            <button type="button" class="rounded-lg bg-[var(--marigold-400)] px-5 py-3 font-extrabold" (click)="store.retry()">{{ 'common.retry' | transloco }}</button>
           </div>
         } @else if (!store.page()?.items?.length) {
           <div class="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white px-6 py-14 text-center shadow-[var(--shadow-xs)]">
             <div class="mx-auto mb-6 grid size-[120px] place-items-center rounded-full border border-[var(--border-subtle)] bg-[var(--kraft-100)] text-[var(--kraft-500)]">
               <app-icon name="package" [size]="56" />
             </div>
-            <h2 class="mb-2 text-xl">Товарів не знайдено</h2>
-            <p class="mx-auto mb-6 max-w-md text-[var(--espresso-700)]">Спробуйте змінити фільтри або розширити діапазон ціни — ми зібрали для вас багато смачного.</p>
-            <button type="button" class="rounded-lg bg-[var(--marigold-400)] px-5 py-3 font-extrabold" (click)="store.reset()">Скинути фільтри</button>
+            <h2 class="mb-2 text-xl">{{ 'catalog.emptyTitle' | transloco }}</h2>
+            <p class="mx-auto mb-6 max-w-md text-[var(--espresso-700)]">{{ 'catalog.emptyBody' | transloco }}</p>
+            <button type="button" class="rounded-lg bg-[var(--marigold-400)] px-5 py-3 font-extrabold" (click)="store.reset()">{{ 'catalog.resetFilters' | transloco }}</button>
           </div>
         } @else {
           <div
@@ -240,11 +242,11 @@
           </div>
 
           @if ((store.page()?.totalPages ?? 0) > 1) {
-            <nav class="mt-8 flex items-center justify-center gap-1.5 sm:gap-2" aria-label="Сторінки каталогу">
+            <nav class="mt-8 flex items-center justify-center gap-1.5 sm:gap-2" [attr.aria-label]="'catalog.pagesAria' | transloco">
               <button
                 type="button"
                 class="grid size-11 place-items-center rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Попередня сторінка"
+                [attr.aria-label]="'catalog.prevPage' | transloco"
                 [disabled]="store.page()!.page <= 1"
                 (click)="store.updatePage(store.page()!.page - 1)"
               ><app-icon name="chevron-left" [size]="18" /></button>
@@ -261,7 +263,7 @@
                     [class.border-[var(--border-subtle)]]="item !== store.page()!.page"
                     [class.bg-white]="item !== store.page()!.page"
                     [attr.aria-current]="item === store.page()!.page ? 'page' : null"
-                    [attr.aria-label]="'Сторінка ' + item"
+                    [attr.aria-label]="'catalog.pageN' | transloco: { page: item }"
                     (click)="store.updatePage(item)"
                   >{{ item }}</button>
                 }
@@ -269,7 +271,7 @@
               <button
                 type="button"
                 class="grid size-11 place-items-center rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Наступна сторінка"
+                [attr.aria-label]="'catalog.nextPage' | transloco"
                 [disabled]="store.page()!.page >= store.page()!.totalPages"
                 (click)="store.updatePage(store.page()!.page + 1)"
               ><app-icon name="chevron-right" [size]="18" /></button>
@@ -291,7 +293,7 @@
     (click)="openSheet()"
   >
     <app-icon name="filter" [size]="20" />
-    Фільтри
+    {{ 'catalog.filters' | transloco }}
     @if (activeFilterCount() > 0) {
       <span class="rounded-full bg-[var(--marigold-400)] px-2 py-0.5 text-xs text-[var(--espresso-900)]">{{ activeFilterCount() }}</span>
     }
@@ -318,15 +320,15 @@
     >
       <div class="mx-auto mb-3 h-1.5 w-11 rounded-full bg-[var(--kraft-300)]"></div>
       <div class="mb-4 flex items-center justify-between">
-        <h2 id="filter-sheet-title" class="m-0 text-xl">Фільтри</h2>
-        <button type="button" class="grid size-11 place-items-center rounded-lg" aria-label="Закрити фільтри" (click)="closeSheet()">
+        <h2 id="filter-sheet-title" class="m-0 text-xl">{{ 'catalog.filters' | transloco }}</h2>
+        <button type="button" class="grid size-11 place-items-center rounded-lg" [attr.aria-label]="'catalog.closeFilters' | transloco" (click)="closeSheet()">
           <app-icon name="close" [size]="21" />
         </button>
       </div>
 
-      <h3 class="fn-eyebrow mb-2">Категорії</h3>
+      <h3 class="fn-eyebrow mb-2">{{ 'catalog.categories' | transloco }}</h3>
       @if (store.categoryError()) {
-        <p class="text-sm text-[var(--chili-700)]">Категорії тимчасово недоступні.</p>
+        <p class="text-sm text-[var(--chili-700)]">{{ 'catalog.categoriesUnavailable' | transloco }}.</p>
       } @else {
         <div class="mb-5 space-y-1">
           @for (category of store.categories(); track category.id) {
@@ -356,10 +358,10 @@
         </div>
       }
 
-      <h3 class="fn-eyebrow mb-3">Ціна, ₴</h3>
+      <h3 class="fn-eyebrow mb-3">{{ 'catalog.price' | transloco }}</h3>
       <div class="mb-6 flex items-end gap-3">
         <label class="min-w-0 flex-1 text-xs font-bold text-[var(--text-muted)]">
-          від
+          {{ 'catalog.from' | transloco }}
           <input
             type="number"
             min="0"
@@ -370,7 +372,7 @@
         </label>
         <span class="pb-3 text-[var(--kraft-500)]">–</span>
         <label class="min-w-0 flex-1 text-xs font-bold text-[var(--text-muted)]">
-          до
+          {{ 'catalog.to' | transloco }}
           <input
             type="number"
             min="0"
@@ -382,9 +384,9 @@
       </div>
 
       <div class="flex gap-3">
-        <button type="button" class="min-h-[52px] rounded-[var(--radius-md)] border border-[var(--espresso-800)] px-4 font-bold" (click)="resetPending()">Скинути</button>
+        <button type="button" class="min-h-[52px] rounded-[var(--radius-md)] border border-[var(--espresso-800)] px-4 font-bold" (click)="resetPending()">{{ 'catalog.reset' | transloco }}</button>
         <button type="button" class="min-h-[52px] flex-1 rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-4 font-extrabold" (click)="applyPending()">
-          Показати {{ store.previewCount() ?? '…' }} товарів
+          {{ store.previewCount() == null ? ('catalog.showProductsPending' | transloco) : ('catalog.showProducts' | transloco: { count: store.previewCount() }) }}
         </button>
       </div>
     </section>
