@@ -26,6 +26,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Блок «Мої замовлення» (останні 20; клік веде на сторінку замовлення).
 - Злив guest-кошика (`X-Cart-Session-Id`) у кошик користувача після успішного login/register.
 - Узгодження з існуючими контрактами `POST /auth/register|login|refresh|logout` і `GET /orders` (User).
+- Доставка листів скидання пароля: опційний SMTP (`Email:Smtp`); без Host — log-only stub.
 
 ### Out of scope
 
@@ -33,7 +34,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Зміна email після реєстрації.
 - Видалення акаунта або видалення адреси доставки (лише зміна адреси).
 - Соціальний вхід (роздільник «або» у макеті — лише перехід на реєстрацію/вхід).
-- Реальна SMTP-доставка листів без конфігурації (коли `Email:Smtp:Host` порожній — log-only stub; коли Host заданий — SMTP).
+- HTML-шаблони листів, черги листів, транзакційні листи поза скиданням пароля.
 - Повна реалізація сторінки деталі замовлення / checkout (крім навігації з рядка замовлення та підказки, що адреса з профілю підставляється на оформленні).
 - Product detail і повний кошик поза merge після auth.
 
@@ -127,12 +128,27 @@ After success, the client merges the guest cart (session id) into the authentica
 
 1. User submits email on the forgot-password page.
 2. Server accepts the request; for unknown emails the API still returns the **same success outcome** (no account enumeration).
-3. Reset token lifetime is **60 minutes** (`PasswordResetTokenHours: 1`); UI copy must say «60 хвилин».
+3. Reset token lifetime is **60 minutes** (`App:PasswordResetTokenHours` = 1); UI copy must say «60 хвилин».
 4. User opens the link from the email (token in the URL) and sets a new password + confirmation (confirmation client-side).
 5. Request body remains: token + password (no new fields). Email shown on the «sent» screen is held by the client from step 1.
 6. On successful reset: set new password hash, set `passwordChangedAt` to now, invalidate **all** refresh sessions for that user.
 7. Invalid or expired token yields a clear failure the UI can explain, with an option to request a new email.
-8. Email delivery: when `Email:Smtp:Host` is set, messages are sent via SMTP; otherwise log-only stub (Development logs the reset link in API console).
+8. Reset link is built as `{App:FrontendBaseUrl}/auth/reset-password?token=…` (must be the live frontend URL in production).
+
+#### Email delivery (`Email` config)
+
+| Setting | Purpose |
+|---------|---------|
+| `Email:From` | From address (e.g. `noreply@fayno.shop`) |
+| `Email:Smtp:Host` | SMTP host; **empty** → log-only stub (no inbox delivery) |
+| `Email:Smtp:Port` | Default `587` |
+| `Email:Smtp:Username` / `Password` | SMTP credentials |
+| `Email:Smtp:UseSsl` | Default `true` |
+
+- When `Email:Smtp:Host` is set → `SmtpEmailSender` delivers plain-text reset mail.
+- When Host is empty → `LoggingEmailSender`: warns that mail was not delivered; in **Development** also logs the message body (incl. reset link) for local testing.
+- SMTP failures are logged; the forgot-password API still returns the same success outcome (no account enumeration / broken UX).
+- Do **not** commit real SMTP passwords in `appsettings.json`. Production (e.g. Railway) uses env vars: `Email__From`, `Email__Smtp__Host`, `Email__Smtp__Port`, `Email__Smtp__Username`, `Email__Smtp__Password`, `Email__Smtp__UseSsl`, plus `App__FrontendBaseUrl`.
 
 ### 1.7 Change password (logged-in)
 
@@ -422,7 +438,8 @@ Short Ukrainian toasts after:
 - [ ] Refresh and logout behave as specified; logout invalidates the current client refresh token.
 - [ ] Current-user read and profile update support first name, last name, and optional phone; email cannot be changed.
 - [ ] `GET /auth/me` (and user DTO) expose nullable `passwordChangedAt` and `createdAt`.
-- [ ] Password reset request and token-based set-password work; unknown email on request does not reveal account existence; token lifetime is 60 minutes.
+- [ ] Password reset request and token-based set-password work; unknown email on request does not reveal account existence; token lifetime is 60 minutes; reset link uses `App:FrontendBaseUrl`.
+- [ ] Email delivery: SMTP when `Email:Smtp:Host` is set; otherwise log-only stub (Development logs reset link). SMTP secrets via env in production, not committed config.
 - [ ] Successful reset sets `passwordChangedAt` and invalidates all refresh sessions.
 - [ ] Change-password accepts `currentPassword` + `newPassword`; success is message-style; stays logged in on current device; invalidates other sessions; sets `passwordChangedAt`.
 - [ ] Password rules: min 8, max 128; email uniqueness/login is case-insensitive.
@@ -464,4 +481,4 @@ Short Ukrainian toasts after:
 - [ ] Profile shows at most 20 recent orders.
 - [ ] Optional phone validates `+380` when provided.
 - [ ] Wrong current password shows a clear error; other sessions need re-login after change; all sessions after reset.
-- [ ] Admin UI, social login, email change, account/address deletion, and full order-detail/checkout implementation remain out of scope. SMTP is optional via `Email:Smtp` config.
+- [ ] Admin UI, social login, email change, account/address deletion, HTML email templates / non-reset transactional mail, and full order-detail/checkout implementation remain out of scope.
