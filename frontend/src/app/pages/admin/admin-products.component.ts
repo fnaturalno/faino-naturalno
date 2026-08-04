@@ -114,6 +114,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
           <span class="fn-eyebrow text-[10px]">Категорія</span>
           <span class="fn-eyebrow text-[10px]">Ціна</span>
           <span class="fn-eyebrow text-[10px]">Статус</span>
+          <span class="fn-eyebrow text-[10px]">В наявності</span>
           <span class="fn-eyebrow text-right text-[10px]">Дії</span>
         </div>
 
@@ -174,6 +175,28 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
                 {{ product.isActive ? 'Активний' : 'Прихований' }}
               </span>
             </button>
+
+            <label
+              class="inline-flex cursor-pointer items-center gap-2 justify-self-start"
+              [class.pointer-events-none]="togglingId() === product.id"
+              [class.opacity-50]="togglingId() === product.id"
+            >
+              <input
+                type="checkbox"
+                class="size-5 shrink-0 rounded border-[var(--border-strong)] accent-[var(--marigold-500)]"
+                [checked]="product.isAvailable !== false"
+                [disabled]="togglingId() === product.id"
+                [attr.aria-label]="'В наявності: ' + product.name"
+                (change)="toggleAvailable(product)"
+              />
+              <span
+                class="text-xs font-semibold"
+                [class.text-[var(--marigold-600)]]="product.isAvailable !== false"
+                [class.text-[var(--text-muted)]]="product.isAvailable === false"
+              >
+                {{ product.isAvailable !== false ? 'Так' : 'Ні' }}
+              </span>
+            </label>
 
             <div class="flex justify-end gap-2">
               <a
@@ -240,6 +263,14 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
                 ></span>
               </span>
             </button>
+            <input
+              type="checkbox"
+              class="size-5 shrink-0 rounded border-[var(--border-strong)] accent-[var(--marigold-500)]"
+              [checked]="product.isAvailable !== false"
+              [disabled]="togglingId() === product.id"
+              [attr.aria-label]="'В наявності: ' + product.name"
+              (change)="toggleAvailable(product)"
+            />
             <a
               [routerLink]="['/admin/products', product.id, 'edit']"
               class="ad-act shrink-0"
@@ -314,7 +345,7 @@ export class AdminProductsComponent {
   readonly error = signal('');
   readonly togglingId = signal<number | null>(null);
   private readonly failedImageIds = signal(new Set<number>());
-  protected readonly tableCols = '64px minmax(0, 1fr) 130px 100px 130px 100px';
+  protected readonly tableCols = '64px minmax(0, 1fr) 120px 90px 120px 110px 100px';
 
   readonly products = computed(() => this.page().items ?? []);
 
@@ -436,6 +467,36 @@ export class AdminProductsComponent {
         error: (error) => {
           this.togglingId.set(null);
           this.toast.error(extractApiError(error, 'Не вдалося змінити статус'));
+        },
+      });
+  }
+
+  toggleAvailable(product: AdminProduct): void {
+    if (this.togglingId() !== null) return;
+    const next = product.isAvailable === false;
+    this.togglingId.set(product.id);
+    this.admin
+      .setProductAvailable(product.id, next)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.togglingId.set(null);
+          if (response.success) {
+            this.page.update((value) => ({
+              ...value,
+              items: value.items.map((item) =>
+                item.id === product.id
+                  ? { ...item, isAvailable: response.data.isAvailable }
+                  : item,
+              ),
+            }));
+          } else {
+            this.toast.error(response.error ?? 'Не вдалося змінити наявність');
+          }
+        },
+        error: (error) => {
+          this.togglingId.set(null);
+          this.toast.error(extractApiError(error, 'Не вдалося змінити наявність'));
         },
       });
   }

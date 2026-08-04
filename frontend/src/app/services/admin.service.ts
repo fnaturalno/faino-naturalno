@@ -46,6 +46,12 @@ export class AdminService {
     return this.http.put<ApiResponse<AdminProduct>>(`${this.apiUrl}/products/${id}/active`, { isActive });
   }
 
+  setProductAvailable(id: number, isAvailable: boolean): Observable<ApiResponse<AdminProduct>> {
+    return this.http.put<ApiResponse<AdminProduct>>(`${this.apiUrl}/products/${id}/available`, {
+      isAvailable,
+    });
+  }
+
   uploadImage(file: File): Observable<ApiResponse<{ url: string }>> {
     const body = new FormData();
     body.append('file', file);

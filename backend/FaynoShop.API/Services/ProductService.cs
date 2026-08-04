@@ -290,6 +290,20 @@ public sealed class ProductService : IProductService
         return await GetForAdminAsync(product.Id, cancellationToken);
     }
 
+    public async Task<AdminProductDto> SetAvailableAsync(
+        int id,
+        bool isAvailable,
+        CancellationToken cancellationToken)
+    {
+        var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
+            ?? throw new NotFoundException("Товар не знайдено.");
+
+        product.IsAvailable = isAvailable;
+        product.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+        return await GetForAdminAsync(product.Id, cancellationToken);
+    }
+
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var exists = await _db.Products.AnyAsync(p => p.Id == id, cancellationToken);

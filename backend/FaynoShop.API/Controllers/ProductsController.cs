@@ -103,6 +103,19 @@ public sealed class ProductsController : ControllerBase
         return Ok(ApiResponse<AdminProductDto>.Ok(data));
     }
 
+    [HttpPut("{id:int}/available")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ApiResponse<AdminProductDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<AdminProductDto>>> SetAvailable(
+        int id,
+        [FromBody] SetProductAvailableRequest request,
+        CancellationToken cancellationToken)
+    {
+        var data = await _productService.SetAvailableAsync(id, request.IsAvailable, cancellationToken);
+        return Ok(ApiResponse<AdminProductDto>.Ok(data));
+    }
+
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]

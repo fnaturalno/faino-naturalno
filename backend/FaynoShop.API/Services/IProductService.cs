@@ -20,5 +20,7 @@ public interface IProductService
 
     Task<AdminProductDto> SetActiveAsync(int id, bool isActive, CancellationToken cancellationToken);
 
+    Task<AdminProductDto> SetAvailableAsync(int id, bool isAvailable, CancellationToken cancellationToken);
+
     Task DeleteAsync(int id, CancellationToken cancellationToken);
 }

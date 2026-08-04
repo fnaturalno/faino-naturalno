@@ -18,7 +18,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 
 - Захищена зона `/admin/*`: JWT + `IsAdmin`; неадмін / гість — redirect або forbidden.
 - Оболонка адмінки: лівий сайдбар, топбар з іменем адміна, мобільний вигляд списку товарів.
-- Товари: список з пошуком / фільтром / пагінацією (номери сторінок), switch-toggle активності, іконки edit/delete, мобільні картки; створення, редагування, видалення.
+- Товари: список з пошуком / фільтром / пагінацією (номери сторінок), switch-toggle активності, checkbox наявності, іконки edit/delete, мобільні картки; створення, редагування, видалення.
 - Форма товару: поля моделі Product (назва, slug, категорія, описи, ціна, стара ціна, вага/одиниця, зображення URL(и), IsActive, IsFeatured, IsAvailable).
 - Категорії: ієрархічний список (expand/collapse, підкатегорії), створення / редагування в drawer, видалення; деталі в `specs/features/subcategories.md`.
 - Замовлення: список усіх з пошуком / фільтром статусу, drawer деталей, зміна статусу.
@@ -79,6 +79,7 @@ Every endpoint returns:
 | POST | `/api/products` | Admin | Create product |
 | PUT | `/api/products/:id` | Admin | Full update product |
 | PUT | `/api/products/:id/active` | Admin | Toggle `isActive` only (list quick toggle) |
+| PUT | `/api/products/:id/available` | Admin | Toggle `isAvailable` only (list quick checkbox) |
 | DELETE | `/api/products/:id` | Admin | Delete product |
 | GET | `/api/categories` | — / Admin | List categories (product count; admin includes inactive) |
 | POST | `/api/categories` | Admin | Create category |
@@ -148,6 +149,10 @@ Server rules:
 ### 1.7 Quick toggle active
 
 - Updating only `isActive` (from the list toggle) uses `PUT /api/products/:id/active` with body `{ isActive: bool }` — does **not** send a full product payload (avoids clearing description / gallery).
+
+### 1.8 Quick toggle available
+
+- Updating only `isAvailable` (from the list checkbox) uses `PUT /api/products/:id/available` with body `{ isAvailable: bool }` — same lightweight pattern as active toggle.
 - No confirmation dialog for activate / hide.
 
 ### 1.8 Categories
@@ -245,6 +250,7 @@ Matches `design/admin.dc.html` products view:
 - «Назва» bold + slug subtitle (muted, truncated).
 - «Категорія», «Ціна» (`N ₴`, accent weight).
 - «Статус»: **switch toggle** (garden when on, kraft when off) + label «Активний» / «Прихований» — not text-only bullets.
+- «В наявності»: **checkbox** (marigold accent, distinct from status garden toggle) + label «Так» / «Ні».
 - «Дії»: icon buttons (`ad-act`) — pencil edit, trash delete (danger hover).
 
 **Pagination**

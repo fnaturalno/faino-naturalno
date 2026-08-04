@@ -109,16 +109,17 @@
             </div>
 
             <div style="background:var(--surface-card);border:var(--border-width) solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-xs);">
-              <div style="display:grid;grid-template-columns:64px 1fr 130px 100px 130px 100px;gap:12px;align-items:center;padding:14px 20px;background:var(--surface-cream);border-bottom:var(--border-width) solid var(--border-subtle);">
+              <div style="display:grid;grid-template-columns:64px 1fr 120px 90px 120px 110px 100px;gap:12px;align-items:center;padding:14px 20px;background:var(--surface-cream);border-bottom:var(--border-width) solid var(--border-subtle);">
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);"></span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);">Назва</span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);">Категорія</span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);">Ціна</span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);">Статус</span>
+                <span class="fn-eyebrow" style="font-size:var(--text-2xs);">В наявності</span>
                 <span class="fn-eyebrow" style="font-size:var(--text-2xs);text-align:right;">Дії</span>
               </div>
               <sc-for list="{{ products }}" as="p" hint-placeholder-count="6">
-                <div class="ad-row" style="display:grid;grid-template-columns:64px 1fr 130px 100px 130px 100px;gap:12px;align-items:center;padding:12px 20px;border-bottom:var(--border-width) solid var(--border-subtle);transition:background var(--dur) var(--ease-out);">
+                <div class="ad-row" style="display:grid;grid-template-columns:64px 1fr 120px 90px 120px 110px 100px;gap:12px;align-items:center;padding:12px 20px;border-bottom:var(--border-width) solid var(--border-subtle);transition:background var(--dur) var(--ease-out);">
                   <div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--kraft-100);border:var(--border-width) solid var(--border-subtle);display:flex;align-items:center;justify-content:center;">
                     <span style="font-family:var(--font-accent);font-size:10px;color:var(--kraft-400);">фото</span>
                   </div>
@@ -136,6 +137,10 @@
                       <span style="font-size:var(--text-xs);color:{{ p.togColor }};font-weight:var(--fw-semibold);">{{ p.togLabel }}</span>
                     </button>
                   </div>
+                  <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" checked="{{ p.availChecked }}" onChange="{{ p.toggleAvail }}" aria-label="В наявності" style="width:20px;height:20px;accent-color:var(--marigold-500);cursor:pointer;" />
+                    <span style="font-size:var(--text-xs);color:{{ p.availColor }};font-weight:var(--fw-semibold);">{{ p.availLabel }}</span>
+                  </label>
                   <div style="display:flex;gap:8px;justify-content:flex-end;">
                     <span class="ad-act" onClick="{{ goEdit }}">
                       <x-import component-from-global-scope="FainoNaturalnoDesignSystem_69873b.Icon" name="pencil" size="15" hint-size="15px,15px"></x-import>
@@ -567,6 +572,7 @@ class Component extends DCLogic {
     available: true,
     drawerId: null,
     prodActive: { 1: true, 2: true, 3: false, 4: true, 5: true, 6: false },
+    prodAvailable: { 1: true, 2: true, 3: true, 4: false, 5: true, 6: true },
     catDrawerId: null,
     catMode: "new",
     catParent: 0,
@@ -722,6 +728,7 @@ class Component extends DCLogic {
 
       products: this.PRODUCTS.map((p) => {
         const on = s.prodActive[p.id];
+        const avail = s.prodAvailable[p.id] !== false;
         return {
           ...p,
           toggle: () => this.setState((st) => ({ prodActive: { ...st.prodActive, [p.id]: !st.prodActive[p.id] } })),
@@ -730,6 +737,12 @@ class Component extends DCLogic {
           togXm: on ? "16px" : "2px",
           togColor: on ? "var(--garden-700)" : "var(--text-muted)",
           togLabel: on ? "Активний" : "Прихований",
+          toggleAvail: () => this.setState((st) => ({
+            prodAvailable: { ...st.prodAvailable, [p.id]: !st.prodAvailable[p.id] },
+          })),
+          availChecked: avail ? "checked" : undefined,
+          availColor: avail ? "var(--marigold-600)" : "var(--text-muted)",
+          availLabel: avail ? "Так" : "Ні",
         };
       }),
 
