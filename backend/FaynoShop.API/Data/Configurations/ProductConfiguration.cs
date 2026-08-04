@@ -29,24 +29,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.ShortDescriptionEn)
             .HasMaxLength(500);
 
-        builder.Property(p => p.Price)
-            .HasPrecision(10, 2)
-            .IsRequired();
-
-        builder.Property(p => p.OldPrice)
-            .HasPrecision(10, 2);
-
         builder.Property(p => p.ImageUrl)
             .HasMaxLength(500);
 
         builder.Property(p => p.ImageUrls)
             .HasColumnType("text[]");
-
-        builder.Property(p => p.Weight)
-            .HasPrecision(10, 3);
-
-        builder.Property(p => p.WeightUnit)
-            .HasMaxLength(10);
 
         builder.Property(p => p.IsActive)
             .IsRequired()
@@ -93,8 +80,5 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.HasIndex(p => p.CreatedAt)
             .HasDatabaseName("idx_products_created_at");
-
-        builder.HasIndex(p => p.Price)
-            .HasDatabaseName("idx_products_price");
     }
 }

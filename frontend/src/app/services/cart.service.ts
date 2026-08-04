@@ -152,12 +152,12 @@ export class CartService {
       );
   }
 
-  addItem(productId: number, quantity = 1): Observable<ApiResponse<AddCartItemResponse>> {
+  addItem(variantId: number, quantity = 1): Observable<ApiResponse<AddCartItemResponse>> {
     const qty = Math.max(1, Math.min(12, Math.floor(quantity)));
     return this.http
       .post<ApiResponse<AddCartItemResponse>>(
         `${environment.apiBaseUrl}/api/cart/items`,
-        { productId, quantity: qty },
+        { variantId, quantity: qty },
         { headers: this.sessionHeaders() },
       )
       .pipe(
@@ -368,11 +368,14 @@ function normalizeCartLine(raw: CartLineDto & { categoryName?: string }): CartLi
   return {
     cartItemId: raw.cartItemId,
     productId: raw.productId,
+    variantId: raw.variantId,
     name: raw.name ?? '',
     slug: raw.slug ?? '',
     category: raw.category ?? raw.categoryName ?? '',
     imageUrl: raw.imageUrl ?? null,
     price,
+    weight: Number(raw.weight) || 0,
+    weightUnit: raw.weightUnit ?? '',
     quantity,
     lineTotal: raw.lineTotal ?? price * quantity,
     isActive: raw.isActive !== false,

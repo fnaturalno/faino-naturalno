@@ -33,10 +33,15 @@ export interface PlaceOrderResponse {
 /** One line on GET /api/orders/:id — mirrors OrderDetailItemDto (camelCase). */
 export interface OrderLineDto {
   productId: number;
+  variantId?: number | null;
   productName: string;
   quantity: number;
   unitPrice: number;
   lineTotal: number;
+  /** Snapshot of variant weight at place time. */
+  weight?: number | null;
+  /** Snapshot of variant weight unit at place time. */
+  weightUnit?: string | null;
   category?: string | null;
   imageUrl?: string | null;
 }

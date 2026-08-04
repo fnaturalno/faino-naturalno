@@ -29,7 +29,12 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { LocaleService } from '../../i18n/locale.service';
 import { SeoService } from '../../i18n/seo.service';
-import { ProductDetail } from '../../models/catalog.models';
+import {
+  ProductDetail,
+  ProductVariantDto,
+  formatVariantWeight,
+  pickCheapestVariant,
+} from '../../models/catalog.models';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
 import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
@@ -103,6 +108,7 @@ export class ProductComponent {
   protected readonly thumbFailed = signal<Record<number, boolean>>({});
   protected readonly addStatus = signal<CartUiStatus>('idle');
   protected readonly similarStatuses = signal<Record<number, CartUiStatus>>({});
+  protected readonly selectedVariantId = signal<number | null>(null);
   protected readonly toast = signal<{
     title: string;
     detail: string | null;
@@ -130,16 +136,24 @@ export class ProductComponent {
     return sanitizeImageUrl(this.activeImage());
   });
 
+  protected readonly variants = computed(() => {
+    const list = this.product()?.variants ?? [];
+    return [...list].sort((a, b) => a.sortOrder - b.sortOrder);
+  });
+
+  protected readonly hasMultipleVariants = computed(() => this.variants().length > 1);
+
+  protected readonly selectedVariant = computed((): ProductVariantDto | null => {
+    const id = this.selectedVariantId();
+    const list = this.variants();
+    if (!list.length) return null;
+    return list.find((v) => v.id === id) ?? list[0] ?? null;
+  });
+
   protected readonly badge = computed(() => {
     const detail = this.product();
     if (!detail) return null;
-    this.locale.lang(); // recompute on locale change
-    if (detail.oldPrice && detail.oldPrice > detail.price) {
-      return {
-        label: `-${Math.round(((detail.oldPrice - detail.price) / detail.oldPrice) * 100)}%`,
-        kind: 'sale' as const,
-      };
-    }
+    this.locale.lang();
     const age = Date.now() - new Date(detail.createdAt).getTime();
     if (age >= 0 && age <= 30 * 24 * 60 * 60 * 1000) {
       return { label: this.i18n.translate('product.newBadge'), kind: 'new' as const };
@@ -148,20 +162,30 @@ export class ProductComponent {
   });
 
   protected readonly unitLabel = computed(() => {
-    const detail = this.product();
-    if (!detail?.weight || !detail.weightUnit) return null;
-    // weightUnit is product data (г / кг / шт) — keep as-is
-    return `${this.locale.formatNumber(detail.weight)} ${detail.weightUnit}`;
+    const variant = this.selectedVariant();
+    if (!variant) return null;
+    return formatVariantWeight(variant.weight, variant.weightUnit, (n) =>
+      this.locale.formatNumber(n),
+    );
   });
 
   protected readonly maxQuantity = computed(() => 12);
 
   protected readonly canAdd = computed(() => {
     const detail = this.product();
-    return !!detail && detail.isAvailable !== false && this.addStatus() !== 'adding';
+    const variant = this.selectedVariant();
+    return (
+      !!detail &&
+      detail.isAvailable !== false &&
+      !!variant &&
+      this.addStatus() !== 'adding'
+    );
   });
 
-  protected readonly isAvailable = computed(() => this.product()?.isAvailable !== false);
+  protected readonly isAvailable = computed(() => {
+    const detail = this.product();
+    return !!detail && detail.isAvailable !== false && this.variants().length > 0;
+  });
 
   protected readonly similar = computed(() => this.product()?.similarProducts ?? []);
 
@@ -255,6 +279,10 @@ export class ProductComponent {
     return sanitizeImageUrl(url);
   }
 
+  protected selectVariant(id: number): void {
+    this.selectedVariantId.set(id);
+  }
+
   protected decreaseQty(): void {
     this.quantity.update((value) => Math.max(1, value - 1));
   }
@@ -267,12 +295,13 @@ export class ProductComponent {
 
   protected addToCart(): void {
     const detail = this.product();
-    if (!detail || !this.canAdd()) return;
+    const variant = this.selectedVariant();
+    if (!detail || !variant || !this.canAdd()) return;
 
     const qty = Math.min(this.quantity(), this.maxQuantity());
     this.addStatus.set('adding');
     this.cart
-      .addItem(detail.id, qty)
+      .addItem(variant.id, qty)
       .pipe(
         finalize(() => {
           if (this.addStatus() === 'adding') this.addStatus.set('idle');
@@ -302,11 +331,12 @@ export class ProductComponent {
   protected addSimilar(productId: number): void {
     if (this.similarStatuses()[productId] === 'adding') return;
     const similar = this.similar().find((item) => item.id === productId);
-    if (!similar) return;
+    const variantId = similar?.cheapestVariantId;
+    if (!similar || !variantId) return;
 
     this.setSimilarStatus(productId, 'adding');
     this.cart
-      .addItem(productId, 1)
+      .addItem(variantId, 1)
       .pipe(
         finalize(() => {
           if (this.similarStatuses()[productId] === 'adding') {
@@ -338,6 +368,12 @@ export class ProductComponent {
     return this.similarStatuses()[id] ?? 'idle';
   }
 
+  protected variantLabel(variant: ProductVariantDto): string {
+    return formatVariantWeight(variant.weight, variant.weightUnit, (n) =>
+      this.locale.formatNumber(n),
+    );
+  }
+
   private resetForSlugChange(): void {
     this.status.set('loading');
     this.product.set(null);
@@ -347,6 +383,7 @@ export class ProductComponent {
     this.thumbFailed.set({});
     this.addStatus.set('idle');
     this.similarStatuses.set({});
+    this.selectedVariantId.set(null);
     this.toast.set(null);
     clearTimeout(this.toastTimer);
     clearTimeout(this.addedTimer);
@@ -354,11 +391,15 @@ export class ProductComponent {
   }
 
   private applyProductDetail(detail: ProductDetail): void {
+    const variants = [...(detail.variants ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
     this.product.set({
       ...detail,
       imageUrls: detail.imageUrls ?? [],
+      variants,
       similarProducts: detail.similarProducts ?? [],
     });
+    const cheapest = pickCheapestVariant(variants);
+    this.selectedVariantId.set(cheapest?.id ?? null);
     this.seo.setAlternates(`catalog/${detail.slug}`, detail.name);
     this.quantity.set(1);
     this.status.set('ready');

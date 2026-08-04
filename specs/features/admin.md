@@ -108,9 +108,9 @@ Query (aligned with catalog + admin needs):
 
 Each row exposes at least:
 
-- `id`, `name`, `slug`, category name, `price`, `isActive`
+- `id`, `name`, `slug`, category name, `priceFrom` (MIN active variant price, or null / «—»), `isActive`, `isAvailable`
 - Primary image URL when available
-- Enough to drive the active/hidden toggle and edit / delete actions
+- Enough to drive the active/hidden / available toggles and edit / delete actions
 
 Response includes total count (or equivalent) so the UI can show «Показано X–Y з Z».
 
@@ -122,10 +122,13 @@ Request body fields matching the Product model:
 - `slug` — unique URL-friendly; may be auto-generated from name on create / when name changes, editable only if the API allows override (UI shows auto-generated preview `/catalog/{slug}`)
 - `categoryId` (required)
 - `shortDescription`, `description`
-- `price` (required, > 0), optional `oldPrice`
-- `weight`, `weightUnit` — admin pack presets: **10 г / 50 г / 100 г / 250 г / 500 г / 1 кг / шт** (stored as numeric `weight` + unit; шт → weight `1`, unit `шт`)
+- `variants` array — only entries **with a price** from the 7 predefined packs (10г, 50г, 100г, 250г, 500г, 1кг, 1шт); each: `weight`, `weightUnit`, `price` (> 0), `isActive`
+- No product-level `price` / `weight` / `weightUnit`
+- Server upserts by `(product_id, weight, weight_unit)`; cleared price → hard-delete if unreferenced, else BadRequest (deactivate instead)
+- `IsActive = true` requires ≥1 priced **and** active variant
 - `imageUrl` (primary) and `imageUrls` (gallery); first / primary is the main catalog image
-- `isActive`, `isFeatured`
+- `isActive`, `isFeatured`, `isAvailable`
+- Admin GET returns existing DB variants (incl. inactive) for merging onto the 7 UI rows
 
 Images are uploaded separately before save:
 

@@ -41,10 +41,12 @@ public sealed class CategoryService : ICategoryService
             .ToListAsync(cancellationToken);
 
         var categoryIds = categories.Select(c => c.Id).ToArray();
+        // Public counts match catalog inclusion: active + available + ≥1 active variant.
         var productCounts = await _db.Products
             .AsNoTracking()
             .Where(p => categoryIds.Contains(p.CategoryId) &&
-                (includeInactiveProductCount || p.IsActive))
+                (includeInactiveProductCount
+                    || (p.IsActive && p.IsAvailable && p.Variants.Any(v => v.IsActive))))
             .GroupBy(p => p.CategoryId)
             .Select(group => new { CategoryId = group.Key, Count = group.Count() })
             .ToDictionaryAsync(x => x.CategoryId, x => x.Count, cancellationToken);

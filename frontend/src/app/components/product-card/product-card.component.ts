@@ -41,9 +41,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
         }
         @if (badge(); as badge) {
           <span
-            class="absolute left-2 top-2 rounded-full px-2.5 py-1 text-[11px] font-extrabold text-white sm:left-3 sm:top-3"
-            [class.bg-[var(--chili-500)]]="badge.kind === 'sale'"
-            [class.bg-[var(--garden-500)]]="badge.kind === 'new'"
+            class="absolute left-2 top-2 rounded-full bg-[var(--garden-500)] px-2.5 py-1 text-[11px] font-extrabold text-white sm:left-3 sm:top-3"
           >{{ badge.label }}</span>
         }
       </a>
@@ -62,15 +60,9 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
           <div class="min-w-0">
             <div class="flex flex-wrap items-baseline gap-x-1.5">
               <strong class="font-[var(--font-accent)] text-xl text-[var(--espresso-900)] sm:text-2xl">
-                {{ locale.formatPrice(product().price) }}
+                {{ 'productCard.priceFrom' | transloco: { price: formattedPriceFrom() } }}
               </strong>
-              @if (product().oldPrice && product().oldPrice! > product().price) {
-                <del class="text-xs text-[var(--kraft-500)]">{{ locale.formatPrice(product().oldPrice!) }}</del>
-              }
             </div>
-            @if (unit(); as unit) {
-              <span class="text-[11px] text-[var(--text-muted)]">/ {{ unit }}</span>
-            }
           </div>
           <button
             type="button"
@@ -98,6 +90,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 export class ProductCardComponent {
   readonly product = input.required<CatalogProduct>();
   readonly status = input<'idle' | 'adding' | 'added'>('idle');
+  /** Emits product id; parent resolves cheapestVariantId for cart API. */
   readonly add = output<number>();
   protected readonly locale = inject(LocaleService);
   private readonly i18n = inject(TranslocoService);
@@ -110,15 +103,17 @@ export class ProductCardComponent {
     return sanitizeImageUrl(this.product().imageUrl);
   });
 
+  protected readonly formattedPriceFrom = computed(() => {
+    this.locale.lang();
+    return this.locale.formatNumber(this.product().priceFrom, {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+    });
+  });
+
   protected readonly badge = computed(() => {
     this.locale.lang();
     const product = this.product();
-    if (product.oldPrice && product.oldPrice > product.price) {
-      return {
-        label: `-${Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%`,
-        kind: 'sale' as const,
-      };
-    }
     const age = Date.now() - new Date(product.createdAt).getTime();
     if (age >= 0 && age <= 30 * 24 * 60 * 60 * 1000) {
       return { label: this.i18n.translate('productCard.newBadge'), kind: 'new' as const };
@@ -126,13 +121,9 @@ export class ProductCardComponent {
     return null;
   });
 
-  protected readonly unit = computed(() => {
-    this.locale.lang();
-    const product = this.product();
-    return product.weight && product.weightUnit
-      ? `${this.locale.formatNumber(product.weight)} ${product.weightUnit}`
-      : null;
-  });
-
-  protected readonly canAdd = computed(() => this.product().isAvailable !== false);
+  protected readonly canAdd = computed(
+    () =>
+      this.product().isAvailable !== false &&
+      !!this.product().cheapestVariantId,
+  );
 }

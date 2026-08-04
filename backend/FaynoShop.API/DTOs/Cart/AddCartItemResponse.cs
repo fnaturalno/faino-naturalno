@@ -6,6 +6,7 @@ namespace FaynoShop.API.DTOs.Cart;
 /// </summary>
 public sealed record AddCartItemResponse(
     int CartItemId,
+    int VariantId,
     int ProductId,
     int Quantity,
     int ItemCount);

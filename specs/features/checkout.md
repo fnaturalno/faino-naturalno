@@ -109,7 +109,7 @@ Line items and totals are taken from the **current server cart** for the session
 - Empty cart → fail; do not create an order.
 - Every cart line must refer to an **active** and **available** product.
 - Inactive lines cause the place request to fail with a clear Ukrainian-facing error; no partial order is created.
-- Unit prices on `OrderItem` are snapshots of the **current** product price at place time.
+- Unit prices on `OrderItem` are snapshots of the **current variant price** at place time; `Weight` / `WeightUnit` are also snapshotted from the variant; `ProductId` + `VariantId` are stored.
 - `TotalAmount` equals the sum of line totals (subtotal); delivery is not added as a numeric amount.
 - New orders start with status **Pending**.
 - `OrderNumber` is a unique human-readable value (same style as existing samples, e.g. `FN-YYYY-NNNN`).
@@ -143,7 +143,7 @@ Response data includes:
 - Recipient name, phone, email
 - Delivery address summary (Nova Poshta text)
 - Optional comment when present
-- Line items: product name, quantity, unit price, line total (and category / image when available for a richer confirmation)
+- Line items: product name, quantity, unit price, weight/unit snapshots, line total (and category / image when available for a richer confirmation)
 
 Unknown id or unauthorized → not-found style failure (`success: false`, no usable data).
 

@@ -9,12 +9,9 @@ public sealed record SaveProductRequest(
     string? ShortDescriptionEn,
     string? DescriptionUk,
     string? DescriptionEn,
-    decimal Price,
-    decimal? OldPrice,
-    decimal? Weight,
-    string? WeightUnit,
     string? ImageUrl,
     IReadOnlyList<string>? ImageUrls,
     bool IsActive,
     bool IsFeatured,
-    bool IsAvailable);
+    bool IsAvailable,
+    IReadOnlyList<SaveProductVariantRequest>? Variants);

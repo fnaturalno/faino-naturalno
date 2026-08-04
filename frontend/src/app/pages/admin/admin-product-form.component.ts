@@ -4,37 +4,55 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
-import { AdminProduct, SaveProductRequest } from '../../models/admin.models';
+import {
+  AdminProduct,
+  SaveProductRequest,
+  SaveProductVariantRequest,
+  VARIANT_PRESETS,
+} from '../../models/admin.models';
 import { AdminService } from '../../services/admin.service';
 import { extractApiError } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 
-type PackOption = { key: string; label: string; weight: number; unit: string };
-type TextTab = 'ua' | 'en';
+type VariantRow = {
+  weight: number;
+  weightUnit: string;
+  sortOrder: number;
+  label: string;
+  price: string;
+  isActive: boolean;
+};
 
-const PACK_OPTIONS: readonly PackOption[] = [
-  { key: '10g', label: '10 г', weight: 10, unit: 'г' },
-  { key: '50g', label: '50 г', weight: 50, unit: 'г' },
-  { key: '100g', label: '100 г', weight: 100, unit: 'г' },
-  { key: '250g', label: '250 г', weight: 250, unit: 'г' },
-  { key: '500g', label: '500 г', weight: 500, unit: 'г' },
-  { key: '1kg', label: '1 кг', weight: 1, unit: 'кг' },
-  { key: 'pcs', label: 'шт', weight: 1, unit: 'шт' },
-] as const;
-
-function packKeyFrom(weight: number | null | undefined, unit: string | null | undefined): string {
-  const normalizedUnit = (unit ?? '').trim().toLowerCase();
-  const match = PACK_OPTIONS.find(
-    (pack) =>
-      pack.unit.toLowerCase() === normalizedUnit &&
-      Number(pack.weight) === Number(weight ?? 0),
-  );
-  return match?.key ?? `custom:${weight ?? ''}:${unit ?? ''}`;
+function emptyVariantRows(): VariantRow[] {
+  return VARIANT_PRESETS.map((preset) => ({
+    weight: preset.weight,
+    weightUnit: preset.weightUnit,
+    sortOrder: preset.sortOrder,
+    label: preset.label,
+    price: '',
+    isActive: true,
+  }));
 }
 
-function resolvePackKey(weight: number | null | undefined, unit: string | null | undefined): string {
-  return packKeyFrom(weight, unit);
+function mergeVariantsOntoPresets(
+  variants: AdminProduct['variants'] | undefined,
+): VariantRow[] {
+  const rows = emptyVariantRows();
+  for (const variant of variants ?? []) {
+    const index = rows.findIndex(
+      (row) =>
+        row.weight === Number(variant.weight) &&
+        row.weightUnit === variant.weightUnit,
+    );
+    if (index < 0) continue;
+    rows[index] = {
+      ...rows[index],
+      price: variant.price != null ? String(variant.price) : '',
+      isActive: variant.isActive !== false,
+    };
+  }
+  return rows;
 }
 
 @Component({
@@ -125,23 +143,45 @@ function resolvePackKey(weight: number | null | undefined, unit: string | null |
 
           <section class="rounded-xl border border-[#dac7a2] bg-white p-5">
             <h2 class="mb-4 font-black">{{ 'admin.sectionPrice' | transloco }}</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
-              <label class="block text-sm font-bold">{{ 'admin.price' | transloco }}
-                <input formControlName="price" type="number" min="0" step="0.01" class="mt-1 w-full rounded-lg border border-[#c2ab80] p-3 font-normal" />
-              </label>
-              <label class="block text-sm font-bold">{{ 'admin.oldPrice' | transloco }}
-                <input formControlName="oldPrice" type="number" min="0" step="0.01" class="mt-1 w-full rounded-lg border border-[#c2ab80] p-3 font-normal" />
-              </label>
-              <label class="block text-sm font-bold">{{ 'admin.weightUnit' | transloco }}
-                <select formControlName="packKey" class="mt-1 w-full rounded-lg border border-[#c2ab80] bg-white p-3 font-normal">
-                  @for (pack of packOptions(); track pack.key) {
-                    <option [value]="pack.key">{{ pack.label }}</option>
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[400px] border-collapse text-left text-sm">
+                <thead>
+                  <tr class="border-b border-[#eadcc0] text-[#6a4425]">
+                    <th class="py-2 pr-2 font-bold">{{ 'admin.weightUnit' | transloco }}</th>
+                    <th class="py-2 pr-2 font-bold">{{ 'admin.price' | transloco }}</th>
+                    <th class="py-2 font-bold">{{ 'admin.variantActive' | transloco }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of variantRows(); track row.sortOrder; let i = $index) {
+                    <tr class="border-b border-[#f0e6d4]">
+                      <td class="py-2.5 pr-2 font-semibold text-[#2a1a0d]">{{ row.label }}</td>
+                      <td class="py-2.5 pr-2">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          class="w-full min-w-[96px] rounded-lg border border-[#c2ab80] p-2 font-normal"
+                          [value]="row.price"
+                          (input)="onPriceInput(i, $event)"
+                        />
+                      </td>
+                      <td class="py-2.5">
+                        <input
+                          type="checkbox"
+                          class="h-5 w-5 accent-[#5b7a3a]"
+                          [checked]="row.isActive"
+                          [disabled]="!hasPrice(row)"
+                          (change)="onActiveToggle(i, $event)"
+                        />
+                      </td>
+                    </tr>
                   }
-                </select>
-              </label>
+                </tbody>
+              </table>
             </div>
-            @if (invalid('price')) {
-              <p class="mt-2 text-xs text-[#b23a2e]">{{ 'admin.reqPrice' | transloco }}</p>
+            @if (variantError(); as err) {
+              <p class="mt-2 text-xs text-[#b23a2e]">{{ err }}</p>
             }
           </section>
         </div>
@@ -227,10 +267,11 @@ export class AdminProductFormComponent {
   readonly nameTab = signal<'ua' | 'en'>('ua');
   readonly shortTab = signal<'ua' | 'en'>('ua');
   readonly descTab = signal<'ua' | 'en'>('ua');
+  readonly variantRows = signal<VariantRow[]>(emptyVariantRows());
+  readonly variantError = signal<string | null>(null);
   private readonly failedImageUrls = signal(new Set<string>());
   private dragFrom: number | null = null;
 
-  readonly packOptions = signal(PACK_OPTIONS);
   readonly form = this.fb.group({
     nameUk: ['', Validators.required],
     nameEn: [''],
@@ -239,9 +280,6 @@ export class AdminProductFormComponent {
     shortDescriptionEn: [''],
     descriptionUk: [''],
     descriptionEn: [''],
-    price: [0, Validators.min(0.01)],
-    oldPrice: [0],
-    packKey: [PACK_OPTIONS[2].key as string, Validators.required],
     isActive: [true],
     isFeatured: [false],
     isAvailable: [true],
@@ -264,9 +302,37 @@ export class AdminProductFormComponent {
     if (this.id) this.load();
   }
 
-  invalid(name: 'nameUk' | 'categoryId' | 'price'): boolean {
+  invalid(name: 'nameUk' | 'categoryId'): boolean {
     const control = this.form.controls[name];
     return control.invalid && (control.touched || this.saving());
+  }
+
+  hasPrice(row: VariantRow): boolean {
+    const price = Number(row.price);
+    return row.price.trim() !== '' && Number.isFinite(price) && price > 0;
+  }
+
+  onPriceInput(index: number, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.variantRows.update((rows) =>
+      rows.map((row, i) => {
+        if (i !== index) return row;
+        const next = { ...row, price: value };
+        if (!this.hasPrice(next)) {
+          next.isActive = true;
+        }
+        return next;
+      }),
+    );
+    this.variantError.set(null);
+  }
+
+  onActiveToggle(index: number, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.variantRows.update((rows) =>
+      rows.map((row, i) => (i === index ? { ...row, isActive: checked } : row)),
+    );
+    this.variantError.set(null);
   }
 
   previewUrl(url: string): string | null {
@@ -300,25 +366,6 @@ export class AdminProductFormComponent {
   }
 
   patch(product: AdminProduct): void {
-    const packKey = resolvePackKey(product.weight, product.weightUnit);
-    if (!PACK_OPTIONS.some((pack) => pack.key === packKey)) {
-      const label =
-        product.weightUnit === 'шт'
-          ? 'шт'
-          : `${product.weight ?? ''} ${product.weightUnit ?? ''}`.trim() || this.i18n.translate('admin.packOther');
-      this.packOptions.set([
-        ...PACK_OPTIONS,
-        {
-          key: packKey,
-          label: this.i18n.translate('admin.packCurrent', { label }),
-          weight: product.weight ?? 1,
-          unit: product.weightUnit ?? 'г',
-        },
-      ]);
-    } else {
-      this.packOptions.set(PACK_OPTIONS);
-    }
-
     this.form.patchValue({
       nameUk: product.nameUk ?? product.name ?? '',
       nameEn: product.nameEn ?? '',
@@ -327,13 +374,11 @@ export class AdminProductFormComponent {
       shortDescriptionEn: product.shortDescriptionEn ?? '',
       descriptionUk: product.descriptionUk ?? product.description ?? '',
       descriptionEn: product.descriptionEn ?? '',
-      price: product.price,
-      oldPrice: product.oldPrice ?? 0,
-      packKey,
       isActive: product.isActive,
       isFeatured: product.isFeatured,
       isAvailable: product.isAvailable,
     });
+    this.variantRows.set(mergeVariantsOntoPresets(product.variants));
     const urls = product.imageUrls?.length
       ? [...product.imageUrls]
       : product.imageUrl
@@ -412,13 +457,45 @@ export class AdminProductFormComponent {
       });
   }
 
+  private buildVariantsPayload(): SaveProductVariantRequest[] | null {
+    const payload: SaveProductVariantRequest[] = [];
+    for (const row of this.variantRows()) {
+      const priceRaw = row.price.trim();
+      if (!priceRaw) continue;
+      const price = Number(priceRaw);
+      if (!Number.isFinite(price) || price <= 0) {
+        this.variantError.set(this.i18n.translate('admin.reqPrice'));
+        return null;
+      }
+      payload.push({
+        weight: row.weight,
+        weightUnit: row.weightUnit,
+        price,
+        isActive: row.isActive,
+        sortOrder: row.sortOrder,
+      });
+    }
+    return payload;
+  }
+
   save(): void {
     this.form.markAllAsTouched();
+    this.variantError.set(null);
     if (this.form.invalid || this.saving() || this.uploading()) return;
-    this.saving.set(true);
+
+    const variants = this.buildVariantsPayload();
+    if (!variants) return;
+
     const value = this.form.getRawValue();
-    const pack =
-      this.packOptions().find((item) => item.key === value.packKey) ?? PACK_OPTIONS[2];
+    if (value.isActive) {
+      const hasActivePriced = variants.some((v) => v.isActive);
+      if (!hasActivePriced) {
+        this.variantError.set(this.i18n.translate('admin.reqActiveVariant'));
+        return;
+      }
+    }
+
+    this.saving.set(true);
     const imageUrls = this.imageUrls();
     const payload: SaveProductRequest = {
       nameUk: value.nameUk,
@@ -429,10 +506,7 @@ export class AdminProductFormComponent {
       shortDescriptionEn: value.shortDescriptionEn.trim() || null,
       descriptionUk: value.descriptionUk.trim() || null,
       descriptionEn: value.descriptionEn.trim() || null,
-      price: value.price,
-      oldPrice: value.oldPrice || null,
-      weight: pack.weight,
-      weightUnit: pack.unit,
+      variants,
       imageUrl: imageUrls[0] ?? null,
       imageUrls,
       isActive: value.isActive,

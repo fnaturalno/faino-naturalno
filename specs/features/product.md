@@ -75,47 +75,43 @@ The response includes:
 - `Slug`
 - `ShortDescription`
 - `Description`
-- `Price`
-- `OldPrice`
 - `ImageUrl`
 - `ImageUrls`
-- `Weight`
-- `WeightUnit`
 - `IsFeatured`
 - `IsAvailable`
 - `CreatedAt`
 - Category identifier, name, and slug
+- `variants`: `[{ id, weight, weightUnit, price, sortOrder }]` — **active only**, ordered by `sortOrder`
 - `similarProducts`: zero to three related products
 
-Only products with `IsActive = true` are returned as a successful detail response. When `IsAvailable = false`, the product page still loads but add-to-cart is disabled («Немає в наявності»).
+Public detail requires the same catalog inclusion rules as the list (`IsActive` + `IsAvailable` + ≥1 active variant). Products that fail those rules yield not-found (same as inactive).
 
-An unknown slug or an inactive product yields `success: false` with no usable product data (not-found for the client).
+No product-level `price` / `weight` — packaging and price come from `variants`.
 
 #### Similar products
 
-- Up to 3 active products from the same category as the current product.
+- Up to 3 catalog-included products from the same category as the current product.
 - The current product is excluded.
 - Ordering follows catalog «popular» semantics (featured products first).
-- Each similar product uses the same card-level fields as the catalog list (identity, name, slug, short description, prices, image, weight/unit, category, created-at for badges).
+- Each similar product uses the same card-level fields as the catalog list (`priceFrom`, optional `oldPrice`/`discountPercent`, image, category, created-at for badges).
 - The list may contain fewer than 3 items when fewer peers exist; an empty list is allowed.
 
 ### 1.4 Product badges
 
 - A product is marked «Новинка» when its `CreatedAt` is within the last 30 days.
-- A discount badge is shown only when `OldPrice > Price`.
-- The discount percentage is derived from `OldPrice` and `Price` and displayed as a whole percentage.
+- Similar-card discount badge uses the min-price active variant (`oldPrice > price`).
+- On the product page, discount display follows the **selected** variant.
 - A discount badge takes precedence when a product qualifies for both discount and «Новинка».
-- The same rules apply to the main product and to similar-product cards.
 
 ### 1.5 Cart mutation
 
-Selecting «В кошик» on the product page sends the product identifier and the quantity chosen on the stepper.
+Selecting «В кошик» sends `{ variantId, quantity? }` for the selected (or sole) active variant. Cheapest active variant is preselected (min price; tie-break `sortOrder`).
 
 The maximum selectable quantity is `12`.
 
 On success, the response provides enough information to update the cart item-count badge.
 
-Active products can always be added.
+Inactive / unavailable products and inactive variants are rejected.
 
 The cart is identified by the existing session header (`X-Cart-Session-Id`), consistent with the catalog.
 

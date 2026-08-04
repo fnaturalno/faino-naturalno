@@ -91,15 +91,19 @@ The response data includes:
 Each line includes:
 
 - `cartItemId`
-- `productId`
+- `variantId`
+- `productId` (derived via variant, for links)
 - `name`
 - `slug`
 - `category` name (for display)
 - Primary product image URL (may be empty)
-- Current unit `price` from the live product (not a historical snapshot)
+- `weight` / `weightUnit` from the variant
+- Current unit `price` from the **live variant** (not a historical snapshot)
 - `quantity`
 - `lineTotal` (`price × quantity`)
-- Enough information to distinguish an inactive / unavailable product for UI rules below
+- Enough information to distinguish an inactive product/variant or unavailable product for UI rules below
+
+**Add item:** `POST /api/cart/items` body is `{ variantId, quantity? }` only (no `productId`). Lines merge by variant; max qty 12.
 
 Delivery cost is not returned as a number. The UI shows only the static copy «за тарифами перевізника».
 

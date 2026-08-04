@@ -20,19 +20,19 @@ public class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
             .HasForeignKey(ci => ci.CartId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(ci => ci.Product)
-            .WithMany(p => p.CartItems)
-            .HasForeignKey(ci => ci.ProductId)
+        builder.HasOne(ci => ci.Variant)
+            .WithMany(v => v.CartItems)
+            .HasForeignKey(ci => ci.VariantId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(ci => ci.CartId)
             .HasDatabaseName("idx_cart_items_cart_id");
 
-        builder.HasIndex(ci => ci.ProductId)
-            .HasDatabaseName("idx_cart_items_product_id");
+        builder.HasIndex(ci => ci.VariantId)
+            .HasDatabaseName("idx_cart_items_variant_id");
 
-        builder.HasIndex(ci => new { ci.CartId, ci.ProductId })
+        builder.HasIndex(ci => new { ci.CartId, ci.VariantId })
             .IsUnique()
-            .HasDatabaseName("idx_cart_items_cart_id_product_id");
+            .HasDatabaseName("idx_cart_items_cart_id_variant_id");
     }
 }

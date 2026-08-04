@@ -19,5 +19,7 @@ public sealed record OrderDetailItemDto(
     int Quantity,
     decimal UnitPrice,
     decimal LineTotal,
+    decimal Weight,
+    string WeightUnit,
     string? Category,
     string? ImageUrl);

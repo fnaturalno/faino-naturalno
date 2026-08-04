@@ -99,15 +99,17 @@ Each product includes:
 - `Name`
 - `Slug`
 - `ShortDescription`
-- `Price`
-- `OldPrice`
+- `PriceFrom` — MIN price among **active** variants
+- Catalog cards expose `priceFrom` (and `cheapestVariantId`); no `oldPrice` / discount percent.
 - `ImageUrl`
-- `Weight`
-- `WeightUnit`
 - `IsFeatured`
-- `IsAvailable` — when false, product stays in catalog cards but cannot be added to cart
+- `IsAvailable`
 - `CreatedAt`
 - Category identifier, name, and slug
+
+**Public inclusion** (overrides older OOS-card notes): `IsActive` + `IsAvailable` + ≥1 active priced variant. Unavailable / inactive / zero-variant products are **excluded** from the public catalog.
+
+Price sort (`price-asc` / `price-desc`) and filters `minPrice` / `maxPrice` use **MIN(active variant price)** per product.
 
 The response data also includes:
 
@@ -116,8 +118,7 @@ The response data also includes:
 - `pageSize`: `9`
 - `totalCount`: total products matching the current filters
 - `totalPages`: total available pages
-- `priceMin`: lowest price among active catalog products
-- `priceMax`: highest price among active catalog products
+- `priceMin` / `priceMax`: min/max of per-product MIN(active variant price) among included catalog products
 
 ### 1.4 GET `/api/categories`
 
@@ -128,15 +129,16 @@ Category data may be reused between catalog visits. Product results are refreshe
 ### 1.5 Product badges
 
 - A product is marked «Новинка» when its `CreatedAt` is within the last 30 days.
-- A discount badge is shown only when `OldPrice > Price`.
-- The discount percentage is derived from `OldPrice` and `Price` and displayed as a whole percentage.
+- A discount badge is shown only when the min-price active variant has `OldPrice > Price`.
+- The discount percentage is derived from that variant and displayed as a whole percentage.
 - A discount badge takes precedence when a product qualifies for both discount and «Новинка».
+- Card price copy uses Transloco «від {{price}} ₴» / «from {{price}} ₴» with `priceFrom`.
 
 ### 1.6 Cart mutation
 
-Selecting «В кошик» sends the product identifier and quantity `1`.
+Selecting «В кошик» adds **one unit of the cheapest active variant** (`variantId`; min price, tie-break lower `sortOrder`).
 
-On success, the response provides enough information to update the cart item-count badge. Active products with `IsAvailable = true` can be added; unavailable products are rejected.
+On success, the response provides enough information to update the cart item-count badge. Only catalog-included products/variants can be added.
 
 ---
 

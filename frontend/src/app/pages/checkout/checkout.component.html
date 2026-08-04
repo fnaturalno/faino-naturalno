@@ -417,7 +417,13 @@
                       [title]="line.name"
                       >{{ line.name }}</span
                     >
-                    <span class="text-xs text-[var(--text-muted)]">{{ line.category }}</span>
+                    <span class="text-xs text-[var(--text-muted)]">
+                      {{ line.weight }} {{ line.weightUnit }}
+                      @if (line.category) {
+                        · {{ line.category }}
+                      }
+                      · {{ line.price | number: '1.0-0' }} ₴
+                    </span>
                   </div>
                   <span
                     class="shrink-0 font-[var(--font-accent)] text-base font-bold whitespace-nowrap text-[var(--espresso-900)]"

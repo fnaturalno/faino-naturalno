@@ -1,3 +1,4 @@
+using FaynoShop.API.Constants;
 using FaynoShop.API.Data;
 using FaynoShop.API.DTOs.Products;
 using FaynoShop.API.Exceptions;
@@ -35,7 +36,6 @@ public sealed class ProductService : IProductService
 
         slug = slug.Trim();
 
-        // Reject oversized slugs before hitting the DB (DoS / accidental huge path segments).
         if (slug.Length > MaxSlugLength)
         {
             throw new NotFoundException("Товар не знайдено.");
@@ -43,9 +43,8 @@ public sealed class ProductService : IProductService
 
         var useEn = LocalizedContent.IsEnglish(locale);
 
-        var product = await _db.Products
-            .AsNoTracking()
-            .Where(p => p.IsActive && p.Slug == slug)
+        var product = await CatalogProducts(_db.Products.AsNoTracking())
+            .Where(p => p.Slug == slug)
             .Select(p => new
             {
                 p.Id,
@@ -57,12 +56,8 @@ public sealed class ProductService : IProductService
                 Description = useEn && p.DescriptionEn != null && p.DescriptionEn != ""
                     ? p.DescriptionEn
                     : p.DescriptionUk,
-                p.Price,
-                p.OldPrice,
                 p.ImageUrl,
                 p.ImageUrls,
-                p.Weight,
-                p.WeightUnit,
                 p.IsFeatured,
                 p.IsAvailable,
                 p.CreatedAt,
@@ -70,7 +65,17 @@ public sealed class ProductService : IProductService
                 CategoryName = useEn && p.Category.NameEn != null && p.Category.NameEn != ""
                     ? p.Category.NameEn
                     : p.Category.NameUk,
-                CategorySlug = p.Category.Slug
+                CategorySlug = p.Category.Slug,
+                Variants = p.Variants
+                    .Where(v => v.IsActive)
+                    .OrderBy(v => v.SortOrder)
+                    .Select(v => new ProductVariantDto(
+                        v.Id,
+                        v.Weight,
+                        v.WeightUnit,
+                        v.Price,
+                        v.SortOrder))
+                    .ToList()
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -79,40 +84,16 @@ public sealed class ProductService : IProductService
             throw new NotFoundException("Товар не знайдено.");
         }
 
-        var similarProducts = await _db.Products
-            .AsNoTracking()
-            .Where(p =>
-                p.IsActive &&
-                p.CategoryId == product.CategoryId &&
-                p.Id != product.Id)
-            .OrderByDescending(p => p.IsFeatured)
-            .ThenBy(p => p.Id)
-            .Take(SimilarProductsLimit)
-            .Select(p => new ProductDto(
-                p.Id,
-                useEn && p.NameEn != null && p.NameEn != "" ? p.NameEn : p.NameUk,
-                p.Slug,
-                useEn && p.ShortDescriptionEn != null && p.ShortDescriptionEn != ""
-                    ? p.ShortDescriptionEn
-                    : p.ShortDescriptionUk,
-                p.Price,
-                p.OldPrice,
-                p.ImageUrl,
-                p.Weight,
-                p.WeightUnit,
-                p.IsFeatured,
-                p.CreatedAt,
-                p.CategoryId,
-                useEn && p.Category.NameEn != null && p.Category.NameEn != ""
-                    ? p.Category.NameEn
-                    : p.Category.NameUk,
-                p.Category.Slug,
-                p.IsAvailable))
+        var similarProducts = await ProjectProductCards(
+                CatalogProducts(_db.Products.AsNoTracking())
+                    .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id)
+                    .OrderByDescending(p => p.IsFeatured)
+                    .ThenBy(p => p.Id)
+                    .Take(SimilarProductsLimit),
+                useEn)
             .ToListAsync(cancellationToken);
 
-        similarProducts = similarProducts
-            .Select(MapSafeProductCard)
-            .ToList();
+        similarProducts = similarProducts.Select(MapSafeProductCard).ToList();
 
         return new ProductDetailDto(
             product.Id,
@@ -120,18 +101,15 @@ public sealed class ProductService : IProductService
             product.Slug,
             product.ShortDescription,
             product.Description,
-            product.Price,
-            product.OldPrice,
             MediaUrlGuard.Sanitize(product.ImageUrl),
             MediaUrlGuard.SanitizeMany(product.ImageUrls),
-            product.Weight,
-            product.WeightUnit,
             product.IsFeatured,
             product.IsAvailable,
             product.CreatedAt,
             product.CategoryId,
             product.CategoryName,
             product.CategorySlug,
+            product.Variants,
             similarProducts);
     }
 
@@ -149,16 +127,17 @@ public sealed class ProductService : IProductService
 
         if (!includeInactive)
         {
-            products = products.Where(p => p.IsActive);
+            products = CatalogProducts(products);
         }
 
         var priceBounds = await products
-            .AsNoTracking()
+            .Where(p => p.Variants.Any(v => v.IsActive))
+            .Select(p => p.Variants.Where(v => v.IsActive).Min(v => v.Price))
             .GroupBy(_ => 1)
             .Select(g => new
             {
-                Min = g.Min(p => p.Price),
-                Max = g.Max(p => p.Price)
+                Min = g.Min(),
+                Max = g.Max()
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -177,30 +156,11 @@ public sealed class ProductService : IProductService
 
         var sorted = ApplySort(filtered, normalized.SortBy);
 
-        var items = await sorted
-            .Skip((page - 1) * normalized.PageSize)
-            .Take(normalized.PageSize)
-            .Select(p => new ProductDto(
-                p.Id,
-                useEn && p.NameEn != null && p.NameEn != "" ? p.NameEn : p.NameUk,
-                p.Slug,
-                useEn && p.ShortDescriptionEn != null && p.ShortDescriptionEn != ""
-                    ? p.ShortDescriptionEn
-                    : p.ShortDescriptionUk,
-                p.Price,
-                p.OldPrice,
-                p.ImageUrl,
-                p.Weight,
-                p.WeightUnit,
-                p.IsFeatured,
-                p.CreatedAt,
-                p.CategoryId,
-                useEn && p.Category.NameEn != null && p.Category.NameEn != ""
-                    ? p.Category.NameEn
-                    : p.Category.NameUk,
-                p.Category.Slug,
-                p.IsAvailable,
-                p.IsActive))
+        var items = await ProjectProductCards(
+                sorted
+                    .Skip((page - 1) * normalized.PageSize)
+                    .Take(normalized.PageSize),
+                useEn)
             .ToListAsync(cancellationToken);
 
         items = items.Select(MapSafeProductCard).ToList();
@@ -220,32 +180,66 @@ public sealed class ProductService : IProductService
         var product = await _db.Products
             .AsNoTracking()
             .Where(p => p.Id == id)
-            .Select(p => new AdminProductDto(
+            .Select(p => new
+            {
                 p.Id,
                 p.NameUk,
                 p.NameEn,
                 p.Slug,
                 p.CategoryId,
-                p.Category.NameUk,
-                p.Category.Slug,
+                CategoryName = p.Category.NameUk,
+                CategorySlug = p.Category.Slug,
                 p.ShortDescriptionUk,
                 p.ShortDescriptionEn,
                 p.DescriptionUk,
                 p.DescriptionEn,
-                p.Price,
-                p.OldPrice,
-                p.Weight,
-                p.WeightUnit,
                 p.ImageUrl,
                 p.ImageUrls,
                 p.IsActive,
                 p.IsFeatured,
                 p.IsAvailable,
                 p.CreatedAt,
-                p.UpdatedAt))
+                p.UpdatedAt,
+                PriceFrom = p.Variants.Where(v => v.IsActive).Min(v => (decimal?)v.Price),
+                Variants = p.Variants
+                    .OrderBy(v => v.SortOrder)
+                    .Select(v => new AdminProductVariantDto(
+                        v.Id,
+                        v.Weight,
+                        v.WeightUnit,
+                        v.Price,
+                        v.IsActive,
+                        v.SortOrder))
+                    .ToList()
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return product ?? throw new NotFoundException("Товар не знайдено.");
+        if (product is null)
+        {
+            throw new NotFoundException("Товар не знайдено.");
+        }
+
+        return new AdminProductDto(
+            product.Id,
+            product.NameUk,
+            product.NameEn,
+            product.Slug,
+            product.CategoryId,
+            product.CategoryName,
+            product.CategorySlug,
+            product.ShortDescriptionUk,
+            product.ShortDescriptionEn,
+            product.DescriptionUk,
+            product.DescriptionEn,
+            product.PriceFrom,
+            product.ImageUrl,
+            product.ImageUrls,
+            product.IsActive,
+            product.IsFeatured,
+            product.IsAvailable,
+            product.CreatedAt,
+            product.UpdatedAt,
+            product.Variants);
     }
 
     public async Task<AdminProductDto> CreateAsync(
@@ -253,6 +247,7 @@ public sealed class ProductService : IProductService
         CancellationToken cancellationToken)
     {
         await EnsureCategoryExistsAsync(request.CategoryId, cancellationToken);
+        EnsureActiveRequiresVariants(request);
         var slug = await ResolveSlugAsync(request.Slug, request.NameUk, null, cancellationToken);
         var now = DateTime.UtcNow;
         var imageUrls = NormalizeImageUrls(request.ImageUrl, request.ImageUrls);
@@ -267,10 +262,6 @@ public sealed class ProductService : IProductService
             ShortDescriptionEn = TrimOrNull(request.ShortDescriptionEn),
             DescriptionUk = TrimOrNull(request.DescriptionUk),
             DescriptionEn = TrimOrNull(request.DescriptionEn),
-            Price = request.Price,
-            OldPrice = request.OldPrice,
-            Weight = request.Weight,
-            WeightUnit = TrimOrNull(request.WeightUnit),
             ImageUrl = imageUrls.FirstOrDefault(),
             ImageUrls = imageUrls,
             IsActive = request.IsActive,
@@ -279,6 +270,11 @@ public sealed class ProductService : IProductService
             CreatedAt = now,
             UpdatedAt = now
         };
+
+        foreach (var variant in BuildVariantsFromRequest(request.Variants))
+        {
+            product.Variants.Add(variant);
+        }
 
         _db.Products.Add(product);
         await _db.SaveChangesAsync(cancellationToken);
@@ -290,10 +286,13 @@ public sealed class ProductService : IProductService
         SaveProductRequest request,
         CancellationToken cancellationToken)
     {
-        var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
+        var product = await _db.Products
+            .Include(p => p.Variants)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
             ?? throw new NotFoundException("Товар не знайдено.");
 
         await EnsureCategoryExistsAsync(request.CategoryId, cancellationToken);
+        EnsureActiveRequiresVariants(request);
         var slug = await ResolveSlugAsync(request.Slug, request.NameUk, id, cancellationToken);
         var imageUrls = NormalizeImageUrls(request.ImageUrl, request.ImageUrls);
 
@@ -305,10 +304,6 @@ public sealed class ProductService : IProductService
         product.ShortDescriptionEn = TrimOrNull(request.ShortDescriptionEn);
         product.DescriptionUk = TrimOrNull(request.DescriptionUk);
         product.DescriptionEn = TrimOrNull(request.DescriptionEn);
-        product.Price = request.Price;
-        product.OldPrice = request.OldPrice;
-        product.Weight = request.Weight;
-        product.WeightUnit = TrimOrNull(request.WeightUnit);
         product.ImageUrl = imageUrls.FirstOrDefault();
         product.ImageUrls = imageUrls;
         product.IsActive = request.IsActive;
@@ -316,6 +311,7 @@ public sealed class ProductService : IProductService
         product.IsAvailable = request.IsAvailable;
         product.UpdatedAt = DateTime.UtcNow;
 
+        await SyncVariantsAsync(product, request.Variants, cancellationToken);
         await _db.SaveChangesAsync(cancellationToken);
         return await GetForAdminAsync(product.Id, cancellationToken);
     }
@@ -325,8 +321,16 @@ public sealed class ProductService : IProductService
         bool isActive,
         CancellationToken cancellationToken)
     {
-        var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
+        var product = await _db.Products
+            .Include(p => p.Variants)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
             ?? throw new NotFoundException("Товар не знайдено.");
+
+        if (isActive && !product.Variants.Any(v => v.IsActive))
+        {
+            throw new BadRequestException(
+                "Активний товар потребує хоча б одного активного фасування з ціною.");
+        }
 
         product.IsActive = isActive;
         product.UpdatedAt = DateTime.UtcNow;
@@ -356,7 +360,7 @@ public sealed class ProductService : IProductService
             throw new NotFoundException("Товар не знайдено.");
         }
 
-        var referenced = await _db.CartItems.AnyAsync(item => item.ProductId == id, cancellationToken)
+        var referenced = await _db.CartItems.AnyAsync(item => item.Variant.ProductId == id, cancellationToken)
             || await _db.OrderItems.AnyAsync(item => item.ProductId == id, cancellationToken);
         if (referenced)
         {
@@ -372,6 +376,109 @@ public sealed class ProductService : IProductService
         {
             throw new ConflictException(
                 "Товар неможливо видалити, бо він пов'язаний з іншими даними. Приховайте його замість видалення.");
+        }
+    }
+
+    private async Task SyncVariantsAsync(
+        Product product,
+        IReadOnlyList<SaveProductVariantRequest>? requestVariants,
+        CancellationToken cancellationToken)
+    {
+        var incoming = NormalizeIncomingVariants(requestVariants);
+        var existingByKey = product.Variants.ToDictionary(
+            v => (v.Weight, v.WeightUnit),
+            v => v);
+
+        var keepKeys = new HashSet<(decimal Weight, string WeightUnit)>();
+
+        foreach (var (preset, request) in incoming)
+        {
+            var key = (preset.Weight, preset.WeightUnit);
+            keepKeys.Add(key);
+
+            if (existingByKey.TryGetValue(key, out var existing))
+            {
+                existing.Price = request.Price;
+                existing.IsActive = request.IsActive;
+                existing.SortOrder = preset.SortOrder;
+            }
+            else
+            {
+                product.Variants.Add(new ProductVariant
+                {
+                    ProductId = product.Id,
+                    Weight = preset.Weight,
+                    WeightUnit = preset.WeightUnit,
+                    Price = request.Price,
+                    IsActive = request.IsActive,
+                    SortOrder = preset.SortOrder
+                });
+            }
+        }
+
+        var toRemove = product.Variants
+            .Where(v => !keepKeys.Contains((v.Weight, v.WeightUnit)))
+            .ToList();
+
+        foreach (var variant in toRemove)
+        {
+            var referenced = await _db.CartItems.AnyAsync(i => i.VariantId == variant.Id, cancellationToken)
+                || await _db.OrderItems.AnyAsync(i => i.VariantId == variant.Id, cancellationToken);
+
+            if (referenced)
+            {
+                throw new BadRequestException(
+                    $"Фасування {variant.Weight} {variant.WeightUnit} використовується в кошиках або замовленнях. Деактивуйте його замість видалення ціни.");
+            }
+
+            product.Variants.Remove(variant);
+            _db.ProductVariants.Remove(variant);
+        }
+    }
+
+    private static List<ProductVariant> BuildVariantsFromRequest(
+        IReadOnlyList<SaveProductVariantRequest>? requestVariants)
+    {
+        return NormalizeIncomingVariants(requestVariants)
+            .Select(pair => new ProductVariant
+            {
+                Weight = pair.Preset.Weight,
+                WeightUnit = pair.Preset.WeightUnit,
+                Price = pair.Request.Price,
+                IsActive = pair.Request.IsActive,
+                SortOrder = pair.Preset.SortOrder
+            })
+            .ToList();
+    }
+
+    private static List<(PredefinedWeights.Entry Preset, SaveProductVariantRequest Request)> NormalizeIncomingVariants(
+        IReadOnlyList<SaveProductVariantRequest>? requestVariants)
+    {
+        if (requestVariants is null || requestVariants.Count == 0)
+        {
+            return [];
+        }
+
+        var result = new List<(PredefinedWeights.Entry, SaveProductVariantRequest)>(requestVariants.Count);
+        foreach (var request in requestVariants)
+        {
+            var preset = PredefinedWeights.Find(request.Weight, request.WeightUnit)
+                ?? throw new BadRequestException(
+                    "Фасування має відповідати одному з дозволених: 10г, 50г, 100г, 250г, 500г, 1кг, 1шт.");
+            result.Add((preset, request));
+        }
+
+        return result;
+    }
+
+    private static void EnsureActiveRequiresVariants(SaveProductRequest request)
+    {
+        if (request.IsActive
+            && (request.Variants is null
+                || !request.Variants.Any(v => v.IsActive && v.Price > 0)))
+        {
+            throw new BadRequestException(
+                "Активний товар потребує хоча б одного активного фасування з ціною.");
         }
     }
 
@@ -463,6 +570,41 @@ public sealed class ProductService : IProductService
         };
     }
 
+    /// <summary>Public catalog inclusion: active + available + ≥1 active priced variant.</summary>
+    private static IQueryable<Product> CatalogProducts(IQueryable<Product> source) =>
+        source.Where(p =>
+            p.IsActive
+            && p.IsAvailable
+            && p.Variants.Any(v => v.IsActive));
+
+    private static IQueryable<ProductDto> ProjectProductCards(IQueryable<Product> source, bool useEn)
+    {
+        return source.Select(p => new ProductDto(
+            p.Id,
+            useEn && p.NameEn != null && p.NameEn != "" ? p.NameEn : p.NameUk,
+            p.Slug,
+            useEn && p.ShortDescriptionEn != null && p.ShortDescriptionEn != ""
+                ? p.ShortDescriptionEn
+                : p.ShortDescriptionUk,
+            p.Variants.Where(v => v.IsActive).Min(v => (decimal?)v.Price),
+            p.Variants
+                .Where(v => v.IsActive)
+                .OrderBy(v => v.Price)
+                .ThenBy(v => v.SortOrder)
+                .Select(v => (int?)v.Id)
+                .FirstOrDefault(),
+            p.ImageUrl,
+            p.IsFeatured,
+            p.CreatedAt,
+            p.CategoryId,
+            useEn && p.Category.NameEn != null && p.Category.NameEn != ""
+                ? p.Category.NameEn
+                : p.Category.NameUk,
+            p.Category.Slug,
+            p.IsAvailable,
+            p.IsActive));
+    }
+
     private static IQueryable<Product> ApplyFilters(
         IQueryable<Product> source,
         NormalizedProductQuery query)
@@ -487,13 +629,17 @@ public sealed class ProductService : IProductService
         if (query.MinPrice.HasValue)
         {
             var min = query.MinPrice.Value;
-            source = source.Where(p => p.Price >= min);
+            source = source.Where(p =>
+                p.Variants.Any(v => v.IsActive)
+                && p.Variants.Where(v => v.IsActive).Min(v => v.Price) >= min);
         }
 
         if (query.MaxPrice.HasValue)
         {
             var max = query.MaxPrice.Value;
-            source = source.Where(p => p.Price <= max);
+            source = source.Where(p =>
+                p.Variants.Any(v => v.IsActive)
+                && p.Variants.Where(v => v.IsActive).Min(v => v.Price) <= max);
         }
 
         return source;
@@ -503,8 +649,12 @@ public sealed class ProductService : IProductService
     {
         return sortBy switch
         {
-            "price-asc" => source.OrderBy(p => p.Price).ThenBy(p => p.Id),
-            "price-desc" => source.OrderByDescending(p => p.Price).ThenBy(p => p.Id),
+            "price-asc" => source
+                .OrderBy(p => p.Variants.Where(v => v.IsActive).Min(v => (decimal?)v.Price) ?? decimal.MaxValue)
+                .ThenBy(p => p.Id),
+            "price-desc" => source
+                .OrderByDescending(p => p.Variants.Where(v => v.IsActive).Min(v => (decimal?)v.Price) ?? decimal.MinValue)
+                .ThenBy(p => p.Id),
             "new" => source.OrderByDescending(p => p.CreatedAt).ThenBy(p => p.Id),
             _ => source.OrderByDescending(p => p.IsFeatured).ThenBy(p => p.Id)
         };
@@ -535,6 +685,11 @@ public sealed class ProductService : IProductService
         return $"%{escaped}%";
     }
 
-    private static ProductDto MapSafeProductCard(ProductDto product) =>
-        product with { ImageUrl = MediaUrlGuard.Sanitize(product.ImageUrl) };
+    private static ProductDto MapSafeProductCard(ProductDto product)
+    {
+        return product with
+        {
+            ImageUrl = MediaUrlGuard.Sanitize(product.ImageUrl)
+        };
+    }
 }

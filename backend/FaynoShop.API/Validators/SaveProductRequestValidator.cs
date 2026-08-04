@@ -1,3 +1,4 @@
+using FaynoShop.API.Constants;
 using FaynoShop.API.DTOs.Products;
 using FluentValidation;
 
@@ -5,8 +6,6 @@ namespace FaynoShop.API.Validators;
 
 public sealed class SaveProductRequestValidator : AbstractValidator<SaveProductRequest>
 {
-    private static readonly string[] AllowedWeightUnits = ["г", "кг", "шт", "мл", "л"];
-
     public SaveProductRequestValidator()
     {
         RuleFor(x => x.NameUk).NotEmpty().WithMessage("Вкажіть назву товару.").MaximumLength(200);
@@ -19,18 +18,55 @@ public sealed class SaveProductRequestValidator : AbstractValidator<SaveProductR
         RuleFor(x => x.ShortDescriptionEn).MaximumLength(500).WithMessage("Англійський короткий опис занадто довгий.");
         RuleFor(x => x.DescriptionUk).MaximumLength(10_000).WithMessage("Повний опис занадто довгий.");
         RuleFor(x => x.DescriptionEn).MaximumLength(10_000).WithMessage("Англійський повний опис занадто довгий.");
-        RuleFor(x => x.Price).GreaterThan(0).WithMessage("Ціна має бути більшою за нуль.");
-        RuleFor(x => x.OldPrice).GreaterThan(0).WithMessage("Стара ціна має бути більшою за нуль.")
-            .When(x => x.OldPrice.HasValue);
-        RuleFor(x => x.Weight).GreaterThan(0).WithMessage("Вага має бути більшою за нуль.")
-            .When(x => x.Weight.HasValue);
-        RuleFor(x => x.WeightUnit)
-            .Must(unit => string.IsNullOrWhiteSpace(unit) || AllowedWeightUnits.Contains(unit.Trim()))
-            .WithMessage("Одиниця виміру має бути: г, кг або шт.");
         RuleFor(x => x.ImageUrl).MaximumLength(500).WithMessage("URL зображення занадто довгий.");
         RuleForEach(x => x.ImageUrls).NotEmpty().WithMessage("URL зображення не може бути порожнім.")
             .MaximumLength(500).WithMessage("URL зображення занадто довгий.");
         RuleFor(x => x.ImageUrls).Must(urls => urls is null || urls.Count <= 20)
             .WithMessage("Галерея може містити не більше 20 зображень.");
+
+        RuleFor(x => x.Variants)
+            .Must(variants => variants is null || variants.Count <= PredefinedWeights.All.Count)
+            .WithMessage($"Товар може мати не більше {PredefinedWeights.All.Count} фасувань.");
+
+        RuleFor(x => x.Variants)
+            .Must(HaveUniquePackagings)
+            .WithMessage("Фасування не повинні повторюватися.")
+            .When(x => x.Variants is { Count: > 0 });
+
+        RuleFor(x => x)
+            .Must(x => !x.IsActive || HasAtLeastOneActivePricedVariant(x.Variants))
+            .WithMessage("Активний товар потребує хоча б одного активного фасування з ціною.");
+
+        RuleForEach(x => x.Variants).ChildRules(variant =>
+        {
+            variant.RuleFor(v => v.Price)
+                .GreaterThan(0)
+                .WithMessage("Ціна фасування має бути більшою за нуль.");
+
+            variant.RuleFor(v => v.WeightUnit)
+                .NotEmpty()
+                .WithMessage("Вкажіть одиницю фасування.");
+
+            variant.RuleFor(v => v)
+                .Must(v => !string.IsNullOrWhiteSpace(v.WeightUnit)
+                    && PredefinedWeights.IsAllowed(v.Weight, v.WeightUnit))
+                .WithMessage("Фасування має відповідати одному з дозволених: 10г, 50г, 100г, 250г, 500г, 1кг, 1шт.");
+        });
     }
+
+    private static bool HaveUniquePackagings(IReadOnlyList<SaveProductVariantRequest>? variants)
+    {
+        if (variants is null || variants.Count == 0)
+        {
+            return true;
+        }
+
+        return variants
+            .Select(v => (v.Weight, Unit: v.WeightUnit.Trim()))
+            .Distinct()
+            .Count() == variants.Count;
+    }
+
+    private static bool HasAtLeastOneActivePricedVariant(IReadOnlyList<SaveProductVariantRequest>? variants) =>
+        variants is not null && variants.Any(v => v.IsActive && v.Price > 0);
 }

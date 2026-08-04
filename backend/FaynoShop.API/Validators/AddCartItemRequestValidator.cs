@@ -8,9 +8,9 @@ public sealed class AddCartItemRequestValidator : AbstractValidator<AddCartItemR
 {
     public AddCartItemRequestValidator()
     {
-        RuleFor(x => x.ProductId)
+        RuleFor(x => x.VariantId)
             .GreaterThan(0)
-            .WithMessage("Ідентифікатор товару є обов'язковим.");
+            .WithMessage("Ідентифікатор фасування є обов'язковим.");
 
         RuleFor(x => x.Quantity)
             .Must(q => q is null or (>= 1 and <= CartLimits.MaxLineQuantity))

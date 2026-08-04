@@ -77,7 +77,15 @@ import { IconComponent } from '../icon/icon.component';
                   {{ line().name }}
                 </h4>
               }
-              <span class="mt-0.5 block text-xs text-[var(--text-muted)]">{{ line().category }}</span>
+              <span class="mt-0.5 block text-xs text-[var(--text-muted)]">
+                {{ weightLabel() }}
+                @if (line().category) {
+                  · {{ line().category }}
+                }
+              </span>
+              <span class="mt-0.5 block text-xs text-[var(--espresso-700)]">
+                {{ line().price | number: '1.0-2' }} ₴
+              </span>
             } @else {
               <span class="fn-eyebrow mb-0.5 block text-[10px]">{{ line().category }}</span>
               @if (canOpenProduct()) {
@@ -97,6 +105,10 @@ import { IconComponent } from '../icon/icon.component';
                   {{ line().name }}
                 </h4>
               }
+              <span class="mt-0.5 block text-xs text-[var(--text-muted)]">{{ weightLabel() }}</span>
+              <span class="mt-0.5 block text-xs text-[var(--espresso-700)]">
+                {{ line().price | number: '1.0-2' }} ₴
+              </span>
             }
             @if (statusLabel(); as status) {
               <span class="mt-1 inline-block text-xs font-semibold text-[var(--chili-700)]">{{
@@ -202,6 +214,13 @@ export class CartLineComponent {
   protected readonly purchasable = computed(
     () => this.line().isActive && this.line().isAvailable !== false,
   );
+
+  protected readonly weightLabel = computed(() => {
+    const line = this.line();
+    this.locale.lang();
+    if (!line.weightUnit) return '';
+    return `${this.locale.formatNumber(line.weight)} ${line.weightUnit}`;
+  });
 
   protected readonly statusLabel = computed(() => {
     const line = this.line();

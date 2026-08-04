@@ -59,17 +59,20 @@ public sealed class CartService : ICartService
                 cancellationToken)
             ?? throw new NotFoundException("Позицію кошика не знайдено.");
 
-        // Lock product so concurrent updates see a consistent active flag.
-        var product = await _db.Products
-            .FromSql($"SELECT * FROM products WHERE id = {line.ProductId} FOR UPDATE")
+        var variant = await _db.ProductVariants
+            .FromSql($"SELECT * FROM product_variants WHERE id = {line.VariantId} FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (product is null)
+        if (variant is null)
         {
             throw new NotFoundException("Позицію кошика не знайдено.");
         }
 
-        if (!product.IsActive || !product.IsAvailable)
+        var product = await _db.Products
+            .FromSql($"SELECT * FROM products WHERE id = {variant.ProductId} FOR UPDATE")
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (product is null || !product.IsActive || !product.IsAvailable || !variant.IsActive)
         {
             throw new BadRequestException("Товар недоступний.");
         }
@@ -165,7 +168,6 @@ public sealed class CartService : ICartService
             return new MergeCartResponse(countOnly);
         }
 
-        // Guest cart already belongs to this user — detach old session id and return.
         if (guestCart.UserId == userId)
         {
             RotateSessionId(guestCart);
@@ -175,7 +177,6 @@ public sealed class CartService : ICartService
             return new MergeCartResponse(guestCart.Items.Sum(i => i.Quantity));
         }
 
-        // Never steal a cart already owned by another account (session-id takeover).
         if (guestCart.UserId is not null)
         {
             var countOnly = userCart is null
@@ -185,8 +186,6 @@ public sealed class CartService : ICartService
             return new MergeCartResponse(countOnly);
         }
 
-        // No existing user cart: claim the guest cart and rotate session so the
-        // pre-login header can no longer address this cart as a guest.
         if (userCart is null || userCart.Id == guestCart.Id)
         {
             guestCart.UserId = userId;
@@ -197,10 +196,9 @@ public sealed class CartService : ICartService
             return new MergeCartResponse(guestCart.Items.Sum(i => i.Quantity));
         }
 
-        // Merge guest lines into user cart, then remove guest cart.
         foreach (var guestLine in guestCart.Items.ToList())
         {
-            var userLine = userCart.Items.FirstOrDefault(i => i.ProductId == guestLine.ProductId);
+            var userLine = userCart.Items.FirstOrDefault(i => i.VariantId == guestLine.VariantId);
 
             if (userLine is null)
             {
@@ -213,7 +211,7 @@ public sealed class CartService : ICartService
                 userCart.Items.Add(new CartItem
                 {
                     CartId = userCart.Id,
-                    ProductId = guestLine.ProductId,
+                    VariantId = guestLine.VariantId,
                     Quantity = qty
                 });
             }
@@ -257,19 +255,27 @@ public sealed class CartService : ICartService
 
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
 
-        // Lock product row so concurrent adds cannot exceed MaxLineQuantity.
-        var product = await _db.Products
-            .FromSql($"SELECT * FROM products WHERE id = {request.ProductId} FOR UPDATE")
+        var variant = await _db.ProductVariants
+            .FromSql($"SELECT * FROM product_variants WHERE id = {request.VariantId} FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
 
-        // Same client-facing message for missing, inactive, and unavailable — avoid product-ID existence oracle.
+        // Same client-facing message for missing / inactive — avoid existence oracle.
+        if (variant is null || !variant.IsActive)
+        {
+            throw new NotFoundException("Товар не знайдено.");
+        }
+
+        var product = await _db.Products
+            .FromSql($"SELECT * FROM products WHERE id = {variant.ProductId} FOR UPDATE")
+            .FirstOrDefaultAsync(cancellationToken);
+
         if (product is null || !product.IsActive || !product.IsAvailable)
         {
             throw new NotFoundException("Товар не знайдено.");
         }
 
         var cart = await GetOrCreateCartAsync(sessionId, userId, cancellationToken);
-        var line = await GetOrCreateLineAsync(cart, product, quantityToAdd, cancellationToken);
+        var line = await GetOrCreateLineAsync(cart, variant.Id, quantityToAdd, cancellationToken);
 
         if (line.Quantity > CartLimits.MaxLineQuantity)
         {
@@ -286,7 +292,7 @@ public sealed class CartService : ICartService
 
         await transaction.CommitAsync(cancellationToken);
 
-        return new AddCartItemResponse(line.Id, product.Id, line.Quantity, itemCount);
+        return new AddCartItemResponse(line.Id, variant.Id, product.Id, line.Quantity, itemCount);
     }
 
     /// <summary>
@@ -308,14 +314,12 @@ public sealed class CartService : ICartService
                 return userCart;
             }
 
-            // Unclaimed guest cart only — never open another account's cart by session.
             return await _db.Carts
                 .FirstOrDefaultAsync(
                     c => c.SessionId == sessionId && c.UserId == null,
                     cancellationToken);
         }
 
-        // Guest: session must still be anonymous. Claimed carts are auth-only.
         return await _db.Carts
             .FirstOrDefaultAsync(
                 c => c.SessionId == sessionId && c.UserId == null,
@@ -336,19 +340,22 @@ public sealed class CartService : ICartService
             .Select(i => new
             {
                 i.Id,
-                i.ProductId,
+                i.VariantId,
+                ProductId = i.Variant.ProductId,
                 i.Quantity,
-                Name = useEn && i.Product.NameEn != null && i.Product.NameEn != ""
-                    ? i.Product.NameEn
-                    : i.Product.NameUk,
-                i.Product.Slug,
-                CategoryName = useEn && i.Product.Category.NameEn != null && i.Product.Category.NameEn != ""
-                    ? i.Product.Category.NameEn
-                    : i.Product.Category.NameUk,
-                i.Product.ImageUrl,
-                i.Product.Price,
-                i.Product.IsActive,
-                i.Product.IsAvailable
+                Name = useEn && i.Variant.Product.NameEn != null && i.Variant.Product.NameEn != ""
+                    ? i.Variant.Product.NameEn
+                    : i.Variant.Product.NameUk,
+                i.Variant.Product.Slug,
+                CategoryName = useEn && i.Variant.Product.Category.NameEn != null && i.Variant.Product.Category.NameEn != ""
+                    ? i.Variant.Product.Category.NameEn
+                    : i.Variant.Product.Category.NameUk,
+                i.Variant.Product.ImageUrl,
+                i.Variant.Weight,
+                i.Variant.WeightUnit,
+                i.Variant.Price,
+                IsActive = i.Variant.Product.IsActive && i.Variant.IsActive,
+                i.Variant.Product.IsAvailable
             })
             .ToListAsync(cancellationToken);
 
@@ -358,11 +365,14 @@ public sealed class CartService : ICartService
                 var lineTotal = r.Price * r.Quantity;
                 return new CartItemDto(
                     r.Id,
+                    r.VariantId,
                     r.ProductId,
                     r.Name,
                     r.Slug,
                     r.CategoryName,
                     MediaUrlGuard.Sanitize(r.ImageUrl),
+                    r.Weight,
+                    r.WeightUnit,
                     r.Price,
                     r.Quantity,
                     lineTotal,
@@ -379,7 +389,7 @@ public sealed class CartService : ICartService
 
     private async Task<CartItem> GetOrCreateLineAsync(
         Cart cart,
-        Product product,
+        int variantId,
         int quantityToAdd,
         CancellationToken cancellationToken)
     {
@@ -387,7 +397,7 @@ public sealed class CartService : ICartService
 
         var line = await _db.CartItems
             .FirstOrDefaultAsync(
-                i => i.CartId == cart.Id && i.ProductId == product.Id,
+                i => i.CartId == cart.Id && i.VariantId == variantId,
                 cancellationToken);
 
         if (line is not null)
@@ -412,7 +422,7 @@ public sealed class CartService : ICartService
         line = new CartItem
         {
             CartId = cart.Id,
-            ProductId = product.Id,
+            VariantId = variantId,
             Quantity = quantityToAdd
         };
         _db.CartItems.Add(line);
@@ -424,11 +434,10 @@ public sealed class CartService : ICartService
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
         {
-            // Concurrent insert for the same cart+product — reload and increment the winner.
             _db.Entry(line).State = EntityState.Detached;
             line = await _db.CartItems
                 .FirstOrDefaultAsync(
-                    i => i.CartId == cart.Id && i.ProductId == product.Id,
+                    i => i.CartId == cart.Id && i.VariantId == variantId,
                     cancellationToken);
 
             if (line is null)
@@ -448,9 +457,6 @@ public sealed class CartService : ICartService
         }
     }
 
-    /// <summary>
-    /// Resolves the active cart (user cart after auth/merge, else session), or creates one.
-    /// </summary>
     private async Task<Cart> GetOrCreateCartAsync(
         string sessionId,
         int? userId,
@@ -459,7 +465,6 @@ public sealed class CartService : ICartService
         var cart = await FindCartAsync(sessionId, userId, cancellationToken);
         if (cart is not null)
         {
-            // Bind ownership on first authenticated use of an unclaimed session cart.
             if (userId is int uid && cart.UserId is null)
             {
                 cart.UserId = uid;
@@ -468,7 +473,6 @@ public sealed class CartService : ICartService
             return cart;
         }
 
-        // Guest header reused after claim would hit the unique session index — mint a free id.
         if (userId is null
             && await _db.Carts.AnyAsync(c => c.SessionId == sessionId, cancellationToken))
         {
@@ -494,7 +498,6 @@ public sealed class CartService : ICartService
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
         {
-            // Concurrent create for the same session — reload the winner (prefer user cart).
             _db.Entry(cart).State = EntityState.Detached;
             cart = await FindCartAsync(sessionId, userId, cancellationToken);
 
@@ -517,7 +520,6 @@ public sealed class CartService : ICartService
         return ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
     }
 
-    /// <summary>Caps line qty to MaxLineQuantity; non-positive qty → 0 (drop line).</summary>
     private static int CapLineQuantity(int quantity)
     {
         if (quantity <= 0)
@@ -528,9 +530,6 @@ public sealed class CartService : ICartService
         return Math.Min(quantity, CartLimits.MaxLineQuantity);
     }
 
-    /// <summary>
-    /// Detach the pre-auth guest header from a claimed cart so it cannot be reused anonymously.
-    /// </summary>
     private static void RotateSessionId(Cart cart)
     {
         cart.SessionId = Guid.NewGuid().ToString("D");
@@ -550,7 +549,6 @@ public sealed class CartService : ICartService
                 $"Заголовок {CartSessionHeaders.SessionId} не може перевищувати {CartSessionHeaders.MaxLength} символів.");
         }
 
-        // Require a UUID so clients cannot use short/guessable session identifiers.
         if (!Guid.TryParseExact(sessionId, "D", out _))
         {
             throw new BadRequestException(

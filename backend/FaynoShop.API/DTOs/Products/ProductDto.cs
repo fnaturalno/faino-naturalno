@@ -1,15 +1,16 @@
 namespace FaynoShop.API.DTOs.Products;
 
+/// <summary>
+/// Catalog / similar / featured card. Price comes from the min-price active variant.
+/// </summary>
 public sealed record ProductDto(
     int Id,
     string Name,
     string Slug,
     string? ShortDescription,
-    decimal Price,
-    decimal? OldPrice,
+    decimal? PriceFrom,
+    int? CheapestVariantId,
     string? ImageUrl,
-    decimal? Weight,
-    string? WeightUnit,
     bool IsFeatured,
     DateTime CreatedAt,
     int CategoryId,

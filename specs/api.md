@@ -28,7 +28,13 @@ Applies to: `GET /products`, `GET /products/:slug`, `GET /categories`, `GET /car
 
 **GET /products query params:** `category` (slug(s); parent slug expands to parent-direct + subcategory products), `search` (matches UK+EN name/short + slug), `minPrice`, `maxPrice`, `page`, `pageSize`, `sortBy`, `includeInactive` (Admin only), `locale`
 
-**Admin product payload:** `nameUk`, `nameEn?`, `shortDescriptionUk?`, `shortDescriptionEn?`, `descriptionUk?`, `descriptionEn?`, plus price/images/flags/`categoryId`/`slug?` as before. Empty EN allowed.
+**Admin product payload:** `nameUk`, `nameEn?`, `shortDescriptionUk?`, `shortDescriptionEn?`, `descriptionUk?`, `descriptionEn?`, images/flags/`categoryId`/`slug?`, plus `variants: [{ weight, weightUnit, price, isActive }]` (only priced rows from the 7 predefined packs). No product-level `price`/`weight`. Empty EN allowed.
+
+**Public product list/card:** `priceFrom` (MIN active variant price), `cheapestVariantId`. Dropped product-level `price`/`weight`. No `oldPrice` / discount fields — price is always the current selling price. Inclusion (public): `IsActive` + `IsAvailable` + ≥1 active variant. Sort/filter/bounds use MIN(active variant price).
+
+**Public product detail:** `variants: [{ id, weight, weightUnit, price, sortOrder }]` (active only, by `sortOrder`). No product-level price/weight.
+
+**Cart POST body:** `{ variantId, quantity? }` only (no `productId`). Lines return `variantId`, weight/unit, live variant price.
 
 ## Categories
 | Method | Route | Auth | Description |
@@ -47,7 +53,7 @@ Hierarchy details: `specs/features/subcategories.md`.
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
 | GET | /cart | — | Get cart (by session); `?locale=` for line names |
-| POST | /cart/items | — | Add item |
+| POST | /cart/items | — | Add item by `variantId` |
 | PUT | /cart/items/:id | — | Update quantity (returns cart; `?locale=`) |
 | DELETE | /cart/items/:id | — | Remove item (returns cart; `?locale=`) |
 | DELETE | /cart | — | Clear cart |

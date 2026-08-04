@@ -39,18 +39,16 @@
 | description_en | text | nullable — English; falls back to `description_uk` when empty |
 | short_description_uk | varchar(500) | nullable — Ukrainian catalog-card blurb |
 | short_description_en | varchar(500) | nullable — English; falls back to `short_description_uk` when empty |
-| price | numeric(10,2) | NOT NULL |
-| old_price | numeric(10,2) | |
 | image_url | varchar(500) | |
 | image_urls | text[] | NOT NULL |
-| weight | numeric(10,3) | |
-| weight_unit | varchar(10) | |
 | is_active | bool | NOT NULL DEFAULT true |
 | is_featured | bool | NOT NULL DEFAULT false |
 | is_available | bool | NOT NULL DEFAULT true |
 | category_id | int | FK → categories (ON DELETE RESTRICT) |
 | created_at | timestamptz | NOT NULL DEFAULT now() |
 | updated_at | timestamptz | NOT NULL DEFAULT now() |
+
+Price / weight live on `product_variants` (not on products). `stock_quantity` remains absent.
 
 **Indexes:**
 - `idx_products_slug` — UNIQUE (slug lookups, product detail route)
@@ -59,7 +57,25 @@
 - `idx_products_category_id_is_active` — composite for category + active catalog queries
 - `idx_products_is_featured` — `sortBy=popular` (featured first)
 - `idx_products_created_at` — `sortBy=new`
-- `idx_products_price` — `sortBy=price-asc|price-desc` and price-range filters
+
+#### product_variants
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | serial | PK |
+| product_id | int | FK → products (ON DELETE CASCADE) |
+| weight | numeric(10,3) | NOT NULL |
+| weight_unit | varchar(10) | NOT NULL — `г` / `кг` / `шт` from predefined list |
+| price | numeric(10,2) | NOT NULL |
+| is_active | bool | NOT NULL DEFAULT true |
+| sort_order | int | NOT NULL — 1-based index in predefined weight list |
+
+No soft delete. Row exists only when admin set a price for that packaging.
+
+**Indexes:**
+- `idx_product_variants_product_id` — FK + load variants for a product
+- `idx_product_variants_product_id_weight_weight_unit` — UNIQUE (one row per packaging per product; admin upsert key)
+
+Price sort/filter and catalog `priceFrom` use MIN(active variant price); former `idx_products_price` dropped.
 
 #### carts
 | Column | Type | Constraints |
@@ -79,13 +95,15 @@
 |--------|------|-------------|
 | id | serial | PK |
 | cart_id | int | FK → carts (ON DELETE CASCADE) |
-| product_id | int | FK → products (ON DELETE RESTRICT) |
+| variant_id | int | FK → product_variants (ON DELETE RESTRICT) |
 | quantity | int | NOT NULL |
+
+Product is derived via `variant → product` (no denormalized `product_id` on cart lines).
 
 **Indexes:**
 - `idx_cart_items_cart_id` — FK + load cart contents
-- `idx_cart_items_product_id` — FK
-- `idx_cart_items_cart_id_product_id` — UNIQUE (one row per product per cart; POST `/api/cart/items` upserts quantity)
+- `idx_cart_items_variant_id` — FK
+- `idx_cart_items_cart_id_variant_id` — UNIQUE (one row per variant per cart; POST `/api/cart/items` upserts quantity)
 
 #### users
 | Column | Type | Constraints |
@@ -189,13 +207,17 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 |--------|------|-------------|
 | id | serial | PK |
 | order_id | int | FK → orders (ON DELETE CASCADE) |
-| product_id | int | FK → products (ON DELETE RESTRICT) |
+| product_id | int | FK → products (ON DELETE RESTRICT) — denormalized for history joins |
+| variant_id | int | FK → product_variants (ON DELETE RESTRICT) |
 | quantity | int | NOT NULL |
-| unit_price | numeric(10,2) | NOT NULL — price snapshot at order time |
+| unit_price | numeric(10,2) | NOT NULL — price snapshot from variant at place time |
+| weight | numeric(10,3) | NOT NULL — weight snapshot from variant at place time |
+| weight_unit | varchar(10) | NOT NULL — weight unit snapshot from variant at place time |
 
 **Indexes:**
 - `idx_order_items_order_id` — FK + item count / line items for an order
 - `idx_order_items_product_id` — FK
+- `idx_order_items_variant_id` — FK
 
 ### Migrations
 
@@ -210,6 +232,8 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | `DropProductStockQuantity` (`20260804104214_DropProductStockQuantity`) | drop `products.stock_quantity` — inventory not tracked |
 | `AddProductIsAvailable` (`20260804105918_AddProductIsAvailable`) | add `products.is_available` (bool, default true) — catalog visibility vs cart purchasability |
 | `I18nSchema` (`20260804125712_I18nSchema`) | bilingual content: rename product/category text columns to `*_uk`, add nullable `*_en`; shared `slug` unchanged; existing row data preserved via rename |
+| `ProductVariantsSchema` (`20260804165448_ProductVariantsSchema`) | `product_variants` table; drop `products.price`/`old_price`/`weight`/`weight_unit` + `idx_products_price` (no price→variant data migration); cart lines keyed by `variant_id` (RESTRICT); order lines gain `variant_id` + weight snapshots; clears existing cart/order lines before FK retrofit |
+| `DropVariantOldPrice` | drop `product_variants.old_price` — selling price only; no crossed-out / discount price |
 
 ### Connection String
 ```

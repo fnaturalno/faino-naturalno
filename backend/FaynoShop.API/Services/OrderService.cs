@@ -144,8 +144,25 @@ public sealed class OrderService : IOrderService
             throw new BadRequestException("Кошик порожній.");
         }
 
-        // Lock products in ascending id order to avoid deadlocks under concurrent place.
-        var productIds = lines.Select(l => l.ProductId).Distinct().OrderBy(id => id).ToList();
+        // Lock variants then products in ascending id order to avoid deadlocks.
+        var variantIds = lines.Select(l => l.VariantId).Distinct().OrderBy(id => id).ToList();
+        var variantsById = new Dictionary<int, ProductVariant>(variantIds.Count);
+
+        foreach (var variantId in variantIds)
+        {
+            var variant = await _db.ProductVariants
+                .FromSql($"SELECT * FROM product_variants WHERE id = {variantId} FOR UPDATE")
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (variant is null || !variant.IsActive)
+            {
+                throw new BadRequestException("Один або кілька товарів у кошику більше недоступні.");
+            }
+
+            variantsById[variantId] = variant;
+        }
+
+        var productIds = variantsById.Values.Select(v => v.ProductId).Distinct().OrderBy(id => id).ToList();
         var productsById = new Dictionary<int, Product>(productIds.Count);
 
         foreach (var productId in productIds)
@@ -168,22 +185,25 @@ public sealed class OrderService : IOrderService
 
         foreach (var line in lines)
         {
-            var product = productsById[line.ProductId];
+            var variant = variantsById[line.VariantId];
+            var product = productsById[variant.ProductId];
 
-            if (!product.IsActive || !product.IsAvailable)
+            if (!product.IsActive || !product.IsAvailable || !variant.IsActive)
             {
                 throw new BadRequestException(
                     $"Товар «{product.NameUk}» недоступний. Видаліть його з кошика та спробуйте знову.");
             }
 
-            var unitPrice = product.Price;
             orderItems.Add(new OrderItem
             {
                 ProductId = product.Id,
+                VariantId = variant.Id,
                 Quantity = line.Quantity,
-                UnitPrice = unitPrice
+                UnitPrice = variant.Price,
+                Weight = variant.Weight,
+                WeightUnit = variant.WeightUnit
             });
-            totalAmount += unitPrice * line.Quantity;
+            totalAmount += variant.Price * line.Quantity;
         }
 
         var (prefix, nextSeq) = await ResolveNextOrderSequenceAsync(cancellationToken);
@@ -285,6 +305,8 @@ public sealed class OrderService : IOrderService
                             : i.Product.NameUk,
                         i.Quantity,
                         i.UnitPrice,
+                        i.Weight,
+                        i.WeightUnit,
                         Category = (string?)(useEn && i.Product.Category.NameEn != null && i.Product.Category.NameEn != ""
                             ? i.Product.Category.NameEn
                             : i.Product.Category.NameUk),
@@ -307,6 +329,8 @@ public sealed class OrderService : IOrderService
                 i.Quantity,
                 i.UnitPrice,
                 i.UnitPrice * i.Quantity,
+                i.Weight,
+                i.WeightUnit,
                 i.Category,
                 MediaUrlGuard.Sanitize(i.ImageUrl)))
             .ToList();
@@ -413,6 +437,8 @@ public sealed class OrderService : IOrderService
                         : i.Product.NameUk,
                     i.Quantity,
                     i.UnitPrice,
+                    i.Weight,
+                    i.WeightUnit,
                     Category = (string?)(useEn && i.Product.Category.NameEn != null && i.Product.Category.NameEn != ""
                         ? i.Product.Category.NameEn
                         : i.Product.Category.NameUk),
@@ -424,7 +450,7 @@ public sealed class OrderService : IOrderService
 
         var items = order.Items.Select(i => new OrderDetailItemDto(
             i.ProductId, i.ProductName, i.Quantity, i.UnitPrice, i.UnitPrice * i.Quantity,
-            i.Category, MediaUrlGuard.Sanitize(i.ImageUrl))).ToList();
+            i.Weight, i.WeightUnit, i.Category, MediaUrlGuard.Sanitize(i.ImageUrl))).ToList();
 
         return new OrderDetailDto(
             order.Id, order.OrderNumber, order.Status, order.TotalAmount, order.CreatedAt,

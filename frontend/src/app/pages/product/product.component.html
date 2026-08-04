@@ -124,9 +124,7 @@
               @if (badge(); as productBadge) {
                 <div class="absolute left-4 top-4">
                   <span
-                    class="rounded-full px-2.5 py-1 text-[11px] font-extrabold text-white"
-                    [class.bg-[var(--chili-500)]]="productBadge.kind === 'sale'"
-                    [class.bg-[var(--garden-500)]]="productBadge.kind === 'new'"
+                    class="rounded-full bg-[var(--garden-500)] px-2.5 py-1 text-[11px] font-extrabold text-white"
                   >{{ productBadge.label }}</span>
                 </div>
               }
@@ -181,30 +179,72 @@
               </p>
             }
 
-            <div class="mb-2 flex flex-wrap items-baseline gap-3">
-              <span
-                class="font-[var(--font-accent)] text-[34px] font-bold leading-none text-[var(--espresso-900)] sm:text-[44px]"
-              >
-                {{ detail.price | number: '1.0-2' }}
-                <span class="text-[0.55em]">₴</span>
-              </span>
-              @if (detail.oldPrice && detail.oldPrice > detail.price) {
-                <del class="text-lg text-[var(--kraft-500)]">
-                  {{ detail.oldPrice | number: '1.0-2' }} ₴
-                </del>
+            @if (selectedVariant(); as variant) {
+              @if (hasMultipleVariants()) {
+                <div class="mb-6" [attr.aria-label]="'product.selectVariant' | transloco">
+                  <p class="mb-2 text-sm font-semibold text-[var(--espresso-800)]">
+                    {{ 'product.variants' | transloco }}
+                  </p>
+                  <div class="overflow-x-auto">
+                    <table class="w-full min-w-[280px] border-collapse text-left text-sm">
+                      <thead>
+                        <tr class="border-b border-[var(--border-subtle)] text-[var(--text-muted)]">
+                          <th class="py-2 pr-3 font-semibold">{{ 'product.variantWeight' | transloco }}</th>
+                          <th class="py-2 font-semibold">{{ 'product.variantPrice' | transloco }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (row of variants(); track row.id) {
+                          <tr
+                            class="cursor-pointer border-b border-[var(--border-subtle)] transition hover:bg-[var(--kraft-100)]"
+                            [class.bg-[var(--marigold-100)]]="selectedVariantId() === row.id"
+                            [attr.aria-selected]="selectedVariantId() === row.id"
+                            (click)="selectVariant(row.id)"
+                          >
+                            <td class="py-2.5 pr-3">
+                              <label class="flex cursor-pointer items-center gap-2 font-semibold text-[var(--espresso-900)]">
+                                <input
+                                  type="radio"
+                                  class="accent-[var(--marigold-500)]"
+                                  name="product-variant"
+                                  [checked]="selectedVariantId() === row.id"
+                                  (change)="selectVariant(row.id)"
+                                  (click)="$event.stopPropagation()"
+                                />
+                                {{ variantLabel(row) }}
+                              </label>
+                            </td>
+                            <td class="py-2.5 font-[var(--font-accent)] font-bold tabular-nums">
+                              {{ row.price | number: '1.0-2' }} ₴
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              } @else {
+                <div class="mb-2 flex flex-wrap items-baseline gap-3">
+                  <span
+                    class="font-[var(--font-accent)] text-[34px] font-bold leading-none text-[var(--espresso-900)] sm:text-[44px]"
+                  >
+                    {{ variant.price | number: '1.0-2' }}
+                    <span class="text-[0.55em]">₴</span>
+                  </span>
+                </div>
+                <div class="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
+                  @if (unitLabel(); as unit) {
+                    <span class="text-sm text-[var(--espresso-700)]">
+                      {{ 'product.packaging' | transloco }} <strong>{{ unit }}</strong>
+                    </span>
+                  }
+                </div>
               }
-              @if (unitLabel(); as unit) {
-                <span class="text-sm text-[var(--text-muted)]">/ {{ unit }}</span>
-              }
-            </div>
-
-            <div class="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
-              @if (unitLabel(); as unit) {
-                <span class="text-sm text-[var(--espresso-700)]">
-                  {{ 'product.packaging' | transloco }} <strong>{{ unit }}</strong>
-                </span>
-              }
-            </div>
+            } @else {
+              <div class="mb-6 text-sm text-[var(--text-muted)]">
+                {{ 'product.outOfStock' | transloco }}
+              </div>
+            }
 
             <!-- Desktop stepper + add -->
             <div class="mb-7 hidden items-center gap-4 md:flex">

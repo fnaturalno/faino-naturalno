@@ -141,12 +141,17 @@
     "naturalClaim": "100% natural ingredients",
     "description": "Description",
     "weight": "{{weight}} {{unit}}",
+    "variants": "Pack sizes",
+    "variantWeight": "Weight",
+    "variantPrice": "Price",
+    "selectVariant": "Choose pack size",
     "addError": "Could not add the product to the cart.",
     "addedToast": "Added to cart"
   },
   "productCard": {
     "addAria": "Add {{name}} to cart",
-    "newBadge": "New"
+    "newBadge": "New",
+    "priceFrom": "from {{price}} ₴"
   },
   "cart": {
     "title": "Cart",
@@ -413,11 +418,13 @@
     "sectionDescription": "Description",
     "shortDescription": "Short description",
     "fullDescription": "Full description",
-    "sectionPrice": "Price & availability",
+    "sectionPrice": "Pack sizes & prices",
     "price": "Price, ₴",
-    "oldPrice": "Old price, ₴ (optional)",
     "weightUnit": "Weight / unit",
+    "variantActive": "Active",
     "reqPrice": "Price must be greater than 0.",
+    "reqActiveVariant": "An active product needs at least one active pack size with a price.",
+    "priceFromEmpty": "—",
     "sectionImages": "Images",
     "dropPhotos": "Drop photos here",
     "uploading": "Uploading…",

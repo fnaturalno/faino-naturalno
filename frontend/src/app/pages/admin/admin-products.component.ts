@@ -149,7 +149,13 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             <span class="truncate text-sm text-[var(--espresso-700)]" [title]="product.categoryName">{{
               product.categoryName
             }}</span>
-            <span class="text-base font-bold text-[var(--espresso-900)]">{{ product.price }} ₴</span>
+            <span class="text-base font-bold text-[var(--espresso-900)]">
+              @if (product.priceFrom != null) {
+                {{ product.priceFrom }} ₴
+              } @else {
+                {{ 'admin.priceFromEmpty' | transloco }}
+              }
+            </span>
 
             <button
               type="button"
@@ -247,7 +253,12 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             <div class="min-w-0 flex-1">
               <p class="truncate text-sm font-bold text-[var(--espresso-900)]">{{ product.name }}</p>
               <p class="text-xs text-[var(--text-muted)]">
-                {{ product.categoryName }} · {{ product.price }} ₴
+                {{ product.categoryName }} ·
+                @if (product.priceFrom != null) {
+                  {{ product.priceFrom }} ₴
+                } @else {
+                  {{ 'admin.priceFromEmpty' | transloco }}
+                }
               </p>
             </div>
             <button

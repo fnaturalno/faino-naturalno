@@ -13,16 +13,19 @@ export interface CartDto {
 export interface CartLineDto {
   cartItemId: number;
   productId: number;
+  variantId: number;
   name: string;
   slug: string;
   /** Display category name. */
   category: string;
   imageUrl?: string | null;
-  /** Live unit price from the product. */
+  /** Live unit price from the active variant. */
   price: number;
+  weight: number;
+  weightUnit: string;
   quantity: number;
   lineTotal: number;
-  /** False when the product is inactive. */
+  /** False when the product/variant is inactive. */
   isActive: boolean;
   /** False when the product cannot be purchased (out of stock flag). */
   isAvailable?: boolean;

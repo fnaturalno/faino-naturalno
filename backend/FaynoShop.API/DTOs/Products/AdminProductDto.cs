@@ -12,14 +12,12 @@ public sealed record AdminProductDto(
     string? ShortDescriptionEn,
     string? DescriptionUk,
     string? DescriptionEn,
-    decimal Price,
-    decimal? OldPrice,
-    decimal? Weight,
-    string? WeightUnit,
+    decimal? PriceFrom,
     string? ImageUrl,
     string[] ImageUrls,
     bool IsActive,
     bool IsFeatured,
     bool IsAvailable,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    IReadOnlyList<AdminProductVariantDto> Variants);

@@ -11,18 +11,30 @@
 | DescriptionEn | string? | English; falls back to DescriptionUk when empty |
 | ShortDescriptionUk | string? | Ukrainian catalog-card blurb |
 | ShortDescriptionEn | string? | English; falls back to ShortDescriptionUk when empty |
-| Price | decimal | UAH |
-| OldPrice | decimal? | for discounts |
 | ImageUrl | string? | main image |
 | ImageUrls | string[] | gallery |
-| Weight | decimal? | |
-| WeightUnit | string? | г, мл, шт |
 | IsActive | bool | default true |
 | IsFeatured | bool | homepage highlight |
-| IsAvailable | bool | default true; when false, visible in catalog but cannot add to cart |
+| IsAvailable | bool | default true; public catalog requires IsActive + IsAvailable + ≥1 active variant |
 | CategoryId | int | FK → Category |
 | CreatedAt | DateTime | |
 | UpdatedAt | DateTime | |
+| Variants | collection | ProductVariant rows (priced packagings) |
+
+Price / weight are **not** on Product — see ProductVariant.
+
+## ProductVariant
+| Field | Type | Notes |
+|-------|------|-------|
+| Id | int | PK |
+| ProductId | int | FK → Product (ON DELETE CASCADE) |
+| Weight | decimal | packaging size from predefined list |
+| WeightUnit | string | `г` / `кг` / `шт` |
+| Price | decimal | UAH; current selling price only |
+| IsActive | bool | default true; inactive = not sold publicly |
+| SortOrder | int | 1-based index in predefined weight list |
+
+UNIQUE (ProductId, Weight, WeightUnit). No soft delete — clear price hard-deletes unreferenced rows.
 
 ## Category
 | Field | Type | Notes |
@@ -60,9 +72,12 @@ See `specs/features/subcategories.md` for hierarchy, counts, and filter expansio
 |-------|------|-------|
 | Id | int | PK |
 | OrderId | int | FK → Order |
-| ProductId | int | FK → Product |
+| ProductId | int | FK → Product (denormalized; ON DELETE RESTRICT) |
+| VariantId | int | FK → ProductVariant (ON DELETE RESTRICT) |
 | Quantity | int | |
-| UnitPrice | decimal | price at time of order |
+| UnitPrice | decimal | snapshot of Variant.Price at place time |
+| Weight | decimal | snapshot of Variant.Weight at place time |
+| WeightUnit | string | snapshot of Variant.WeightUnit at place time |
 
 ## Cart
 | Field | Type | Notes |
@@ -78,8 +93,10 @@ See `specs/features/subcategories.md` for hierarchy, counts, and filter expansio
 |-------|------|-------|
 | Id | int | PK |
 | CartId | int | FK → Cart |
-| ProductId | int | FK → Product |
+| VariantId | int | FK → ProductVariant (ON DELETE RESTRICT); unique per cart |
 | Quantity | int | |
+
+Product for display/joins is derived via Variant.Product.
 
 ## User
 | Field | Type | Notes |

@@ -122,11 +122,16 @@ import { ToastService } from '../../services/toast.service';
           </section>
           <section>
             <h3 class="mb-2 text-xs font-bold uppercase text-[#6a4425]">{{ 'admin.orderItems' | transloco }}</h3>
-            @for (item of detail()!.items; track item.productId) {
+            @for (item of detail()!.items; track item.variantId ?? item.productId) {
               <div class="flex justify-between border-b py-3">
                 <div>
                   <p class="font-semibold">{{ item.productName }}</p>
-                  <p class="text-sm text-[#9c8461]">{{ item.quantity }} × {{ item.unitPrice }} ₴</p>
+                  <p class="text-sm text-[#9c8461]">
+                    @if (item.weight != null && item.weightUnit) {
+                      {{ item.weight }} {{ item.weightUnit }} ·
+                    }
+                    {{ item.quantity }} × {{ item.unitPrice }} ₴
+                  </p>
                 </div>
                 <strong>{{ item.lineTotal }} ₴</strong>
               </div>

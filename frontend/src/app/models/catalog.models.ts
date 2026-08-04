@@ -15,16 +15,26 @@ export interface CategorySummary {
   children: CategorySummary[];
 }
 
+/** Active variant on public product detail (inactive omitted by API). */
+export interface ProductVariantDto {
+  id: number;
+  weight: number;
+  weightUnit: string;
+  price: number;
+  sortOrder: number;
+}
+
+/** Catalog / similar / featured list card. */
 export interface CatalogProduct {
   id: number;
   name: string;
   slug: string;
   shortDescription?: string | null;
-  price: number;
-  oldPrice?: number | null;
+  /** MIN price among active priced variants. */
+  priceFrom: number;
+  /** Cheapest active variant (min price; tie-break sort_order) — for card CTA. */
+  cheapestVariantId?: number | null;
   imageUrl?: string | null;
-  weight?: number | null;
-  weightUnit?: string | null;
   isFeatured: boolean;
   /** False when the product cannot be added to cart. */
   isAvailable?: boolean;
@@ -34,19 +44,16 @@ export interface CatalogProduct {
   categorySlug: string;
 }
 
-/** GET /api/products/:slug — active product with gallery and similar cards. */
+/** GET /api/products/:slug — active product with gallery, variants, and similar cards. */
 export interface ProductDetail {
   id: number;
   name: string;
   slug: string;
   shortDescription?: string | null;
   description?: string | null;
-  price: number;
-  oldPrice?: number | null;
   imageUrl?: string | null;
   imageUrls: string[];
-  weight?: number | null;
-  weightUnit?: string | null;
+  variants: ProductVariantDto[];
   isFeatured: boolean;
   /** False when the product cannot be added to cart. */
   isAvailable?: boolean;
@@ -79,4 +86,17 @@ export interface ProductPage {
 
 export interface AddCartItemResponse {
   itemCount: number;
+}
+
+/** Format variant weight label from API strings (г / кг / шт). */
+export function formatVariantWeight(weight: number, weightUnit: string, formatNumber: (n: number) => string): string {
+  return `${formatNumber(weight)} ${weightUnit}`;
+}
+
+/** Cheapest active variant: min price, then lower sortOrder. */
+export function pickCheapestVariant<T extends { price: number; sortOrder: number }>(
+  variants: readonly T[],
+): T | null {
+  if (!variants.length) return null;
+  return [...variants].sort((a, b) => a.price - b.price || a.sortOrder - b.sortOrder)[0] ?? null;
 }

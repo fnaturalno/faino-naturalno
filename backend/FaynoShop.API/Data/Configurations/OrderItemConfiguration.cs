@@ -19,6 +19,14 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .HasPrecision(10, 2)
             .IsRequired();
 
+        builder.Property(oi => oi.Weight)
+            .HasPrecision(10, 3)
+            .IsRequired();
+
+        builder.Property(oi => oi.WeightUnit)
+            .HasMaxLength(10)
+            .IsRequired();
+
         builder.HasOne(oi => oi.Order)
             .WithMany(o => o.Items)
             .HasForeignKey(oi => oi.OrderId)
@@ -29,10 +37,18 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .HasForeignKey(oi => oi.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(oi => oi.Variant)
+            .WithMany(v => v.OrderItems)
+            .HasForeignKey(oi => oi.VariantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(oi => oi.OrderId)
             .HasDatabaseName("idx_order_items_order_id");
 
         builder.HasIndex(oi => oi.ProductId)
             .HasDatabaseName("idx_order_items_product_id");
+
+        builder.HasIndex(oi => oi.VariantId)
+            .HasDatabaseName("idx_order_items_variant_id");
     }
 }

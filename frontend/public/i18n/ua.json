@@ -141,12 +141,17 @@
     "naturalClaim": "100% натуральний склад",
     "description": "Опис",
     "weight": "{{weight}} {{unit}}",
+    "variants": "Фасування",
+    "variantWeight": "Вага",
+    "variantPrice": "Ціна",
+    "selectVariant": "Оберіть фасування",
     "addError": "Не вдалося додати товар до кошика.",
     "addedToast": "Додано в кошик"
   },
   "productCard": {
     "addAria": "Додати до кошика {{name}}",
-    "newBadge": "Новинка"
+    "newBadge": "Новинка",
+    "priceFrom": "від {{price}} ₴"
   },
   "cart": {
     "title": "Кошик",
@@ -413,11 +418,13 @@
     "sectionDescription": "Опис",
     "shortDescription": "Короткий опис",
     "fullDescription": "Повний опис",
-    "sectionPrice": "Ціна та наявність",
+    "sectionPrice": "Фасування та ціни",
     "price": "Ціна, ₴",
-    "oldPrice": "Стара ціна, ₴ (необов.)",
     "weightUnit": "Вага / одиниця",
+    "variantActive": "Активне",
     "reqPrice": "Ціна має бути більшою за 0.",
+    "reqActiveVariant": "Для активного товару потрібне хоча б одне активне фасування з ціною.",
+    "priceFromEmpty": "—",
     "sectionImages": "Зображення",
     "dropPhotos": "Перетягніть фото сюди",
     "uploading": "Завантажуємо…",

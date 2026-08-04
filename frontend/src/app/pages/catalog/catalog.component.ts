@@ -171,9 +171,15 @@ export class CatalogComponent {
 
   protected addToCart(productId: number): void {
     if (this.cartStatuses()[productId] === 'adding') return;
+    const product = this.store.page()?.items.find((item) => item.id === productId);
+    const variantId = product?.cheapestVariantId;
+    if (!variantId) {
+      this.showToast(this.i18n.translate('catalog.addError'), true);
+      return;
+    }
     this.setCartStatus(productId, 'adding');
     this.cart
-      .addItem(productId)
+      .addItem(variantId)
       .pipe(
         finalize(() => {
           if (this.cartStatuses()[productId] === 'adding') this.setCartStatus(productId, 'idle');
