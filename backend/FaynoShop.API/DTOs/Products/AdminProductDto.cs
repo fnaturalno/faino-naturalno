@@ -17,5 +17,6 @@ public sealed record AdminProductDto(
     string[] ImageUrls,
     bool IsActive,
     bool IsFeatured,
+    bool IsAvailable,
     DateTime CreatedAt,
     DateTime UpdatedAt);

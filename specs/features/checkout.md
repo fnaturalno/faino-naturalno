@@ -107,7 +107,7 @@ Line items and totals are taken from the **current server cart** for the session
 #### Server rules on place
 
 - Empty cart → fail; do not create an order.
-- Every cart line must refer to an **active** product.
+- Every cart line must refer to an **active** and **available** product.
 - Inactive lines cause the place request to fail with a clear Ukrainian-facing error; no partial order is created.
 - Unit prices on `OrderItem` are snapshots of the **current** product price at place time.
 - `TotalAmount` equals the sum of line totals (subtotal); delivery is not added as a numeric amount.

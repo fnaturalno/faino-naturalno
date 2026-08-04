@@ -75,10 +75,12 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
             class="min-h-11 w-full rounded-lg border border-[var(--marigold-600)] bg-[var(--marigold-400)] px-3 py-2 text-sm font-extrabold text-[var(--espresso-900)] transition group-hover:bg-[var(--marigold-500)] disabled:cursor-not-allowed disabled:border-[var(--kraft-300)] disabled:bg-[var(--kraft-200)] disabled:text-[var(--kraft-500)] lg:min-h-9 lg:w-auto"
             [class.bg-[var(--garden-500)]]="status() === 'added'"
             [class.text-white]="status() === 'added'"
-            [disabled]="status() === 'adding'"
+            [disabled]="!canAdd() || status() === 'adding'"
             (click)="add.emit(product().id)"
           >
-            @if (status() === 'adding') {
+            @if (!canAdd()) {
+              Немає в наявності
+            } @else if (status() === 'adding') {
               Додаємо…
             } @else if (status() === 'added') {
               Додано
@@ -125,4 +127,6 @@ export class ProductCardComponent {
       ? `${product.weight.toLocaleString('uk-UA')} ${product.weightUnit}`
       : null;
   });
+
+  protected readonly canAdd = computed(() => this.product().isAvailable !== false);
 }

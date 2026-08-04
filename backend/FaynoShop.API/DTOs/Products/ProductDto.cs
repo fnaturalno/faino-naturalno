@@ -15,4 +15,5 @@ public sealed record ProductDto(
     int CategoryId,
     string CategoryName,
     string CategorySlug,
+    bool IsAvailable = true,
     bool IsActive = true);

@@ -105,6 +105,7 @@ Each product includes:
 - `Weight`
 - `WeightUnit`
 - `IsFeatured`
+- `IsAvailable` — when false, product stays in catalog cards but cannot be added to cart
 - `CreatedAt`
 - Category identifier, name, and slug
 
@@ -135,7 +136,7 @@ Category data may be reused between catalog visits. Product results are refreshe
 
 Selecting «В кошик» sends the product identifier and quantity `1`.
 
-On success, the response provides enough information to update the cart item-count badge. Active products can always be added.
+On success, the response provides enough information to update the cart item-count badge. Active products with `IsAvailable = true` can be added; unavailable products are rejected.
 
 ---
 

@@ -15,6 +15,8 @@ public class Product
     public string? WeightUnit { get; set; }
     public bool IsActive { get; set; } = true;
     public bool IsFeatured { get; set; }
+    /// <summary>When false, product stays in catalog but cannot be added to cart.</summary>
+    public bool IsAvailable { get; set; } = true;
     public int CategoryId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

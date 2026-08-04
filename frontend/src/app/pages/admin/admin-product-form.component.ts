@@ -186,7 +186,11 @@ function resolvePackKey(weight: number | null | undefined, unit: string | null |
             <label class="flex items-center justify-between font-bold"
               >Рекомендований <input formControlName="isFeatured" type="checkbox" class="h-5 w-5 accent-[#5b7a3a]"
             /></label>
-            <p class="text-xs text-[#9c8461]">Виділити на головній</p>
+            <p class="mb-4 text-xs text-[#9c8461]">Виділити на головній</p>
+            <label class="flex items-center justify-between font-bold"
+              >В наявності <input formControlName="isAvailable" type="checkbox" class="h-5 w-5 accent-[#5b7a3a]"
+            /></label>
+            <p class="text-xs text-[#9c8461]">Можна додати в кошик</p>
           </section>
 
           <div class="flex gap-3">
@@ -232,6 +236,7 @@ export class AdminProductFormComponent {
     packKey: [PACK_OPTIONS[2].key as string, Validators.required],
     isActive: [true],
     isFeatured: [false],
+    isAvailable: [true],
   });
   readonly slug = () =>
     this.form.controls.name.value
@@ -316,6 +321,7 @@ export class AdminProductFormComponent {
       packKey,
       isActive: product.isActive,
       isFeatured: product.isFeatured,
+      isAvailable: product.isAvailable,
     });
     const urls = product.imageUrls?.length
       ? [...product.imageUrls]
@@ -417,6 +423,7 @@ export class AdminProductFormComponent {
       imageUrls,
       isActive: value.isActive,
       isFeatured: value.isFeatured,
+      isAvailable: value.isAvailable,
     };
     const request = this.id ? this.admin.updateProduct(this.id, payload) : this.admin.createProduct(payload);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({

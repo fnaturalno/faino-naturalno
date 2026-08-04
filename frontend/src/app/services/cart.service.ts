@@ -170,7 +170,7 @@ export class CartService {
     if (this.pendingLinesSignal()[cartItemId]) return;
 
     const line = this.itemsSignal().find((item) => item.cartItemId === cartItemId);
-    if (!line || !line.isActive) return;
+    if (!line || !line.isActive || line.isAvailable === false) return;
 
     let nextQty = Math.max(1, Math.floor(quantity));
     const max = cartLineMaxQuantity();
@@ -354,6 +354,7 @@ function normalizeCartLine(raw: CartLineDto & { categoryName?: string }): CartLi
     quantity,
     lineTotal: raw.lineTotal ?? price * quantity,
     isActive: raw.isActive !== false,
+    isAvailable: raw.isAvailable !== false,
   };
 }
 

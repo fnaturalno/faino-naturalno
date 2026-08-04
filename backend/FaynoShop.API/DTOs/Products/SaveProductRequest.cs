@@ -13,4 +13,5 @@ public sealed record SaveProductRequest(
     string? ImageUrl,
     IReadOnlyList<string>? ImageUrls,
     bool IsActive,
-    bool IsFeatured);
+    bool IsFeatured,
+    bool IsAvailable);

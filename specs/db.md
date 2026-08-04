@@ -42,6 +42,7 @@
 | weight_unit | varchar(10) | |
 | is_active | bool | NOT NULL DEFAULT true |
 | is_featured | bool | NOT NULL DEFAULT false |
+| is_available | bool | NOT NULL DEFAULT true |
 | category_id | int | FK → categories (ON DELETE RESTRICT) |
 | created_at | timestamptz | NOT NULL DEFAULT now() |
 | updated_at | timestamptz | NOT NULL DEFAULT now() |
@@ -202,6 +203,7 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | `SubcategoriesSchema` (`20260802140008_SubcategoriesSchema`) | `categories.parent_id` nullable self-FK (RESTRICT) + `idx_categories_parent_id` for subcategory hierarchy |
 | `PasswordChangedAt` (`20260802160713_PasswordChangedAt`) | nullable `users.password_changed_at` (`timestamptz`) for profile «Остання зміна» and change/reset password flows |
 | `DropProductStockQuantity` (`20260804104214_DropProductStockQuantity`) | drop `products.stock_quantity` — inventory not tracked |
+| `AddProductIsAvailable` (`20260804105918_AddProductIsAvailable`) | add `products.is_available` (bool, default true) — catalog visibility vs cart purchasability |
 
 ### Connection String
 ```

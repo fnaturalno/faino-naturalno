@@ -206,43 +206,49 @@
 
             <!-- Desktop stepper + add -->
             <div class="mb-7 hidden items-center gap-4 md:flex">
-              <div
-                class="inline-flex h-10 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
-                role="group"
-                aria-label="Кількість"
-              >
-                <button
-                  type="button"
-                  class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-                  aria-label="Зменшити кількість"
-                  [disabled]="quantity() <= 1 || addStatus() === 'adding'"
-                  (click)="decreaseQty()"
-                >−</button>
-                <span
-                  class="grid min-w-10 place-items-center border-x border-[var(--border-subtle)] text-sm font-bold tabular-nums"
-                  aria-live="polite"
-                >{{ quantity() }}</span>
-                <button
-                  type="button"
-                  class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-                  aria-label="Збільшити кількість"
-                  [disabled]="quantity() >= maxQuantity() || addStatus() === 'adding'"
-                  (click)="increaseQty()"
-                >+</button>
-              </div>
+              @if (isAvailable()) {
+                <div
+                  class="inline-flex h-10 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
+                  role="group"
+                  aria-label="Кількість"
+                >
+                  <button
+                    type="button"
+                    class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
+                    aria-label="Зменшити кількість"
+                    [disabled]="quantity() <= 1 || addStatus() === 'adding'"
+                    (click)="decreaseQty()"
+                  >−</button>
+                  <span
+                    class="grid min-w-10 place-items-center border-x border-[var(--border-subtle)] text-sm font-bold tabular-nums"
+                    aria-live="polite"
+                  >{{ quantity() }}</span>
+                  <button
+                    type="button"
+                    class="grid w-10 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
+                    aria-label="Збільшити кількість"
+                    [disabled]="quantity() >= maxQuantity() || addStatus() === 'adding'"
+                    (click)="increaseQty()"
+                  >+</button>
+                </div>
+              }
 
               <button
                 type="button"
                 class="inline-flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] font-extrabold transition disabled:cursor-not-allowed"
-                [class.bg-[var(--marigold-400)]]="addStatus() !== 'added'"
-                [class.text-[var(--espresso-900)]]="addStatus() !== 'added'"
-                [class.hover:bg-[var(--marigold-500)]]="addStatus() !== 'added'"
+                [class.bg-[var(--marigold-400)]]="isAvailable() && addStatus() !== 'added'"
+                [class.text-[var(--espresso-900)]]="isAvailable() && addStatus() !== 'added'"
+                [class.hover:bg-[var(--marigold-500)]]="isAvailable() && addStatus() !== 'added'"
                 [class.bg-[var(--garden-500)]]="addStatus() === 'added'"
                 [class.text-white]="addStatus() === 'added'"
+                [class.bg-[var(--kraft-200)]]="!isAvailable()"
+                [class.text-[var(--kraft-500)]]="!isAvailable()"
                 [disabled]="!canAdd() && addStatus() !== 'added'"
                 (click)="addToCart()"
               >
-                @if (addStatus() === 'adding') {
+                @if (!isAvailable()) {
+                  Немає в наявності
+                } @else if (addStatus() === 'adding') {
                   Додаємо…
                 } @else if (addStatus() === 'added') {
                   <app-icon name="check" [size]="20" />
@@ -328,42 +334,48 @@
     class="fixed inset-x-0 bottom-0 z-40 flex h-[76px] items-center gap-3 border-t border-[var(--border-subtle)] bg-white px-4 shadow-[0_-6px_20px_rgba(59,36,18,0.08)] md:hidden"
     style="padding-bottom: env(safe-area-inset-bottom)"
   >
-    <div
-      class="inline-flex h-10 shrink-0 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
-      role="group"
-      aria-label="Кількість"
-    >
-      <button
-        type="button"
-        class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-        aria-label="Зменшити кількість"
-        [disabled]="quantity() <= 1 || addStatus() === 'adding'"
-        (click)="decreaseQty()"
-      >−</button>
-      <span
-        class="grid min-w-9 place-items-center border-x border-[var(--border-subtle)] text-sm font-bold tabular-nums"
-        aria-live="polite"
-      >{{ quantity() }}</span>
-      <button
-        type="button"
-        class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
-        aria-label="Збільшити кількість"
-        [disabled]="quantity() >= maxQuantity() || addStatus() === 'adding'"
-        (click)="increaseQty()"
-      >+</button>
-    </div>
+    @if (isAvailable()) {
+      <div
+        class="inline-flex h-10 shrink-0 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
+        role="group"
+        aria-label="Кількість"
+      >
+        <button
+          type="button"
+          class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
+          aria-label="Зменшити кількість"
+          [disabled]="quantity() <= 1 || addStatus() === 'adding'"
+          (click)="decreaseQty()"
+        >−</button>
+        <span
+          class="grid min-w-9 place-items-center border-x border-[var(--border-subtle)] text-sm font-bold tabular-nums"
+          aria-live="polite"
+        >{{ quantity() }}</span>
+        <button
+          type="button"
+          class="grid w-9 place-items-center text-lg font-bold text-[var(--espresso-800)] disabled:cursor-not-allowed disabled:text-[var(--kraft-400)]"
+          aria-label="Збільшити кількість"
+          [disabled]="quantity() >= maxQuantity() || addStatus() === 'adding'"
+          (click)="increaseQty()"
+        >+</button>
+      </div>
+    }
 
     <button
       type="button"
       class="inline-flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] font-extrabold transition disabled:cursor-not-allowed"
-      [class.bg-[var(--marigold-400)]]="addStatus() !== 'added'"
-      [class.text-[var(--espresso-900)]]="addStatus() !== 'added'"
+      [class.bg-[var(--marigold-400)]]="isAvailable() && addStatus() !== 'added'"
+      [class.text-[var(--espresso-900)]]="isAvailable() && addStatus() !== 'added'"
       [class.bg-[var(--garden-500)]]="addStatus() === 'added'"
       [class.text-white]="addStatus() === 'added'"
+      [class.bg-[var(--kraft-200)]]="!isAvailable()"
+      [class.text-[var(--kraft-500)]]="!isAvailable()"
       [disabled]="!canAdd() && addStatus() !== 'added'"
       (click)="addToCart()"
     >
-      @if (addStatus() === 'adding') {
+      @if (!isAvailable()) {
+        Немає в наявності
+      } @else if (addStatus() === 'adding') {
         Додаємо…
       } @else if (addStatus() === 'added') {
         Додано ✓

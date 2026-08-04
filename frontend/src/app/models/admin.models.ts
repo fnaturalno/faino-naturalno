@@ -18,6 +18,7 @@ export interface AdminProduct {
   imageUrls: string[];
   isActive: boolean;
   isFeatured: boolean;
+  isAvailable: boolean;
 }
 
 export interface AdminProductPage {

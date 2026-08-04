@@ -26,6 +26,8 @@ export interface CatalogProduct {
   weight?: number | null;
   weightUnit?: string | null;
   isFeatured: boolean;
+  /** False when the product cannot be added to cart. */
+  isAvailable?: boolean;
   createdAt: string;
   categoryId: number;
   categoryName: string;
@@ -46,6 +48,8 @@ export interface ProductDetail {
   weight?: number | null;
   weightUnit?: string | null;
   isFeatured: boolean;
+  /** False when the product cannot be added to cart. */
+  isAvailable?: boolean;
   createdAt: string;
   categoryId: number;
   categoryName: string;

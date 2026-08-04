@@ -56,6 +56,7 @@ public sealed class ProductService : IProductService
                 p.Weight,
                 p.WeightUnit,
                 p.IsFeatured,
+                p.IsAvailable,
                 p.CreatedAt,
                 p.CategoryId,
                 CategoryName = p.Category.Name,
@@ -91,7 +92,8 @@ public sealed class ProductService : IProductService
                 p.CreatedAt,
                 p.CategoryId,
                 p.Category.Name,
-                p.Category.Slug))
+                p.Category.Slug,
+                p.IsAvailable))
             .ToListAsync(cancellationToken);
 
         similarProducts = similarProducts
@@ -111,6 +113,7 @@ public sealed class ProductService : IProductService
             product.Weight,
             product.WeightUnit,
             product.IsFeatured,
+            product.IsAvailable,
             product.CreatedAt,
             product.CategoryId,
             product.CategoryName,
@@ -176,6 +179,7 @@ public sealed class ProductService : IProductService
                 p.CategoryId,
                 p.Category.Name,
                 p.Category.Slug,
+                p.IsAvailable,
                 p.IsActive))
             .ToListAsync(cancellationToken);
 
@@ -199,7 +203,7 @@ public sealed class ProductService : IProductService
             .Select(p => new AdminProductDto(
                 p.Id, p.Name, p.Slug, p.CategoryId, p.Category.Name, p.Category.Slug,
                 p.ShortDescription, p.Description, p.Price, p.OldPrice, p.Weight, p.WeightUnit,
-                p.ImageUrl, p.ImageUrls, p.IsActive, p.IsFeatured,
+                p.ImageUrl, p.ImageUrls, p.IsActive, p.IsFeatured, p.IsAvailable,
                 p.CreatedAt, p.UpdatedAt))
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -230,6 +234,7 @@ public sealed class ProductService : IProductService
             ImageUrls = imageUrls,
             IsActive = request.IsActive,
             IsFeatured = request.IsFeatured,
+            IsAvailable = request.IsAvailable,
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -264,6 +269,7 @@ public sealed class ProductService : IProductService
         product.ImageUrls = imageUrls;
         product.IsActive = request.IsActive;
         product.IsFeatured = request.IsFeatured;
+        product.IsAvailable = request.IsAvailable;
         product.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(cancellationToken);

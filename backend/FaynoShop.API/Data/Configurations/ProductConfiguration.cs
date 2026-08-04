@@ -50,6 +50,10 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired()
             .HasDefaultValue(false);
 
+        builder.Property(p => p.IsAvailable)
+            .IsRequired()
+            .HasDefaultValue(true);
+
         builder.Property(p => p.CreatedAt)
             .HasColumnType("timestamptz")
             .IsRequired()

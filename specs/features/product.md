@@ -82,11 +82,12 @@ The response includes:
 - `Weight`
 - `WeightUnit`
 - `IsFeatured`
+- `IsAvailable`
 - `CreatedAt`
 - Category identifier, name, and slug
 - `similarProducts`: zero to three related products
 
-Only products with `IsActive = true` are returned as a successful detail response.
+Only products with `IsActive = true` are returned as a successful detail response. When `IsAvailable = false`, the product page still loads but add-to-cart is disabled («Немає в наявності»).
 
 An unknown slug or an inactive product yields `success: false` with no usable product data (not-found for the client).
 

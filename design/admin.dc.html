@@ -288,6 +288,16 @@
                         <span style="position:absolute;top:3px;left:{{ featX }};width:20px;height:20px;border-radius:999px;background:var(--white);box-shadow:var(--shadow-sm);transition:left var(--dur) var(--ease-out);"></span>
                       </span>
                     </button>
+                    <div style="height:1.5px;background:var(--border-subtle);"></div>
+                    <button type="button" onClick="{{ toggleAvailable }}" style="display:flex;align-items:center;justify-content:space-between;background:none;border:none;padding:0;cursor:pointer;width:100%;">
+                      <div style="text-align:left;">
+                        <span style="display:block;font-family:var(--font-body);font-weight:var(--fw-semibold);font-size:var(--text-sm);color:var(--espresso-900);">В наявності</span>
+                        <span style="font-size:var(--text-xs);color:var(--text-muted);">Можна додати в кошик</span>
+                      </div>
+                      <span style="width:44px;height:26px;border-radius:999px;background:{{ availBg }};position:relative;flex:0 0 44px;transition:background var(--dur) var(--ease-out);">
+                        <span style="position:absolute;top:3px;left:{{ availX }};width:20px;height:20px;border-radius:999px;background:var(--white);box-shadow:var(--shadow-sm);transition:left var(--dur) var(--ease-out);"></span>
+                      </span>
+                    </button>
                   </div>
                 </div>
 
@@ -554,6 +564,7 @@ class Component extends DCLogic {
     formMode: "new",
     active: true,
     featured: false,
+    available: true,
     drawerId: null,
     prodActive: { 1: true, 2: true, 3: false, 4: true, 5: true, 6: false },
     catDrawerId: null,
@@ -698,13 +709,16 @@ class Component extends DCLogic {
       goEdit: () => this.setState({ view: "form", formMode: "edit" }),
       formCrumb: s.formMode === "edit" ? "Паприка копчена" : "Новий товар",
 
-      active: s.active, featured: s.featured,
+      active: s.active, featured: s.featured, available: s.available,
       toggleActive: () => this.setState({ active: !s.active }),
       toggleFeatured: () => this.setState({ featured: !s.featured }),
+      toggleAvailable: () => this.setState({ available: !s.available }),
       activeBg: s.active ? "var(--garden-500)" : "var(--kraft-300)",
       activeX: s.active ? "21px" : "3px",
       featBg: s.featured ? "var(--garden-500)" : "var(--kraft-300)",
       featX: s.featured ? "21px" : "3px",
+      availBg: s.available ? "var(--garden-500)" : "var(--kraft-300)",
+      availX: s.available ? "21px" : "3px",
 
       products: this.PRODUCTS.map((p) => {
         const on = s.prodActive[p.id];

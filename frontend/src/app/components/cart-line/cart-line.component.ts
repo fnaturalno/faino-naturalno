@@ -22,7 +22,7 @@ import { IconComponent } from '../icon/icon.component';
       class="flex gap-3 border-b border-[var(--border-subtle)] py-4 md:gap-3.5 md:py-[18px]"
       [attr.aria-busy]="pending() || null"
     >
-      @if (line().isActive) {
+      @if (canOpenProduct()) {
         <button
           type="button"
           class="size-[72px] shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--kraft-100)] md:size-[76px]"
@@ -55,7 +55,7 @@ import { IconComponent } from '../icon/icon.component';
         <div class="flex items-start justify-between gap-2 md:gap-2.5">
           <div class="min-w-0">
             @if (compact()) {
-              @if (line().isActive) {
+              @if (canOpenProduct()) {
                 <button
                   type="button"
                   class="m-0 line-clamp-2 text-left font-[var(--font-body)] text-sm font-bold leading-tight text-[var(--espresso-900)] hover:underline"
@@ -75,7 +75,7 @@ import { IconComponent } from '../icon/icon.component';
               <span class="mt-0.5 block text-xs text-[var(--text-muted)]">{{ line().category }}</span>
             } @else {
               <span class="fn-eyebrow mb-0.5 block text-[10px]">{{ line().category }}</span>
-              @if (line().isActive) {
+              @if (canOpenProduct()) {
                 <button
                   type="button"
                   class="m-0 line-clamp-2 text-left font-[var(--font-body)] text-base font-bold leading-tight text-[var(--espresso-900)] hover:underline"
@@ -93,10 +93,10 @@ import { IconComponent } from '../icon/icon.component';
                 </h4>
               }
             }
-            @if (!line().isActive) {
-              <span class="mt-1 inline-block text-xs font-semibold text-[var(--chili-700)]"
-                >Недоступний</span
-              >
+            @if (statusLabel(); as status) {
+              <span class="mt-1 inline-block text-xs font-semibold text-[var(--chili-700)]">{{
+                status
+              }}</span>
             }
           </div>
 
@@ -112,7 +112,7 @@ import { IconComponent } from '../icon/icon.component';
         </div>
 
         <div class="mt-auto flex items-center justify-between gap-2 pt-2.5 md:gap-2.5 md:pt-3">
-          @if (line().isActive) {
+          @if (purchasable()) {
             <div
               class="inline-flex h-8 items-stretch overflow-hidden rounded-full border border-[var(--border-strong)] bg-white"
               role="group"
@@ -187,4 +187,18 @@ export class CartLineComponent {
   });
 
   protected readonly maxQty = computed(() => cartLineMaxQuantity());
+
+  /** Active products stay linkable even when temporarily out of stock. */
+  protected readonly canOpenProduct = computed(() => this.line().isActive);
+
+  protected readonly purchasable = computed(
+    () => this.line().isActive && this.line().isAvailable !== false,
+  );
+
+  protected readonly statusLabel = computed(() => {
+    const line = this.line();
+    if (!line.isActive) return 'Недоступний';
+    if (line.isAvailable === false) return 'Немає в наявності';
+    return null;
+  });
 }

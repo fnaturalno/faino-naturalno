@@ -16,6 +16,7 @@ public sealed record ProductDetailDto(
     decimal? Weight,
     string? WeightUnit,
     bool IsFeatured,
+    bool IsAvailable,
     DateTime CreatedAt,
     int CategoryId,
     string CategoryName,

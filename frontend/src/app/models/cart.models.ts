@@ -22,8 +22,10 @@ export interface CartLineDto {
   price: number;
   quantity: number;
   lineTotal: number;
-  /** False when the product is inactive / unavailable. */
+  /** False when the product is inactive. */
   isActive: boolean;
+  /** False when the product cannot be purchased (out of stock flag). */
+  isAvailable?: boolean;
 }
 
 /** PUT /api/cart/items/:id body. */

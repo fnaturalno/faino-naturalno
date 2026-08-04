@@ -20,4 +20,5 @@ public sealed record CartItemDto(
     decimal Price,
     int Quantity,
     decimal LineTotal,
-    bool IsActive);
+    bool IsActive,
+    bool IsAvailable = true);

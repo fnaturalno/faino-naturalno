@@ -164,7 +164,7 @@ public sealed class OrderService : IOrderService
         {
             var product = productsById[line.ProductId];
 
-            if (!product.IsActive)
+            if (!product.IsActive || !product.IsAvailable)
             {
                 throw new BadRequestException(
                     $"Товар «{product.Name}» недоступний. Видаліть його з кошика та спробуйте знову.");

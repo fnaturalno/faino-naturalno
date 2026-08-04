@@ -66,7 +66,7 @@ public sealed class CartService : ICartService
             throw new NotFoundException("Позицію кошика не знайдено.");
         }
 
-        if (!product.IsActive)
+        if (!product.IsActive || !product.IsAvailable)
         {
             throw new BadRequestException("Товар недоступний.");
         }
@@ -257,8 +257,8 @@ public sealed class CartService : ICartService
             .FromSql($"SELECT * FROM products WHERE id = {request.ProductId} FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
 
-        // Same client-facing message for missing and inactive — avoid product-ID existence oracle.
-        if (product is null || !product.IsActive)
+        // Same client-facing message for missing, inactive, and unavailable — avoid product-ID existence oracle.
+        if (product is null || !product.IsActive || !product.IsAvailable)
         {
             throw new NotFoundException("Товар не знайдено.");
         }
@@ -333,7 +333,8 @@ public sealed class CartService : ICartService
                 CategoryName = i.Product.Category.Name,
                 i.Product.ImageUrl,
                 i.Product.Price,
-                i.Product.IsActive
+                i.Product.IsActive,
+                i.Product.IsAvailable
             })
             .ToListAsync(cancellationToken);
 
@@ -351,7 +352,8 @@ public sealed class CartService : ICartService
                     r.Price,
                     r.Quantity,
                     lineTotal,
-                    r.IsActive);
+                    r.IsActive,
+                    r.IsAvailable);
             })
             .ToList();
 

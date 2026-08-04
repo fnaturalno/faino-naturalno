@@ -146,7 +146,12 @@ export class ProductComponent {
 
   protected readonly maxQuantity = computed(() => 12);
 
-  protected readonly canAdd = computed(() => this.addStatus() !== 'adding');
+  protected readonly canAdd = computed(() => {
+    const detail = this.product();
+    return !!detail && detail.isAvailable !== false && this.addStatus() !== 'adding';
+  });
+
+  protected readonly isAvailable = computed(() => this.product()?.isAvailable !== false);
 
   protected readonly similar = computed(() => this.product()?.similarProducts ?? []);
 

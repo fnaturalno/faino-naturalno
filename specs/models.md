@@ -16,6 +16,7 @@
 | WeightUnit | string? | г, мл, шт |
 | IsActive | bool | default true |
 | IsFeatured | bool | homepage highlight |
+| IsAvailable | bool | default true; when false, visible in catalog but cannot add to cart |
 | CategoryId | int | FK → Category |
 | CreatedAt | DateTime | |
 | UpdatedAt | DateTime | |
