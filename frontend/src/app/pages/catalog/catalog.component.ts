@@ -169,10 +169,9 @@ export class CatalogComponent {
     this.closeSheet();
   }
 
-  protected addToCart(productId: number): void {
+  protected addToCart(event: { productId: number; variantId: number }): void {
+    const { productId, variantId } = event;
     if (this.cartStatuses()[productId] === 'adding') return;
-    const product = this.store.page()?.items.find((item) => item.id === productId);
-    const variantId = product?.cheapestVariantId;
     if (!variantId) {
       this.showToast(this.i18n.translate('catalog.addError'), true);
       return;

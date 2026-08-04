@@ -34,6 +34,8 @@ export interface CatalogProduct {
   priceFrom: number;
   /** Cheapest active variant (min price; tie-break sort_order) — for card CTA. */
   cheapestVariantId?: number | null;
+  /** Active variants for card weight dropdown (ordered by sortOrder). */
+  variants?: ProductVariantDto[];
   imageUrl?: string | null;
   isFeatured: boolean;
   /** False when the product cannot be added to cart. */

@@ -151,7 +151,8 @@
   "productCard": {
     "addAria": "Add {{name}} to cart",
     "newBadge": "New",
-    "priceFrom": "from {{price}} ₴"
+    "priceFrom": "from {{price}} ₴",
+    "chooseWeight": "Choose pack size"
   },
   "cart": {
     "title": "Cart",

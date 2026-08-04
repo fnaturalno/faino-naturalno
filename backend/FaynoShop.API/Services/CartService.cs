@@ -465,9 +465,13 @@ public sealed class CartService : ICartService
         var cart = await FindCartAsync(sessionId, userId, cancellationToken);
         if (cart is not null)
         {
+            // Claiming a guest cart must rotate SessionId so the old guest header
+            // cannot address this cart after logout / token expiry.
             if (userId is int uid && cart.UserId is null)
             {
                 cart.UserId = uid;
+                RotateSessionId(cart);
+                cart.UpdatedAt = DateTime.UtcNow;
             }
 
             return cart;
@@ -509,6 +513,8 @@ public sealed class CartService : ICartService
             if (userId is int uid && cart.UserId is null)
             {
                 cart.UserId = uid;
+                RotateSessionId(cart);
+                cart.UpdatedAt = DateTime.UtcNow;
             }
 
             return cart;

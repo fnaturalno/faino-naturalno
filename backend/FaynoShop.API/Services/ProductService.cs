@@ -593,6 +593,16 @@ public sealed class ProductService : IProductService
                 .ThenBy(v => v.SortOrder)
                 .Select(v => (int?)v.Id)
                 .FirstOrDefault(),
+            p.Variants
+                .Where(v => v.IsActive)
+                .OrderBy(v => v.SortOrder)
+                .Select(v => new ProductVariantDto(
+                    v.Id,
+                    v.Weight,
+                    v.WeightUnit,
+                    v.Price,
+                    v.SortOrder))
+                .ToList(),
             p.ImageUrl,
             p.IsFeatured,
             p.CreatedAt,

@@ -10,6 +10,7 @@ public sealed record ProductDto(
     string? ShortDescription,
     decimal? PriceFrom,
     int? CheapestVariantId,
+    IReadOnlyList<ProductVariantDto> Variants,
     string? ImageUrl,
     bool IsFeatured,
     DateTime CreatedAt,

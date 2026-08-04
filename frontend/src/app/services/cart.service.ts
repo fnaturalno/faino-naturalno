@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
-import { Observable, catchError, finalize, of, tap } from 'rxjs';
+import { Observable, catchError, finalize, of, switchMap, tap, throwError } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { LocaleService } from '../i18n/locale.service';
@@ -154,10 +154,32 @@ export class CartService {
 
   addItem(variantId: number, quantity = 1): Observable<ApiResponse<AddCartItemResponse>> {
     const qty = Math.max(1, Math.min(12, Math.floor(quantity)));
+    return this.postAddItem(variantId, qty).pipe(
+      switchMap((response) => {
+        if (response.success || !this.isStaleSessionError(response.error)) {
+          return of(response);
+        }
+        this.rotateSessionId();
+        return this.postAddItem(variantId, qty);
+      }),
+      catchError((error: unknown) => {
+        if (!this.isStaleSessionError(extractApiError(error, ''))) {
+          return throwError(() => error);
+        }
+        this.rotateSessionId();
+        return this.postAddItem(variantId, qty);
+      }),
+    );
+  }
+
+  private postAddItem(
+    variantId: number,
+    quantity: number,
+  ): Observable<ApiResponse<AddCartItemResponse>> {
     return this.http
       .post<ApiResponse<AddCartItemResponse>>(
         `${environment.apiBaseUrl}/api/cart/items`,
-        { variantId, quantity: qty },
+        { variantId, quantity },
         { headers: this.sessionHeaders() },
       )
       .pipe(
@@ -167,6 +189,11 @@ export class CartService {
           }
         }),
       );
+  }
+
+  private isStaleSessionError(message: string | null | undefined): boolean {
+    if (!message) return false;
+    return /сесію кошика вже використано|cart session already used/i.test(message);
   }
 
   /** Merge guest cart into authenticated user cart after login/register. */
@@ -347,6 +374,11 @@ export class CartService {
   }
 
   private sessionHeaders(): HttpHeaders {
+    // Re-read storage so other tabs' rotateSessionId is picked up.
+    const stored = localStorage.getItem(SESSION_KEY);
+    if (stored && stored !== this.sessionId) {
+      this.sessionId = stored;
+    }
     return new HttpHeaders().set(SESSION_HEADER, this.sessionId);
   }
 

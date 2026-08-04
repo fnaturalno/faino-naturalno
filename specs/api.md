@@ -30,7 +30,7 @@ Applies to: `GET /products`, `GET /products/:slug`, `GET /categories`, `GET /car
 
 **Admin product payload:** `nameUk`, `nameEn?`, `shortDescriptionUk?`, `shortDescriptionEn?`, `descriptionUk?`, `descriptionEn?`, images/flags/`categoryId`/`slug?`, plus `variants: [{ weight, weightUnit, price, isActive }]` (only priced rows from the 7 predefined packs). No product-level `price`/`weight`. Empty EN allowed.
 
-**Public product list/card:** `priceFrom` (MIN active variant price), `cheapestVariantId`. Dropped product-level `price`/`weight`. No `oldPrice` / discount fields — price is always the current selling price. Inclusion (public): `IsActive` + `IsAvailable` + ≥1 active variant. Sort/filter/bounds use MIN(active variant price).
+**Public product list/card:** `priceFrom` (MIN active variant price), `cheapestVariantId`, `variants[]` (active, by `sortOrder`) for card weight dropdown. Dropped product-level `price`/`weight`. No `oldPrice` / discount fields — price is always the current selling price. Inclusion (public): `IsActive` + `IsAvailable` + ≥1 active variant. Sort/filter/bounds use MIN(active variant price).
 
 **Public product detail:** `variants: [{ id, weight, weightUnit, price, sortOrder }]` (active only, by `sortOrder`). No product-level price/weight.
 

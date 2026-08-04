@@ -328,10 +328,10 @@ export class ProductComponent {
       });
   }
 
-  protected addSimilar(productId: number): void {
+  protected addSimilar(event: { productId: number; variantId: number }): void {
+    const { productId, variantId } = event;
     if (this.similarStatuses()[productId] === 'adding') return;
     const similar = this.similar().find((item) => item.id === productId);
-    const variantId = similar?.cheapestVariantId;
     if (!similar || !variantId) return;
 
     this.setSimilarStatus(productId, 'adding');

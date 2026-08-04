@@ -151,7 +151,8 @@
   "productCard": {
     "addAria": "Додати до кошика {{name}}",
     "newBadge": "Новинка",
-    "priceFrom": "від {{price}} ₴"
+    "priceFrom": "від {{price}} ₴",
+    "chooseWeight": "Оберіть фасування"
   },
   "cart": {
     "title": "Кошик",
