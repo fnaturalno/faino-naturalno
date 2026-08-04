@@ -108,16 +108,9 @@ function resolvePackKey(weight: number | null | undefined, unit: string | null |
                   }
                 </select>
               </label>
-              <label class="block text-sm font-bold"
-                >Залишок на складі<input
-                  formControlName="stockQuantity"
-                  type="number"
-                  min="0"
-                  class="mt-1 w-full rounded-lg border border-[#c2ab80] p-3 font-normal"
-              /></label>
             </div>
-            @if (invalid('price') || invalid('stockQuantity')) {
-              <p class="mt-2 text-xs text-[#b23a2e]">Ціна має бути більшою за 0, залишок не може бути відʼємним.</p>
+            @if (invalid('price')) {
+              <p class="mt-2 text-xs text-[#b23a2e]">Ціна має бути більшою за 0.</p>
             }
           </section>
         </div>
@@ -237,7 +230,6 @@ export class AdminProductFormComponent {
     price: [0, Validators.min(0.01)],
     oldPrice: [0],
     packKey: [PACK_OPTIONS[2].key as string, Validators.required],
-    stockQuantity: [0, Validators.min(0)],
     isActive: [true],
     isFeatured: [false],
   });
@@ -259,7 +251,7 @@ export class AdminProductFormComponent {
     if (this.id) this.load();
   }
 
-  invalid(name: 'name' | 'categoryId' | 'price' | 'stockQuantity'): boolean {
+  invalid(name: 'name' | 'categoryId' | 'price'): boolean {
     const control = this.form.controls[name];
     return control.invalid && (control.touched || this.saving());
   }
@@ -322,7 +314,6 @@ export class AdminProductFormComponent {
       price: product.price,
       oldPrice: product.oldPrice ?? 0,
       packKey,
-      stockQuantity: product.stockQuantity,
       isActive: product.isActive,
       isFeatured: product.isFeatured,
     });
@@ -422,7 +413,6 @@ export class AdminProductFormComponent {
       oldPrice: value.oldPrice || null,
       weight: pack.weight,
       weightUnit: pack.unit,
-      stockQuantity: value.stockQuantity,
       imageUrl: imageUrls[0] ?? null,
       imageUrls,
       isActive: value.isActive,

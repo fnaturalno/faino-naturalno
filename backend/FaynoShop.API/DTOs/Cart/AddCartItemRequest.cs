@@ -10,7 +10,7 @@ public sealed class AddCartItemRequest
 
     /// <summary>
     /// Units to add. Defaults to 1 when omitted.
-    /// Server enforces stock: addable amount cannot exceed remaining capacity (stock − current line qty).
+    /// Server enforces CartLimits.MaxLineQuantity as the max units per line.
     /// </summary>
     public int? Quantity { get; init; }
 }

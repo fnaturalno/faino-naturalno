@@ -10,7 +10,6 @@ public sealed record ProductDto(
     string? ImageUrl,
     decimal? Weight,
     string? WeightUnit,
-    int StockQuantity,
     bool IsFeatured,
     DateTime CreatedAt,
     int CategoryId,

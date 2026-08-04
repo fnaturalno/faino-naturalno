@@ -10,7 +10,6 @@ public sealed record SaveProductRequest(
     decimal? OldPrice,
     decimal? Weight,
     string? WeightUnit,
-    int StockQuantity,
     string? ImageUrl,
     IReadOnlyList<string>? ImageUrls,
     bool IsActive,

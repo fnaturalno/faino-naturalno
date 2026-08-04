@@ -88,7 +88,6 @@ public sealed class ProductService : IProductService
                 p.ImageUrl,
                 p.Weight,
                 p.WeightUnit,
-                p.StockQuantity,
                 p.IsFeatured,
                 p.CreatedAt,
                 p.CategoryId,
@@ -112,7 +111,6 @@ public sealed class ProductService : IProductService
             MediaUrlGuard.SanitizeMany(product.ImageUrls),
             product.Weight,
             product.WeightUnit,
-            product.StockQuantity,
             product.IsFeatured,
             product.CreatedAt,
             product.CategoryId,
@@ -174,7 +172,6 @@ public sealed class ProductService : IProductService
                 p.ImageUrl,
                 p.Weight,
                 p.WeightUnit,
-                p.StockQuantity,
                 p.IsFeatured,
                 p.CreatedAt,
                 p.CategoryId,
@@ -203,7 +200,7 @@ public sealed class ProductService : IProductService
             .Select(p => new AdminProductDto(
                 p.Id, p.Name, p.Slug, p.CategoryId, p.Category.Name, p.Category.Slug,
                 p.ShortDescription, p.Description, p.Price, p.OldPrice, p.Weight, p.WeightUnit,
-                p.StockQuantity, p.ImageUrl, p.ImageUrls, p.IsActive, p.IsFeatured,
+                p.ImageUrl, p.ImageUrls, p.IsActive, p.IsFeatured,
                 p.CreatedAt, p.UpdatedAt))
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -230,7 +227,6 @@ public sealed class ProductService : IProductService
             OldPrice = request.OldPrice,
             Weight = request.Weight,
             WeightUnit = TrimOrNull(request.WeightUnit),
-            StockQuantity = request.StockQuantity,
             ImageUrl = imageUrls.FirstOrDefault(),
             ImageUrls = imageUrls,
             IsActive = request.IsActive,
@@ -265,7 +261,6 @@ public sealed class ProductService : IProductService
         product.OldPrice = request.OldPrice;
         product.Weight = request.Weight;
         product.WeightUnit = TrimOrNull(request.WeightUnit);
-        product.StockQuantity = request.StockQuantity;
         product.ImageUrl = imageUrls.FirstOrDefault();
         product.ImageUrls = imageUrls;
         product.IsActive = request.IsActive;

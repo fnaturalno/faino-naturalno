@@ -22,7 +22,6 @@ export interface CartLineDto {
   price: number;
   quantity: number;
   lineTotal: number;
-  stockQuantity: number;
   /** False when the product is inactive / unavailable. */
   isActive: boolean;
 }
@@ -45,6 +44,7 @@ export function cartItemCountLabel(count: number): string {
   return `${n} товарів`;
 }
 
-export function cartLineMaxQuantity(stockQuantity: number): number {
-  return Math.max(0, Math.min(stockQuantity, 12));
+/** Hard cap for cart line quantity (no stock-based limit). */
+export function cartLineMaxQuantity(): number {
+  return 12;
 }

@@ -36,10 +36,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.ImageUrls)
             .HasColumnType("text[]");
 
-        builder.Property(p => p.StockQuantity)
-            .IsRequired()
-            .HasDefaultValue(0);
-
         builder.Property(p => p.Weight)
             .HasPrecision(10, 3);
 

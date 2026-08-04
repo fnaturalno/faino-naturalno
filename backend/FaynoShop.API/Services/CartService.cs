@@ -56,7 +56,7 @@ public sealed class CartService : ICartService
                 cancellationToken)
             ?? throw new NotFoundException("Позицію кошика не знайдено.");
 
-        // Lock product so concurrent stock changes cannot allow an oversell on quantity update.
+        // Lock product so concurrent updates see a consistent active flag.
         var product = await _db.Products
             .FromSql($"SELECT * FROM products WHERE id = {line.ProductId} FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
@@ -71,10 +71,10 @@ public sealed class CartService : ICartService
             throw new BadRequestException("Товар недоступний.");
         }
 
-        var maxQuantity = Math.Min(product.StockQuantity, CartLimits.MaxLineQuantity);
-        if (maxQuantity < 1 || request.Quantity > maxQuantity)
+        if (request.Quantity > CartLimits.MaxLineQuantity)
         {
-            throw new BadRequestException("Недостатньо товару на складі.");
+            throw new BadRequestException(
+                $"Кількість має бути від 1 до {CartLimits.MaxLineQuantity}.");
         }
 
         line.Quantity = request.Quantity;
@@ -193,20 +193,13 @@ public sealed class CartService : ICartService
         }
 
         // Merge guest lines into user cart, then remove guest cart.
-        var productIds = guestCart.Items.Select(i => i.ProductId).Distinct().ToList();
-        var stocks = await _db.Products
-            .AsNoTracking()
-            .Where(p => productIds.Contains(p.Id))
-            .ToDictionaryAsync(p => p.Id, p => p.StockQuantity, cancellationToken);
-
         foreach (var guestLine in guestCart.Items.ToList())
         {
-            var stock = stocks.GetValueOrDefault(guestLine.ProductId, 0);
             var userLine = userCart.Items.FirstOrDefault(i => i.ProductId == guestLine.ProductId);
 
             if (userLine is null)
             {
-                var qty = CapLineQuantity(guestLine.Quantity, stock);
+                var qty = CapLineQuantity(guestLine.Quantity);
                 if (qty <= 0)
                 {
                     continue;
@@ -221,7 +214,7 @@ public sealed class CartService : ICartService
             }
             else
             {
-                var capped = CapLineQuantity(userLine.Quantity + guestLine.Quantity, stock);
+                var capped = CapLineQuantity(userLine.Quantity + guestLine.Quantity);
                 if (capped <= 0)
                 {
                     userCart.Items.Remove(userLine);
@@ -259,7 +252,7 @@ public sealed class CartService : ICartService
 
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
 
-        // Lock product row for the transaction so concurrent adds cannot oversell stock.
+        // Lock product row so concurrent adds cannot exceed MaxLineQuantity.
         var product = await _db.Products
             .FromSql($"SELECT * FROM products WHERE id = {request.ProductId} FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
@@ -270,18 +263,13 @@ public sealed class CartService : ICartService
             throw new NotFoundException("Товар не знайдено.");
         }
 
-        if (product.StockQuantity <= 0)
-        {
-            throw new BadRequestException("Товару немає в наявності.");
-        }
-
         var cart = await GetOrCreateCartAsync(sessionId, userId, cancellationToken);
         var line = await GetOrCreateLineAsync(cart, product, quantityToAdd, cancellationToken);
 
-        var maxQuantity = Math.Min(product.StockQuantity, CartLimits.MaxLineQuantity);
-        if (line.Quantity > maxQuantity)
+        if (line.Quantity > CartLimits.MaxLineQuantity)
         {
-            throw new BadRequestException("Недостатньо товару на складі.");
+            throw new BadRequestException(
+                $"Кількість має бути від 1 до {CartLimits.MaxLineQuantity}.");
         }
 
         cart.UpdatedAt = DateTime.UtcNow;
@@ -345,7 +333,6 @@ public sealed class CartService : ICartService
                 CategoryName = i.Product.Category.Name,
                 i.Product.ImageUrl,
                 i.Product.Price,
-                i.Product.StockQuantity,
                 i.Product.IsActive
             })
             .ToListAsync(cancellationToken);
@@ -364,7 +351,6 @@ public sealed class CartService : ICartService
                     r.Price,
                     r.Quantity,
                     lineTotal,
-                    r.StockQuantity,
                     r.IsActive);
             })
             .ToList();
@@ -381,7 +367,7 @@ public sealed class CartService : ICartService
         int quantityToAdd,
         CancellationToken cancellationToken)
     {
-        var maxQuantity = Math.Min(product.StockQuantity, CartLimits.MaxLineQuantity);
+        const int maxQuantity = CartLimits.MaxLineQuantity;
 
         var line = await _db.CartItems
             .FirstOrDefaultAsync(
@@ -393,7 +379,8 @@ public sealed class CartService : ICartService
             var remainingCapacity = maxQuantity - line.Quantity;
             if (remainingCapacity <= 0 || quantityToAdd > remainingCapacity)
             {
-                throw new BadRequestException("Недостатньо товару на складі.");
+                throw new BadRequestException(
+                    $"Кількість має бути від 1 до {CartLimits.MaxLineQuantity}.");
             }
 
             line.Quantity += quantityToAdd;
@@ -402,7 +389,8 @@ public sealed class CartService : ICartService
 
         if (quantityToAdd > maxQuantity)
         {
-            throw new BadRequestException("Недостатньо товару на складі.");
+            throw new BadRequestException(
+                $"Кількість має бути від 1 до {CartLimits.MaxLineQuantity}.");
         }
 
         line = new CartItem
@@ -435,7 +423,8 @@ public sealed class CartService : ICartService
             var remainingCapacity = maxQuantity - line.Quantity;
             if (remainingCapacity <= 0 || quantityToAdd > remainingCapacity)
             {
-                throw new BadRequestException("Недостатньо товару на складі.");
+                throw new BadRequestException(
+                    $"Кількість має бути від 1 до {CartLimits.MaxLineQuantity}.");
             }
 
             line.Quantity += quantityToAdd;
@@ -512,15 +501,15 @@ public sealed class CartService : ICartService
         return ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
     }
 
-    /// <summary>Caps line qty to min(stock, MaxLineQuantity); 0 stock → 0 (drop line).</summary>
-    private static int CapLineQuantity(int quantity, int stockQuantity)
+    /// <summary>Caps line qty to MaxLineQuantity; non-positive qty → 0 (drop line).</summary>
+    private static int CapLineQuantity(int quantity)
     {
-        if (quantity <= 0 || stockQuantity <= 0)
+        if (quantity <= 0)
         {
             return 0;
         }
 
-        return Math.Min(quantity, Math.Min(stockQuantity, CartLimits.MaxLineQuantity));
+        return Math.Min(quantity, CartLimits.MaxLineQuantity);
     }
 
     /// <summary>

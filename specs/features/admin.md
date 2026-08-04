@@ -19,7 +19,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Захищена зона `/admin/*`: JWT + `IsAdmin`; неадмін / гість — redirect або forbidden.
 - Оболонка адмінки: лівий сайдбар, топбар з іменем адміна, мобільний вигляд списку товарів.
 - Товари: список з пошуком / фільтром / пагінацією (номери сторінок), switch-toggle активності, іконки edit/delete, мобільні картки; створення, редагування, видалення.
-- Форма товару: поля моделі Product (назва, slug, категорія, описи, ціна, стара ціна, вага/одиниця, залишок, зображення URL(и), IsActive, IsFeatured).
+- Форма товару: поля моделі Product (назва, slug, категорія, описи, ціна, стара ціна, вага/одиниця, зображення URL(и), IsActive, IsFeatured).
 - Категорії: ієрархічний список (expand/collapse, підкатегорії), створення / редагування в drawer, видалення; деталі в `specs/features/subcategories.md`.
 - Замовлення: список усіх з пошуком / фільтром статусу, drawer деталей, зміна статусу.
 - Український copy з `design/admin.dc.html`.
@@ -107,7 +107,7 @@ Query (aligned with catalog + admin needs):
 
 Each row exposes at least:
 
-- `id`, `name`, `slug`, category name, `price`, `stockQuantity`, `isActive`
+- `id`, `name`, `slug`, category name, `price`, `isActive`
 - Primary image URL when available
 - Enough to drive the active/hidden toggle and edit / delete actions
 
@@ -123,7 +123,6 @@ Request body fields matching the Product model:
 - `shortDescription`, `description`
 - `price` (required, > 0), optional `oldPrice`
 - `weight`, `weightUnit` — admin pack presets: **10 г / 50 г / 100 г / 250 г / 500 г / 1 кг / шт** (stored as numeric `weight` + unit; шт → weight `1`, unit `шт`)
-- `stockQuantity` (≥ 0)
 - `imageUrl` (primary) and `imageUrls` (gallery); first / primary is the main catalog image
 - `isActive`, `isFeatured`
 
@@ -241,10 +240,10 @@ Matches `design/admin.dc.html` products view:
 
 **Desktop / tablet table**
 
-- Card surface: cream header (`fn-eyebrow`), white rows, hover cream; columns `64px | 1fr | 130px | 100px | 90px | 130px | 100px`.
+- Card surface: cream header (`fn-eyebrow`), white rows, hover cream; columns `64px | 1fr | 130px | 100px | 130px | 100px`.
 - Thumbnail 48×48 (kraft placeholder «фото» when missing).
 - «Назва» bold + slug subtitle (muted, truncated).
-- «Категорія», «Ціна» (`N ₴`, accent weight), «Залишок» with stock colors (0 → chili; &lt; 10 → cinnamon; else garden).
+- «Категорія», «Ціна» (`N ₴`, accent weight).
 - «Статус»: **switch toggle** (garden when on, kraft when off) + label «Активний» / «Прихований» — not text-only bullets.
 - «Дії»: icon buttons (`ad-act`) — pencil edit, trash delete (danger hover).
 
@@ -265,7 +264,7 @@ Left column sections:
 
 - **Основне** — «Назва товару»; slug preview «URL (slug) — генерується автоматично» (`/catalog/…`); «Категорія» select
 - **Опис** — «Короткий опис»; «Повний опис» textarea
-- **Ціна та наявність** — «Ціна, ₴»; «Стара ціна, ₴ (необов.)»; «Вага / одиниця» select (**10 г, 50 г, 100 г, 250 г, 500 г, 1 кг, шт**); «Залишок на складі»
+- **Ціна та фасування** — «Ціна, ₴»; «Стара ціна, ₴ (необов.)»; «Вага / одиниця» select (**10 г, 50 г, 100 г, 250 г, 500 г, 1 кг, шт**)
 
 Right column:
 
@@ -385,8 +384,8 @@ Matches `design/admin.dc.html` and `specs/features/subcategories.md` §2.3:
 
 ### Validation
 
-- Required product fields (name, category, price, stock ≥ 0) show inline errors.
-- Invalid numbers / negative stock → field errors.
+- Required product fields (name, category, price) show inline errors.
+- Invalid numbers / non-positive price → field errors.
 - Category name required in the drawer.
 
 ### Delete / status failure
@@ -418,7 +417,6 @@ Matches `design/admin.dc.html` and `specs/features/subcategories.md` §2.3:
 
 - Long product / customer names truncate with ellipsis in tables; full value via title/tooltip.
 - Large catalogs: server pagination only; no unbounded client-side load of all products.
-- Stock `0` still allows an active product (shown as hidden from purchase by catalog/checkout rules elsewhere); admin sees chili-colored stock.
 - Missing images use kraft / «фото» placeholder.
 - Slug collision on save → error; admin corrects name/slug.
 - Delete product blocked by FK (e.g. order lines) → error; admin can set `isActive = false` instead.
@@ -447,7 +445,7 @@ Matches `design/admin.dc.html` and `specs/features/subcategories.md` §2.3:
 ### Products
 
 - [ ] Admin can list products (including inactive) with search, category **slug** filter (parents + subs), pagination «Показано A–B з N», and numbered page controls.
-- [ ] Admin can create and edit products with fields from the Product model (name, slug, category, descriptions, price/oldPrice, weight/unit, stock, images, isActive, isFeatured).
+- [ ] Admin can create and edit products with fields from the Product model (name, slug, category, descriptions, price/oldPrice, weight/unit, images, isActive, isFeatured).
 - [ ] Product images are uploaded via `POST /api/admin/uploads/images` (JPG/PNG ≤ 5 MB); gallery supports reorder and remove; first image is primary.
 - [ ] List **switch** toggle updates `isActive` via `PUT /api/products/:id/active` without confirmation; delete requires confirmation (icon trash).
 - [ ] `POST` / `PUT` / `DELETE` `/api/products` (Admin) use the common API envelope; slug uniqueness and validation errors are clear.

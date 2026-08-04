@@ -173,7 +173,7 @@ export class CartService {
     if (!line || !line.isActive) return;
 
     let nextQty = Math.max(1, Math.floor(quantity));
-    const max = cartLineMaxQuantity(line.stockQuantity);
+    const max = cartLineMaxQuantity();
     if (nextQty > line.quantity) {
       if (max <= line.quantity) return;
       nextQty = Math.min(nextQty, max);
@@ -353,7 +353,6 @@ function normalizeCartLine(raw: CartLineDto & { categoryName?: string }): CartLi
     price,
     quantity,
     lineTotal: raw.lineTotal ?? price * quantity,
-    stockQuantity: raw.stockQuantity ?? 0,
     isActive: raw.isActive !== false,
   };
 }

@@ -38,7 +38,6 @@
 | old_price | numeric(10,2) | |
 | image_url | varchar(500) | |
 | image_urls | text[] | NOT NULL |
-| stock_quantity | int | NOT NULL DEFAULT 0 |
 | weight | numeric(10,3) | |
 | weight_unit | varchar(10) | |
 | is_active | bool | NOT NULL DEFAULT true |
@@ -202,6 +201,7 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | `OrderConfirmationToken` | `orders.confirmation_token_hash` UNIQUE — guest confirmation capability (hashed) |
 | `SubcategoriesSchema` (`20260802140008_SubcategoriesSchema`) | `categories.parent_id` nullable self-FK (RESTRICT) + `idx_categories_parent_id` for subcategory hierarchy |
 | `PasswordChangedAt` (`20260802160713_PasswordChangedAt`) | nullable `users.password_changed_at` (`timestamptz`) for profile «Остання зміна» and change/reset password flows |
+| `DropProductStockQuantity` | drop `products.stock_quantity` — inventory not tracked |
 
 ### Connection String
 ```
@@ -261,7 +261,6 @@ Realistic Ukrainian natural products covering catalog UI states:
 | Featured | 1 featured per category (`is_featured`) |
 | Новинка | Several with `created_at` within last 30 days of seed reference `2026-07-17` |
 | Missing optional | Null `short_description`, `image_url`, and/or `weight`/`weight_unit` |
-| Out of stock | `stock_quantity = 0` (still active, visible, not addable) |
 | Inactive | 1 product with `is_active = false` (excluded from public catalog) |
 
 Prices in UAH (`numeric`). Seed placeholder images under `/assets/demo/...` (frontend). Admin-uploaded images live under the configured uploads root (`wwwroot/uploads/products/` locally, or `MediaStorage__RootPath` on production); DB stores relative paths `/uploads/products/{file}`.

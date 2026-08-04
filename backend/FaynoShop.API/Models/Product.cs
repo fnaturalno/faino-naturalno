@@ -11,7 +11,6 @@ public class Product
     public decimal? OldPrice { get; set; }
     public string? ImageUrl { get; set; }
     public string[] ImageUrls { get; set; } = [];
-    public int StockQuantity { get; set; }
     public decimal? Weight { get; set; }
     public string? WeightUnit { get; set; }
     public bool IsActive { get; set; } = true;

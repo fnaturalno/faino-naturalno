@@ -14,7 +14,6 @@ export interface AdminProduct {
   oldPrice?: number | null;
   weight?: number | null;
   weightUnit?: string | null;
-  stockQuantity: number;
   imageUrl?: string | null;
   imageUrls: string[];
   isActive: boolean;

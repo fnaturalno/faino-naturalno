@@ -12,7 +12,6 @@
 | OldPrice | decimal? | for discounts |
 | ImageUrl | string? | main image |
 | ImageUrls | string[] | gallery |
-| StockQuantity | int | |
 | Weight | decimal? | |
 | WeightUnit | string? | г, мл, шт |
 | IsActive | bool | default true |

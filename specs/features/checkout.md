@@ -22,7 +22,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Отримання деталей замовлення для підтвердження (`GET /api/orders/:id`).
 - Guest checkout без логіну; для залогіненого — підстановка профілю та збереженої NP-адреси.
 - Пошук міста / вибір відділення Нової Пошти (reuse NP API з auth).
-- Валідація наявності товарів при оформленні; очищення кошика після успіху.
+- Валідація активності товарів при оформленні; очищення кошика після успіху.
 - Стани: порожній кошик, завантаження, валідація полів, помилки NP/оформлення.
 
 ### Out of scope
@@ -107,14 +107,14 @@ Line items and totals are taken from the **current server cart** for the session
 #### Server rules on place
 
 - Empty cart → fail; do not create an order.
-- Every cart line must refer to an **active** product with enough **stock** for the requested quantity.
-- Inactive or insufficient-stock lines cause the place request to fail with a clear Ukrainian-facing error; no partial order is created.
+- Every cart line must refer to an **active** product.
+- Inactive lines cause the place request to fail with a clear Ukrainian-facing error; no partial order is created.
 - Unit prices on `OrderItem` are snapshots of the **current** product price at place time.
 - `TotalAmount` equals the sum of line totals (subtotal); delivery is not added as a numeric amount.
 - New orders start with status **Pending**.
 - `OrderNumber` is a unique human-readable value (same style as existing samples, e.g. `FN-YYYY-NNNN`).
 - On success, the cart used for the order is **cleared / emptied**.
-- Stock is reduced by the ordered quantities as part of a successful place (inventory must stay consistent).
+- Place does **not** check or reduce inventory / stock.
 
 #### Success response
 
@@ -330,11 +330,11 @@ No payment instructions beyond optional plain text that delivery is paid per Nov
 
 - Redirect to `/order/:id`; cart empty; header badge `0`.
 
-### Place failure (stock / inactive / server)
+### Place failure (inactive / server)
 
 - Error toast with API message when suitable, otherwise «Не вдалося оформити замовлення».
 - Cart contents remain; buyer may edit cart via «Редагувати» and retry.
-- If specific lines are unavailable, the message should make that clear enough to fix the cart.
+- If specific lines are inactive / unavailable, the message should make that clear enough to fix the cart.
 
 ### Confirmation loading / error
 
@@ -369,7 +369,6 @@ No payment instructions beyond optional plain text that delivery is paid per Nov
 - Phone input accepts common UA formatting but validates as `+380` mobile.
 - Very long comments are limited by storage (e.g. ~1000 chars); excess rejected with a field error.
 - Price changes between add-to-cart and place: order stores **current** price at place time; summary before submit shows live cart prices (same as cart feature).
-- Stock race: place fails; cart not cleared; buyer adjusts quantities.
 - Inactive product still in cart: place fails until the line is removed.
 - Guest places order → confirmation works without account via capability token in the redirect URL; order does not appear in profile until/unless linked (guest has no profile list).
 - Logged-in buyer: order appears later in profile order list (auth feature); owner JWT may open confirmation without the token.
@@ -388,8 +387,8 @@ No payment instructions beyond optional plain text that delivery is paid per Nov
 
 - [ ] `POST /api/orders` places an order from the current cart for guest or authenticated buyer in the common API envelope.
 - [ ] Place requires recipient name (first + last), `+380` phone, email, NP city + branch, optional comment; lines/totals come from the server cart.
-- [ ] Empty cart, inactive products, or insufficient stock fail without creating an order; cart is not cleared on failure.
-- [ ] Successful place creates Pending order with snapshot line prices, `TotalAmount` = goods subtotal, unique `OrderNumber`, clears the cart, and reduces stock.
+- [ ] Empty cart or inactive products fail without creating an order; cart is not cleared on failure.
+- [ ] Successful place creates Pending order with snapshot line prices, `TotalAmount` = goods subtotal, unique `OrderNumber`, and clears the cart; stock is not checked or reduced.
 - [ ] `GET /api/orders/:id` returns confirmation data when `?token=` matches (or JWT owner); unknown / unauthorized fails cleanly without leaking existence.
 - [ ] NP city/branch endpoints from auth are reused; checkout does not redefine them.
 - [ ] Logged-in checkout prefills profile contact fields and saved delivery address when present.
@@ -416,5 +415,5 @@ No payment instructions beyond optional plain text that delivery is paid per Nov
 
 ### Edge cases and scope
 
-- [ ] Long names, many lines, missing images, stock/price races, guest vs logged-in linkage, and accessibility basics behave as specified.
+- [ ] Long names, many lines, missing images, price races, guest vs logged-in linkage, and accessibility basics behave as specified.
 - [ ] The feature does not implement payment, delivery fee calculation, promo codes, admin status tools, or profile address save-from-checkout.

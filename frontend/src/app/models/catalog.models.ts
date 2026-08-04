@@ -25,7 +25,6 @@ export interface CatalogProduct {
   imageUrl?: string | null;
   weight?: number | null;
   weightUnit?: string | null;
-  stockQuantity: number;
   isFeatured: boolean;
   createdAt: string;
   categoryId: number;
@@ -46,7 +45,6 @@ export interface ProductDetail {
   imageUrls: string[];
   weight?: number | null;
   weightUnit?: string | null;
-  stockQuantity: number;
   isFeatured: boolean;
   createdAt: string;
   categoryId: number;

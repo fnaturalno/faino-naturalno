@@ -118,7 +118,7 @@ public sealed class OrderService : IOrderService
             throw new BadRequestException("Кошик порожній.");
         }
 
-        // Serialize concurrent place attempts on the same cart (prevents double-order / double stock cut).
+        // Serialize concurrent place attempts on the same cart (prevents double-order).
         cart = await _db.Carts
             .FromSql($"SELECT * FROM carts WHERE id = {cart.Id} FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
@@ -169,15 +169,6 @@ public sealed class OrderService : IOrderService
                 throw new BadRequestException(
                     $"Товар «{product.Name}» недоступний. Видаліть його з кошика та спробуйте знову.");
             }
-
-            if (product.StockQuantity < line.Quantity)
-            {
-                throw new BadRequestException(
-                    $"Недостатньо товару «{product.Name}» на складі.");
-            }
-
-            product.StockQuantity -= line.Quantity;
-            product.UpdatedAt = now;
 
             var unitPrice = product.Price;
             orderItems.Add(new OrderItem

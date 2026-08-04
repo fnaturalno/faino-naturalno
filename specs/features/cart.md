@@ -99,7 +99,6 @@ Each line includes:
 - Current unit `price` from the live product (not a historical snapshot)
 - `quantity`
 - `lineTotal` (`price × quantity`)
-- `stockQuantity`
 - Enough information to distinguish an inactive / unavailable product for UI rules below
 
 Delivery cost is not returned as a number. The UI shows only the static copy «за тарифами перевізника».
@@ -109,10 +108,10 @@ An empty cart returns `itemCount` `0`, `subtotal` `0`, and an empty `items` list
 ### 1.5 PUT `/api/cart/items/:id`
 
 - Request body includes the new `quantity`.
-- Maximum allowed quantity is the lesser of current `stockQuantity` and `12`.
+- Maximum allowed quantity is `12`.
 - Minimum quantity is `1` (removing the line uses DELETE, not quantity `0`).
 - On success, the response provides enough data to refresh the affected line, `itemCount`, and `subtotal` (or the full cart equivalent).
-- Requests that exceed stock or violate limits fail with an error; the client keeps or restores the previous quantity.
+- Requests that violate quantity limits fail with an error; the client keeps or restores the previous quantity.
 
 ### 1.6 DELETE `/api/cart/items/:id`
 
@@ -171,7 +170,7 @@ Items display as a vertical list of rows (not a grid or table):
 ### 2.5 Quantity limits
 
 - Stepper minimum is `1`.
-- Stepper maximum is `min(stockQuantity, 12)` (aligned with the product page, not the design’s illustrative max of 20).
+- Stepper maximum is `12`.
 
 ### 2.6 Visual language
 
@@ -239,12 +238,6 @@ Items display as a vertical list of rows (not a grid or table):
 - The line quantity or presence rolls back to the pre-request state (or is corrected from the error/response when available).
 - Feedback uses toasts (see §5); badge/`itemCount` stay consistent with the last known good cart.
 
-### Out of stock
-
-- The line remains visible.
-- The stepper cannot increase beyond `min(stockQuantity, 12)`.
-- When stock is `0`, quantity cannot be increased; the buyer may still remove the line.
-
 ### Inactive / unavailable product
 
 - The line remains visible with a clear label such as «Недоступний».
@@ -275,7 +268,7 @@ Items display as a vertical list of rows (not a grid or table):
 - Long product names truncate with ellipsis (about two lines); the full name is available via title/tooltip.
 - Many lines: the list scrolls; the footer stays sticky; there is no cart pagination.
 - If the catalog price changed after add, the cart always shows the current product price with no separate “price changed” warning.
-- If stock no longer allows the requested quantity, the API rejects the change; the client shows an error toast and restores or corrects quantity / stock limits.
+- If the requested quantity exceeds `12`, the API rejects the change; the client shows an error toast and restores the previous quantity.
 - Guest and logged-in buyers share the same cart UI; merge remains the auth feature’s responsibility.
 - Missing product image shows a kraft / «фото» style placeholder.
 - Rapid repeated stepper or trash clicks on a line are ignored while that line’s request is pending.
@@ -290,9 +283,9 @@ Items display as a vertical list of rows (not a grid or table):
 ### Data and API
 
 - [ ] `GET /api/cart` returns `items`, `itemCount`, and `subtotal` in the common API envelope, identified via `X-Cart-Session-Id` (and auth rules after merge).
-- [ ] Each line exposes identity, name, slug, category, image, live unit price, quantity, line total, and stock (plus inactive/unavailable distinguishability).
+- [ ] Each line exposes identity, name, slug, category, image, live unit price, quantity, line total (plus inactive/unavailable distinguishability).
 - [ ] Delivery is display copy only; no delivery amount in the cart response.
-- [ ] `PUT /api/cart/items/:id` updates quantity with max `min(stockQuantity, 12)` and min `1`.
+- [ ] `PUT /api/cart/items/:id` updates quantity with max `12` and min `1`.
 - [ ] `DELETE /api/cart/items/:id` removes a line and returns enough data to refresh counts/totals.
 - [ ] `DELETE /api/cart` clears the cart at the API level without a clear-all UI control.
 - [ ] Existing `POST /api/cart/items` and `POST /api/cart/merge` are reused, not redefined.
@@ -304,7 +297,7 @@ Items display as a vertical list of rows (not a grid or table):
 - [ ] Lines are a vertical list with image, category, name, remove, stepper, and line total.
 - [ ] Ukrainian copy matches the design: title, plural count, subtotal/delivery/together labels, CTAs, and empty state.
 - [ ] Empty state hides totals and checkout CTA and offers «Перейти до каталогу».
-- [ ] Stepper max is `min(stockQuantity, 12)`.
+- [ ] Stepper max is `12`.
 
 ### Interactions
 
@@ -319,13 +312,13 @@ Items display as a vertical list of rows (not a grid or table):
 
 - [ ] Loading shows a list skeleton; pending mutations are line-scoped.
 - [ ] Empty and GET error (inline + «Спробувати ще») behave as specified.
-- [ ] OOS limits the stepper; inactive lines show «Недоступний» and allow remove only.
+- [ ] Inactive lines show «Недоступний» and allow remove only.
 - [ ] Successful qty change has no toast; successful remove shows «Видалено з кошика».
 - [ ] Mutation errors toast and roll back; toasts dismiss in ~3 seconds.
 - [ ] Closing the drawer does not clear the cart.
 
 ### Edge cases and scope
 
-- [ ] Long names, many lines, missing images, price freshness, and stock races behave as specified.
+- [ ] Long names, many lines, missing images, and price freshness behave as specified.
 - [ ] Guest and authenticated UX match; merge is not reimplemented here.
 - [ ] The feature does not implement checkout logic, promo codes, clear-all UI, or admin cart tools.

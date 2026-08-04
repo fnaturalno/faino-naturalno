@@ -2,14 +2,14 @@ namespace FaynoShop.API.DTOs.Cart;
 
 /// <summary>
 /// Full cart payload for GET /api/cart and mutation responses that refresh the UI.
-/// Prices and stock are live from Product (not a historical snapshot).
+/// Prices are live from Product (not a historical snapshot).
 /// </summary>
 public sealed record CartDto(
     IReadOnlyList<CartItemDto> Items,
     int ItemCount,
     decimal Subtotal);
 
-/// <summary>One cart line with display fields and live product availability.</summary>
+/// <summary>One cart line with display fields and live product status.</summary>
 public sealed record CartItemDto(
     int CartItemId,
     int ProductId,
@@ -20,5 +20,4 @@ public sealed record CartItemDto(
     decimal Price,
     int Quantity,
     decimal LineTotal,
-    int StockQuantity,
     bool IsActive);

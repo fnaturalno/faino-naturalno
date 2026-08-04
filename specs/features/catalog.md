@@ -104,7 +104,6 @@ Each product includes:
 - `ImageUrl`
 - `Weight`
 - `WeightUnit`
-- `StockQuantity`
 - `IsFeatured`
 - `CreatedAt`
 - Category identifier, name, and slug
@@ -136,7 +135,7 @@ Category data may be reused between catalog visits. Product results are refreshe
 
 Selecting «В кошик» sends the product identifier and quantity `1`.
 
-On success, the response provides enough information to update the cart item-count badge. Out-of-stock products cannot be added.
+On success, the response provides enough information to update the cart item-count badge. Active products can always be added.
 
 ---
 
@@ -170,7 +169,6 @@ Tablet and mobile cards omit the category eyebrow and short description.
 - Current price, optional crossed-out old price, and weight/unit are visible.
 - Hover-capable devices show the designed card lift, stronger shadow, and button emphasis.
 - The card links to `/catalog/:slug`; «В кошик» performs only the cart action.
-- An out-of-stock card remains visible and its «В кошик» button is disabled.
 
 ### 2.4 Filters
 
@@ -270,7 +268,7 @@ The sorting control uses this order:
 - The mobile filter sheet traps focus while open, can be closed with Escape, and returns focus to the filter button.
 - Toasts are announced without unexpectedly moving focus.
 - Loading, empty, and error state changes are announced appropriately.
-- Disabled out-of-stock and pagination controls expose their disabled state.
+- Disabled pagination controls expose their disabled state.
 - Price fields accept numeric values and expose clear «від» and «до» labels.
 - Touch targets follow the dimensions shown in the mobile design.
 
@@ -280,7 +278,6 @@ The sorting control uses this order:
 
 - Products without an image use the catalog placeholder without breaking card dimensions.
 - Products without `ShortDescription`, `OldPrice`, `Weight`, or `WeightUnit` omit the corresponding optional content without leaving misleading separators.
-- Products with zero stock remain discoverable but cannot be added to the cart.
 - Only active products contribute to results, category counts, and catalog price bounds.
 - Long names and descriptions do not change card-grid alignment.
 - The grid and pagination remain usable for large result sets.
@@ -328,8 +325,7 @@ The sorting control uses this order:
 
 ### Cart interaction and feedback
 
-- [ ] «В кошик» adds exactly one unit without navigating to the product page.
-- [ ] Out-of-stock products remain visible and cannot be added.
+- [ ] «В кошик» adds exactly one unit of an active product without navigating to the product page.
 - [ ] Successful addition updates the badge, highlights the button briefly, and shows «Додано в кошик».
 - [ ] Failed addition leaves the badge unchanged and shows an error toast.
 - [ ] Cart toasts dismiss after 3 seconds.

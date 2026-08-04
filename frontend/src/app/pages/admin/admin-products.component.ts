@@ -113,7 +113,6 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
           <span class="fn-eyebrow text-[10px]">Назва</span>
           <span class="fn-eyebrow text-[10px]">Категорія</span>
           <span class="fn-eyebrow text-[10px]">Ціна</span>
-          <span class="fn-eyebrow text-[10px]">Залишок</span>
           <span class="fn-eyebrow text-[10px]">Статус</span>
           <span class="fn-eyebrow text-right text-[10px]">Дії</span>
         </div>
@@ -149,9 +148,6 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
               product.categoryName
             }}</span>
             <span class="text-base font-bold text-[var(--espresso-900)]">{{ product.price }} ₴</span>
-            <span class="text-sm font-semibold" [class]="stockClass(product.stockQuantity)">{{
-              product.stockQuantity
-            }}</span>
 
             <button
               type="button"
@@ -318,7 +314,7 @@ export class AdminProductsComponent {
   readonly error = signal('');
   readonly togglingId = signal<number | null>(null);
   private readonly failedImageIds = signal(new Set<number>());
-  protected readonly tableCols = '64px minmax(0, 1fr) 130px 100px 90px 130px 100px';
+  protected readonly tableCols = '64px minmax(0, 1fr) 130px 100px 130px 100px';
 
   readonly products = computed(() => this.page().items ?? []);
 
@@ -415,12 +411,6 @@ export class AdminProductsComponent {
       next.add(productId);
       return next;
     });
-  }
-
-  stockClass(stock: number): string {
-    if (stock === 0) return 'text-[var(--chili-500)]';
-    if (stock < 10) return 'text-[var(--cinnamon-700)]';
-    return 'text-[var(--garden-700)]';
   }
 
   toggleActive(product: AdminProduct): void {

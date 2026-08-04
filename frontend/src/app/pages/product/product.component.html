@@ -107,7 +107,6 @@
           <div class="flex flex-col gap-3.5">
             <div
               class="relative flex aspect-square items-center justify-center overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--kraft-100)]"
-              [class.saturate-50]="!inStock()"
             >
               @if (safeActiveImage(); as imageUrl) {
                 <img
@@ -120,13 +119,7 @@
                 <span class="font-[var(--font-accent)] text-2xl text-[var(--kraft-400)]">фото товару</span>
               }
 
-              @if (!inStock()) {
-                <div class="absolute left-4 top-4">
-                  <span
-                    class="rounded-full border border-[var(--border-strong)] bg-white px-2.5 py-1 text-[11px] font-extrabold text-[var(--espresso-800)]"
-                  >Немає в наявності</span>
-                </div>
-              } @else if (badge(); as productBadge) {
+              @if (badge(); as productBadge) {
                 <div class="absolute left-4 top-4">
                   <span
                     class="rounded-full px-2.5 py-1 text-[11px] font-extrabold text-white"

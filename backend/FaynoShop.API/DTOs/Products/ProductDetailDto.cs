@@ -15,7 +15,6 @@ public sealed record ProductDetailDto(
     string[] ImageUrls,
     decimal? Weight,
     string? WeightUnit,
-    int StockQuantity,
     bool IsFeatured,
     DateTime CreatedAt,
     int CategoryId,

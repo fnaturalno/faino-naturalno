@@ -23,7 +23,6 @@ public sealed class SaveProductRequestValidator : AbstractValidator<SaveProductR
         RuleFor(x => x.WeightUnit)
             .Must(unit => string.IsNullOrWhiteSpace(unit) || AllowedWeightUnits.Contains(unit.Trim()))
             .WithMessage("Одиниця виміру має бути: г, кг або шт.");
-        RuleFor(x => x.StockQuantity).GreaterThanOrEqualTo(0).WithMessage("Залишок не може бути від'ємним.");
         RuleFor(x => x.ImageUrl).MaximumLength(500).WithMessage("URL зображення занадто довгий.");
         RuleForEach(x => x.ImageUrls).NotEmpty().WithMessage("URL зображення не може бути порожнім.")
             .MaximumLength(500).WithMessage("URL зображення занадто довгий.");

@@ -18,16 +18,15 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 
 - Публічна сторінка `/catalog/:slug`.
 - Отримання одного активного товару за slug разом із до 3 схожими товарами.
-- Галерея зображень, опис, ціна, фасування, статус наявності.
+- Галерея зображень, опис, ціна, фасування.
 - Вибір кількості та додавання в кошик.
 - Оновлення лічильника товарів у кошику в header.
-- Стани завантаження, «не знайдено», помилки та «немає в наявності».
+- Стани завантаження, «не знайдено» та помилки.
 
 ### Out of scope
 
 - Рейтинг і відгуки.
 - Wishlist / «У бажане».
-- «Повідомити про наявність».
 - Повна реалізація кошика та cart drawer.
 - Адміністративний CRUD товарів і категорій.
 - Окремий маршрут `/product/...` (використовується лише `/catalog/:slug`).
@@ -82,7 +81,6 @@ The response includes:
 - `ImageUrls`
 - `Weight`
 - `WeightUnit`
-- `StockQuantity`
 - `IsFeatured`
 - `CreatedAt`
 - Category identifier, name, and slug
@@ -97,7 +95,7 @@ An unknown slug or an inactive product yields `success: false` with no usable pr
 - Up to 3 active products from the same category as the current product.
 - The current product is excluded.
 - Ordering follows catalog «popular» semantics (featured products first).
-- Each similar product uses the same card-level fields as the catalog list (identity, name, slug, short description, prices, image, weight/unit, stock, category, created-at for badges).
+- Each similar product uses the same card-level fields as the catalog list (identity, name, slug, short description, prices, image, weight/unit, category, created-at for badges).
 - The list may contain fewer than 3 items when fewer peers exist; an empty list is allowed.
 
 ### 1.4 Product badges
@@ -112,11 +110,11 @@ An unknown slug or an inactive product yields `success: false` with no usable pr
 
 Selecting «В кошик» on the product page sends the product identifier and the quantity chosen on the stepper.
 
-The maximum selectable quantity is the lesser of `StockQuantity` and `12`.
+The maximum selectable quantity is `12`.
 
 On success, the response provides enough information to update the cart item-count badge.
 
-Out-of-stock products cannot be added.
+Active products can always be added.
 
 The cart is identified by the existing session header (`X-Cart-Session-Id`), consistent with the catalog.
 
@@ -163,23 +161,20 @@ Opening `/catalog/:slug` or changing the slug triggers a fresh product detail re
 
 - Product name, short description, current price, optional crossed-out old price, and «/ {Weight} {WeightUnit}».
 - Packaging line: «Фасування: {Weight} {WeightUnit}» (same weight fields as the price unit).
-- Availability label «В наявності» or «Немає в наявності» based on `StockQuantity`.
 - Full description under heading «Опис».
 - Static info strip (not from API): «Доставка Новою Поштою» and «100% натуральний склад».
-- Rating, heart/wishlist, and «Повідомити про наявність» are not shown in this feature.
+- Rating, heart/wishlist, and notify controls are not shown in this feature.
 
 ### 2.6 Quantity and primary add control
 
-- Quantity stepper starts at `1` and ranges from `1` to `min(StockQuantity, 12)`.
+- Quantity stepper starts at `1` and ranges from `1` to `12`.
 - Primary button label «В кошик»; brief success label «Додано» after a successful add.
-- When out of stock, the stepper and add control are disabled (or the primary button shows disabled «Немає в наявності»).
 
 ### 2.7 Similar products
 
 - Section title «Схожі товари».
 - Cards match catalog card content: category eyebrow, name, short description, price, optional old price, badge, image, and «В кошик».
 - The section is hidden when `similarProducts` is empty.
-- Out-of-stock similar cards remain visible with disabled add.
 
 ---
 
@@ -220,11 +215,6 @@ Opening `/catalog/:slug` or changing the slug triggers a fresh product detail re
 - One to three images: only available thumbnails.
 - More than four images: first four from the gallery are shown.
 
-### Out of stock
-
-- The page remains visible with product content.
-- Add and stepper are disabled as in §2.6.
-
 ### Success after add
 
 - The user stays on the product page.
@@ -248,12 +238,11 @@ Opening `/catalog/:slug` or changing the slug triggers a fresh product detail re
 
 - Long names and descriptions flow downward without breaking the gallery or sticky mobile bar.
 - Optional fields (`ShortDescription`, `Description`, `OldPrice`, `Weight`, `WeightUnit`, images) omit corresponding UI without misleading separators when absent.
-- If stock changed and the add is rejected, an error toast is shown and the badge is unchanged.
 - `similarProducts` length may be 0–3; hide the section when empty.
 - Discount percentage is never shown when `OldPrice` is absent, equal to, or lower than `Price`.
 - The 30-day «Новинка» rule uses the product creation timestamp.
 - The page is public; there are no permission gates for viewing or guest add-to-cart.
-- Accessibility expectations follow the catalog pattern: keyboard-operable controls, meaningful Ukrainian labels for icon-only controls, disabled state exposed for OOS and busy add, toasts announced without stealing focus.
+- Accessibility expectations follow the catalog pattern: keyboard-operable controls, meaningful Ukrainian labels for icon-only controls, disabled state exposed for busy add, toasts announced without stealing focus.
 
 ---
 
@@ -265,25 +254,24 @@ Opening `/catalog/:slug` or changing the slug triggers a fresh product detail re
 - [ ] Detail data includes full product fields, category, gallery URLs, and `similarProducts` (0–3, same category, popular order, current excluded).
 - [ ] Unknown or inactive slug yields a not-found style failure without usable product data.
 - [ ] Badge rules match the catalog (Новинка 30 days; discount only when `OldPrice > Price`; discount wins over Новинка).
-- [ ] `POST /api/cart/items` accepts the stepper quantity with session identification; max quantity is `min(StockQuantity, 12)`.
-- [ ] Out-of-stock products cannot be added.
+- [ ] `POST /api/cart/items` accepts the stepper quantity with session identification; max quantity is `12`.
+- [ ] Active products can always be added.
 - [ ] Product detail is freshly loaded on each visit and slug change.
 
 ### Layout and content
 
 - [ ] Desktop shows gallery + details and a three-card similar section; mobile shows stacked content, horizontal similar cards, and a sticky add bar.
-- [ ] Breadcrumb, price, packaging, availability, description, and static info strip match the agreed copy and design intent.
+- [ ] Breadcrumb, price, packaging, description, and static info strip match the agreed copy and design intent.
 - [ ] Gallery supports up to 4 thumbnails with placeholders for missing images.
-- [ ] Rating, wishlist, and notify-on-stock UI are absent.
+- [ ] Rating, wishlist, and notify UI are absent.
 - [ ] All customer-facing product-page labels are Ukrainian.
 
 ### Interactions
 
 - [ ] Thumbnail selection updates the main image.
-- [ ] Product «В кошик» adds the stepper quantity without leaving the page.
+- [ ] Product «В кошик» adds the stepper quantity (1–12) without leaving the page.
 - [ ] Similar card navigates to that product’s slug; its «В кошик» adds one unit without navigating.
 - [ ] Category and «Усі … →» links open the catalog for that category.
-- [ ] OOS disables add (and stepper) on the main product and similar cards.
 - [ ] No confirmation dialogs before add; concurrent adds are serialized to one in-flight request.
 
 ### States and feedback
@@ -297,5 +285,4 @@ Opening `/catalog/:slug` or changing the slug triggers a fresh product detail re
 ### Edge cases and scope
 
 - [ ] Long text, empty/partial/overfull galleries, and 0–3 similar products display without layout breakage.
-- [ ] Stock rejection on add surfaces an error toast without badge change.
-- [ ] The feature does not implement ratings, wishlist, notify-on-stock, admin CRUD, or the full cart experience.
+- [ ] The feature does not implement ratings, wishlist, admin CRUD, or the full cart experience.

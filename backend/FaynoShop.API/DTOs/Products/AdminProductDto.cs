@@ -13,7 +13,6 @@ public sealed record AdminProductDto(
     decimal? OldPrice,
     decimal? Weight,
     string? WeightUnit,
-    int StockQuantity,
     string? ImageUrl,
     string[] ImageUrls,
     bool IsActive,

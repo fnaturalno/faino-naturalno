@@ -144,16 +144,9 @@ export class ProductComponent {
     return `${detail.weight.toLocaleString('uk-UA')} ${detail.weightUnit}`;
   });
 
-  protected readonly maxQuantity = computed(() => {
-    const stock = this.product()?.stockQuantity ?? 0;
-    return Math.max(0, Math.min(stock, 12));
-  });
+  protected readonly maxQuantity = computed(() => 12);
 
-  protected readonly inStock = computed(() => (this.product()?.stockQuantity ?? 0) > 0);
-
-  protected readonly canAdd = computed(
-    () => this.inStock() && this.addStatus() !== 'adding' && this.maxQuantity() >= 1,
-  );
+  protected readonly canAdd = computed(() => this.addStatus() !== 'adding');
 
   protected readonly similar = computed(() => this.product()?.similarProducts ?? []);
 
@@ -284,7 +277,7 @@ export class ProductComponent {
   protected addSimilar(productId: number): void {
     if (this.similarStatuses()[productId] === 'adding') return;
     const similar = this.similar().find((item) => item.id === productId);
-    if (!similar || similar.stockQuantity <= 0) return;
+    if (!similar) return;
 
     this.setSimilarStatus(productId, 'adding');
     this.cart

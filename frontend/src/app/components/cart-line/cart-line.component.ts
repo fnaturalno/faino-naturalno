@@ -186,5 +186,5 @@ export class CartLineComponent {
     return sanitizeImageUrl(this.line().imageUrl);
   });
 
-  protected readonly maxQty = computed(() => cartLineMaxQuantity(this.line().stockQuantity));
+  protected readonly maxQty = computed(() => cartLineMaxQuantity());
 }
