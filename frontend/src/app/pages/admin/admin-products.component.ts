@@ -176,19 +176,23 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
               </span>
             </button>
 
-            <label
-              class="inline-flex cursor-pointer items-center gap-2 justify-self-start"
-              [class.pointer-events-none]="togglingId() === product.id"
-              [class.opacity-50]="togglingId() === product.id"
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 justify-self-start bg-transparent p-0"
+              [attr.aria-label]="'В наявності: ' + product.name"
+              [disabled]="togglingId() === product.id"
+              (click)="toggleAvailable(product)"
             >
-              <input
-                type="checkbox"
-                class="size-5 shrink-0 rounded border-[var(--border-strong)] accent-[var(--marigold-500)]"
-                [checked]="product.isAvailable !== false"
-                [disabled]="togglingId() === product.id"
-                [attr.aria-label]="'В наявності: ' + product.name"
-                (change)="toggleAvailable(product)"
-              />
+              <span
+                class="relative h-[22px] w-[38px] shrink-0 rounded-full transition-colors"
+                [class.bg-[var(--marigold-500)]]="product.isAvailable !== false"
+                [class.bg-[var(--kraft-300)]]="product.isAvailable === false"
+              >
+                <span
+                  class="absolute top-0.5 size-[18px] rounded-full bg-white shadow transition-[left] duration-150"
+                  [style.left.px]="product.isAvailable !== false ? 18 : 2"
+                ></span>
+              </span>
               <span
                 class="text-xs font-semibold"
                 [class.text-[var(--marigold-600)]]="product.isAvailable !== false"
@@ -196,7 +200,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
               >
                 {{ product.isAvailable !== false ? 'Так' : 'Ні' }}
               </span>
-            </label>
+            </button>
 
             <div class="flex justify-end gap-2">
               <a
@@ -263,14 +267,24 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
                 ></span>
               </span>
             </button>
-            <input
-              type="checkbox"
-              class="size-5 shrink-0 rounded border-[var(--border-strong)] accent-[var(--marigold-500)]"
-              [checked]="product.isAvailable !== false"
-              [disabled]="togglingId() === product.id"
+            <button
+              type="button"
+              class="shrink-0"
               [attr.aria-label]="'В наявності: ' + product.name"
-              (change)="toggleAvailable(product)"
-            />
+              [disabled]="togglingId() === product.id"
+              (click)="toggleAvailable(product)"
+            >
+              <span
+                class="relative block h-5 w-[34px] rounded-full"
+                [class.bg-[var(--marigold-500)]]="product.isAvailable !== false"
+                [class.bg-[var(--kraft-300)]]="product.isAvailable === false"
+              >
+                <span
+                  class="absolute top-0.5 size-4 rounded-full bg-white shadow transition-[left] duration-150"
+                  [style.left.px]="product.isAvailable !== false ? 16 : 2"
+                ></span>
+              </span>
+            </button>
             <a
               [routerLink]="['/admin/products', product.id, 'edit']"
               class="ad-act shrink-0"
