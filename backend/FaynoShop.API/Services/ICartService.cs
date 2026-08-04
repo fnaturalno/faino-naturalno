@@ -12,7 +12,7 @@ public interface ICartService
 
     /// <summary>
     /// Merges the guest cart identified by <paramref name="sessionId"/> into the
-    /// authenticated user's cart. No confirmation; quantities are summed (capped by stock).
+    /// authenticated user's cart. No confirmation; quantities are summed (capped at MaxLineQuantity).
     /// </summary>
     Task<MergeCartResponse> MergeGuestCartAsync(
         int userId,
@@ -20,7 +20,7 @@ public interface ICartService
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns the current cart with live product prices/stock.
+    /// Returns the current cart with live product prices.
     /// Empty cart is a successful empty payload (no 404).
     /// </summary>
     Task<CartDto> GetCartAsync(
@@ -29,7 +29,7 @@ public interface ICartService
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Sets line quantity to 1‥min(stock, 12). Returns the full cart for client refresh.
+    /// Sets line quantity to 1‥MaxLineQuantity (12). Returns the full cart for client refresh.
     /// </summary>
     Task<CartDto> UpdateItemQuantityAsync(
         string sessionId,

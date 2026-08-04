@@ -201,7 +201,7 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | `OrderConfirmationToken` | `orders.confirmation_token_hash` UNIQUE — guest confirmation capability (hashed) |
 | `SubcategoriesSchema` (`20260802140008_SubcategoriesSchema`) | `categories.parent_id` nullable self-FK (RESTRICT) + `idx_categories_parent_id` for subcategory hierarchy |
 | `PasswordChangedAt` (`20260802160713_PasswordChangedAt`) | nullable `users.password_changed_at` (`timestamptz`) for profile «Остання зміна» and change/reset password flows |
-| `DropProductStockQuantity` | drop `products.stock_quantity` — inventory not tracked |
+| `DropProductStockQuantity` (`20260804104214_DropProductStockQuantity`) | drop `products.stock_quantity` — inventory not tracked |
 
 ### Connection String
 ```
@@ -212,99 +212,10 @@ Configured in `backend/FaynoShop.API/appsettings.json` as `ConnectionStrings:Def
 
 ---
 
-## Demo Data Seeding
+## Data seeding
 
-Controlled by `appsettings.json` / `appsettings.Development.json` flag:
+**No automatic seed.** Catalog, users, and admin accounts are created via the admin UI / registration (or manual DB inserts). Startup only runs `Database.MigrateAsync()`.
 
-```json
-"SeedDemoData": true
-```
+There is no `SeedDemoData` flag and no `SeedData.cs`.
 
-Or via environment variable: `SEED_DEMO_DATA=true` (maps to the same config key when set).
-
-### Behavior
-- Runs on app startup **only if** `SeedDemoData: true`
-- Idempotent — categories skip if any exist; demo user skips if `demo@fayno.local` already exists; admin is created/upgraded if `admin@fayno.local` is missing or not admin
-- Skips seeding in production unless explicitly enabled (`SeedDemoData` defaults to `false` in `appsettings.json`; Development sets `true`)
-
-### Demo Data Set
-
-#### Categories (3 top-level + optional demo subcategories)
-| name | slug | sort_order | parent |
-|------|------|------------|--------|
-| Спеції | spetsiyi | 1 | — |
-| Приправи | prypravy | 2 | — |
-| Чаї | chayi | 3 | — |
-
-#### Subcategories
-| parent | name | slug | sort_order |
-|--------|------|------|------------|
-| Спеції | Мелені | meleni | 1 |
-| Спеції | Цілі | tsili | 2 |
-| Спеції | Суміші | sumishi | 3 |
-| Приправи | Універсальні | universalni | 1 |
-| Приправи | До м'яса | do-myasa | 2 |
-| Приправи | До овочів | do-ovochiv | 3 |
-| Чаї | Чорний | chornyy-chay | 1 |
-| Чаї | Зелений | zelenyy-chay | 2 |
-| Чаї | Трав'яний | travyanyy-chay | 3 |
-
-The seed adds missing subcategories idempotently. Existing products stay on the three top-level parents; no mass reassignment occurs.
-
-#### Products (16 — 5 per category + 1 inactive)
-Realistic Ukrainian natural products covering catalog UI states:
-
-| State | Coverage |
-|-------|----------|
-| Pagination | 15 active products (> pageSize 9) |
-| Discount | Several with `old_price > price` |
-| Featured | 1 featured per category (`is_featured`) |
-| Новинка | Several with `created_at` within last 30 days of seed reference `2026-07-17` |
-| Missing optional | Null `short_description`, `image_url`, and/or `weight`/`weight_unit` |
-| Inactive | 1 product with `is_active = false` (excluded from public catalog) |
-
-Prices in UAH (`numeric`). Seed placeholder images under `/assets/demo/...` (frontend). Admin-uploaded images live under the configured uploads root (`wwwroot/uploads/products/` locally, or `MediaStorage__RootPath` on production); DB stores relative paths `/uploads/products/{file}`.
-
-#### Demo user (auth / profile)
-| Field | Value |
-|-------|--------|
-| Email | `demo@fayno.local` |
-| Password | `Demo1234!` (local-only; bcrypt hash in `SeedData`) |
-| Name | Олена Коваль |
-| Phone | `+380501112233` |
-| IsAdmin | `false` |
-| NP address | Київ sample city/branch + summary |
-| Orders | 2 sample rows (`FN-2026-0001` Delivered, `FN-2026-0002` Shipped) for profile list |
-
-#### Default admin
-| Field | Value |
-|-------|--------|
-| Email | `admin@fayno.local` |
-| Password | `Admin1234!` (local-only; bcrypt hash in `SeedData`) |
-| Name | Адмін Файно |
-| Phone | `+380501000000` |
-| IsAdmin | `true` |
-
-### Implementation
-
-```csharp
-// backend/FaynoShop.API/Data/SeedData.cs
-public static class SeedData
-{
-    public static async Task SeedAsync(AppDbContext context, IConfiguration config)
-    {
-        if (!config.GetValue<bool>("SeedDemoData")) return;
-        // catalog: skip if categories exist
-        // auth: skip if demo@fayno.local exists
-        // admin: ensure admin@fayno.local with IsAdmin=true
-    }
-}
-```
-
-Called from `Program.cs`:
-```csharp
-using var scope = app.Services.CreateScope();
-var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-await SeedData.SeedAsync(db, config);
-```
+---
