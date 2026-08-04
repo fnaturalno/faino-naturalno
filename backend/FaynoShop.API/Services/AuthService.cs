@@ -15,17 +15,20 @@ public sealed class AuthService : IAuthService
     private readonly ITokenService _tokens;
     private readonly IEmailSender _email;
     private readonly AppOptions _app;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         AppDbContext db,
         ITokenService tokens,
         IEmailSender email,
-        IOptions<AppOptions> app)
+        IOptions<AppOptions> app,
+        ILogger<AuthService> logger)
     {
         _db = db;
         _tokens = tokens;
         _email = email;
         _app = app.Value;
+        _logger = logger;
     }
 
     public async Task<AuthTokensResponse> RegisterAsync(
@@ -187,11 +190,19 @@ public sealed class AuthService : IAuthService
         var baseUrl = _app.FrontendBaseUrl.TrimEnd('/');
         var link = $"{baseUrl}/auth/reset-password?token={Uri.EscapeDataString(plain)}";
 
-        await _email.SendAsync(
-            user.Email,
-            "Скидання пароля — Файно натурально",
-            $"Щоб встановити новий пароль, відкрийте посилання (дійсне {_app.PasswordResetTokenHours} год):\n{link}",
-            cancellationToken);
+        try
+        {
+            await _email.SendAsync(
+                user.Email,
+                "Скидання пароля — Файно натурально",
+                $"Щоб встановити новий пароль, відкрийте посилання (дійсне {_app.PasswordResetTokenHours} год):\n{link}",
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Still return success to the client (no enumeration / broken UX); ops see the log.
+            _logger.LogError(ex, "Failed to send password-reset email to {Email}", user.Email);
+        }
     }
 
     public async Task ResetPasswordAsync(

@@ -1,14 +1,8 @@
 namespace FaynoShop.API.Services;
 
-public interface IEmailSender
-{
-    Task SendAsync(string toEmail, string subject, string body, CancellationToken cancellationToken);
-}
-
 /// <summary>
-/// Dev/local stub — logs outbound mail. In Development the body (incl. reset links) is logged
-/// for local testing; outside Development only recipient + subject are logged.
-/// Replace with SMTP/provider implementation for production.
+/// Fallback when SMTP is not configured — logs outbound mail, does not deliver.
+/// In Development the body (incl. reset links) is logged for local testing.
 /// </summary>
 public sealed class LoggingEmailSender : IEmailSender
 {
@@ -25,20 +19,16 @@ public sealed class LoggingEmailSender : IEmailSender
 
     public Task SendAsync(string toEmail, string subject, string body, CancellationToken cancellationToken)
     {
+        _logger.LogWarning(
+            "Email SMTP is not configured (Email:Smtp:Host empty) — message was NOT delivered. To={ToEmail} Subject={Subject}",
+            toEmail,
+            subject);
+
         if (_environment.IsDevelopment())
         {
             _logger.LogInformation(
-                "Email (stub) To={ToEmail} Subject={Subject} Body={Body}",
-                toEmail,
-                subject,
+                "Email (stub) Body={Body}",
                 body);
-        }
-        else
-        {
-            _logger.LogInformation(
-                "Email (stub) queued To={ToEmail} Subject={Subject}",
-                toEmail,
-                subject);
         }
 
         return Task.CompletedTask;

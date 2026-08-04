@@ -49,13 +49,25 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<EmailOptions>()
+            .Bind(configuration.GetSection(EmailOptions.SectionName));
+
         services.AddOptions<NovaPoshtaOptions>()
             .Bind(configuration.GetSection(NovaPoshtaOptions.SectionName));
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOrderService, OrderService>();
-        services.AddSingleton<IEmailSender, LoggingEmailSender>();
+
+        var smtpHost = configuration.GetSection(EmailOptions.SectionName).GetSection("Smtp")["Host"];
+        if (!string.IsNullOrWhiteSpace(smtpHost))
+        {
+            services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        }
+        else
+        {
+            services.AddSingleton<IEmailSender, LoggingEmailSender>();
+        }
 
         var npKey = configuration.GetSection(NovaPoshtaOptions.SectionName)["ApiKey"];
         if (string.IsNullOrWhiteSpace(npKey))

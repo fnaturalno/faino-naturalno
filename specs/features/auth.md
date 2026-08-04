@@ -33,7 +33,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Зміна email після реєстрації.
 - Видалення акаунта або видалення адреси доставки (лише зміна адреси).
 - Соціальний вхід (роздільник «або» у макеті — лише перехід на реєстрацію/вхід).
-- Реальна SMTP-доставка листів (non-prod: log-only email sender; prod SMTP — окремий slice).
+- Реальна SMTP-доставка листів без конфігурації (коли `Email:Smtp:Host` порожній — log-only stub; коли Host заданий — SMTP).
 - Повна реалізація сторінки деталі замовлення / checkout (крім навігації з рядка замовлення та підказки, що адреса з профілю підставляється на оформленні).
 - Product detail і повний кошик поза merge після auth.
 
@@ -132,7 +132,7 @@ After success, the client merges the guest cart (session id) into the authentica
 5. Request body remains: token + password (no new fields). Email shown on the «sent» screen is held by the client from step 1.
 6. On successful reset: set new password hash, set `passwordChangedAt` to now, invalidate **all** refresh sessions for that user.
 7. Invalid or expired token yields a clear failure the UI can explain, with an option to request a new email.
-8. Email delivery in non-prod remains log-only; real SMTP is out of scope for this slice.
+8. Email delivery: when `Email:Smtp:Host` is set, messages are sent via SMTP; otherwise log-only stub (Development logs the reset link in API console).
 
 ### 1.7 Change password (logged-in)
 
@@ -464,4 +464,4 @@ Short Ukrainian toasts after:
 - [ ] Profile shows at most 20 recent orders.
 - [ ] Optional phone validates `+380` when provided.
 - [ ] Wrong current password shows a clear error; other sessions need re-login after change; all sessions after reset.
-- [ ] Admin UI, social login, email change, account/address deletion, real SMTP, and full order-detail/checkout implementation remain out of scope.
+- [ ] Admin UI, social login, email change, account/address deletion, and full order-detail/checkout implementation remain out of scope. SMTP is optional via `Email:Smtp` config.
