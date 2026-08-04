@@ -95,7 +95,7 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
       </div>
     } @else if (loading()) {
       <div class="h-72 animate-pulse rounded-[14px] bg-[var(--kraft-100)]"></div>
-    } @else if (page().items.length === 0) {
+    } @else if (products().length === 0) {
       <div class="rounded-[14px] border border-[var(--border-subtle)] bg-white p-10 text-center shadow-sm">
         Товарів не знайдено.
         <a routerLink="/admin/products/new" class="font-bold text-[var(--cinnamon-700)] underline">Додати товар</a>
@@ -106,7 +106,8 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
         class="hidden overflow-hidden rounded-[14px] border border-[var(--border-subtle)] bg-white shadow-[0_1px_2px_rgba(42,26,13,0.04)] md:block"
       >
         <div
-          class="grid grid-cols-[64px_minmax(0,1fr)_130px_100px_90px_130px_100px] gap-3 border-b border-[var(--border-subtle)] bg-[var(--kraft-100)] px-5 py-3.5"
+          class="grid gap-3 border-b border-[var(--border-subtle)] bg-[var(--kraft-100)] px-5 py-3.5"
+          [style.grid-template-columns]="tableCols"
         >
           <span class="fn-eyebrow text-[10px]"></span>
           <span class="fn-eyebrow text-[10px]">Назва</span>
@@ -117,9 +118,10 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
           <span class="fn-eyebrow text-right text-[10px]">Дії</span>
         </div>
 
-        @for (product of page().items; track product.id) {
-          <article
-            class="ad-row grid grid-cols-[64px_minmax(0,1fr)_130px_100px_90px_130px_100px] items-center gap-3 border-b border-[var(--border-subtle)] px-5 py-3 last:border-0"
+        @for (product of products(); track product.id) {
+          <div
+            class="ad-row grid min-h-14 items-center gap-3 border-b border-[var(--border-subtle)] bg-white px-5 py-3 last:border-0"
+            [style.grid-template-columns]="tableCols"
           >
             <div
               class="grid size-12 place-items-center overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--kraft-100)] text-[10px] text-[var(--kraft-400)]"
@@ -194,13 +196,13 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
                 <app-icon name="trash" [size]="15" />
               </button>
             </div>
-          </article>
+          </div>
         }
       </div>
 
       <!-- Mobile cards -->
       <div class="flex flex-col gap-2.5 md:hidden">
-        @for (product of page().items; track product.id) {
+        @for (product of products(); track product.id) {
           <article
             class="flex items-center gap-3 rounded-[10px] border border-[var(--border-subtle)] bg-white p-3 shadow-sm"
           >
@@ -316,6 +318,9 @@ export class AdminProductsComponent {
   readonly error = signal('');
   readonly togglingId = signal<number | null>(null);
   private readonly failedImageIds = signal(new Set<number>());
+  protected readonly tableCols = '64px minmax(0, 1fr) 130px 100px 90px 130px 100px';
+
+  readonly products = computed(() => this.page().items ?? []);
 
   readonly first = computed(() =>
     this.page().totalCount ? (this.page().page - 1) * this.page().pageSize + 1 : 0,
@@ -367,8 +372,19 @@ export class AdminProductsComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          if (response.success) this.page.set(response.data);
-          else this.error.set(response.error ?? 'Не вдалося завантажити товари');
+          if (response.success && response.data) {
+            const data = response.data;
+            const items = Array.isArray(data.items) ? data.items : [];
+            this.page.set({
+              items,
+              page: data.page ?? 1,
+              pageSize: data.pageSize ?? 10,
+              totalCount: data.totalCount ?? items.length,
+              totalPages: Math.max(data.totalPages ?? 1, 1),
+            });
+          } else {
+            this.error.set(response.error ?? 'Не вдалося завантажити товари');
+          }
           this.loading.set(false);
         },
         error: (error) => {
