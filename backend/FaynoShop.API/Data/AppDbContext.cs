@@ -21,6 +21,8 @@ public class AppDbContext : DbContext
     public DbSet<UserDeliveryAddress> UserDeliveryAddresses => Set<UserDeliveryAddress>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<NewsPost> NewsPosts => Set<NewsPost>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

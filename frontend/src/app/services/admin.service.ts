@@ -14,6 +14,11 @@ import {
   SaveCategoryRequest,
   SaveProductRequest,
 } from '../models/admin.models';
+import {
+  AdminNewsPage,
+  AdminNewsPost,
+  SaveNewsRequest,
+} from '../models/news.models';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -95,5 +100,28 @@ export class AdminService {
 
   updateOrderStatus(id: number, status: AdminOrderStatus): Observable<ApiResponse<AdminOrderDetail>> {
     return this.http.put<ApiResponse<AdminOrderDetail>>(`${this.apiUrl}/admin/orders/${id}/status`, { status });
+  }
+
+  getNews(query?: { page?: number; pageSize?: number }): Observable<ApiResponse<AdminNewsPage>> {
+    let params = new HttpParams();
+    if (query?.page) params = params.set('page', query.page);
+    if (query?.pageSize) params = params.set('pageSize', query.pageSize);
+    return this.http.get<ApiResponse<AdminNewsPage>>(`${this.apiUrl}/admin/news`, { params });
+  }
+
+  getNewsPost(id: number): Observable<ApiResponse<AdminNewsPost>> {
+    return this.http.get<ApiResponse<AdminNewsPost>>(`${this.apiUrl}/admin/news/${id}`);
+  }
+
+  createNews(payload: SaveNewsRequest): Observable<ApiResponse<AdminNewsPost>> {
+    return this.http.post<ApiResponse<AdminNewsPost>>(`${this.apiUrl}/admin/news`, payload);
+  }
+
+  updateNews(id: number, payload: SaveNewsRequest): Observable<ApiResponse<AdminNewsPost>> {
+    return this.http.put<ApiResponse<AdminNewsPost>>(`${this.apiUrl}/admin/news/${id}`, payload);
+  }
+
+  deleteNews(id: number): Observable<ApiResponse<object>> {
+    return this.http.delete<ApiResponse<object>>(`${this.apiUrl}/admin/news/${id}`);
   }
 }

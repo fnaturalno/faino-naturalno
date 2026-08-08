@@ -13,7 +13,7 @@ Reads that return product/category **display names** resolve locale in order:
 
 Public DTOs keep a single `name` / `shortDescription` / `description` / `categoryName` — the service picks UK or EN (EN only when non-empty). Writes are not locale-driven; admin bilingual fields are sent explicitly.
 
-Applies to: `GET /products`, `GET /products/:slug`, `GET /categories`, `GET /cart` (and cart mutations that return the cart), `GET /orders/:id`, `GET /admin/orders/:id`, admin order status update response.
+Applies to: `GET /products`, `GET /products/:slug`, `GET /categories`, `GET /news`, `GET /news/:slug`, `GET /cart` (and cart mutations that return the cart), `GET /orders/:id`, `GET /admin/orders/:id`, admin order status update response.
 
 ## Products
 | Method | Route | Auth | Description |
@@ -68,10 +68,25 @@ Hierarchy details: `specs/features/subcategories.md`.
 | GET | /admin/orders/:id | Admin | Order detail for admin drawer; `?locale=` |
 | PUT | /admin/orders/:id/status | Admin | Update status; `?locale=` on returned detail |
 
+## News
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /news | — | Paginated published posts (`page`, `pageSize` default 9, `locale`); featured first, then `publishedAt` desc |
+| GET | /news/:slug | — | Single published post; 404 if draft/missing; `?locale=` |
+| GET | /admin/news | Admin | All posts (drafts + published; optional `search`, `isPublished`, pagination) |
+| GET | /admin/news/:id | Admin | Single post for edit (bilingual fields) |
+| POST | /admin/news | Admin | Create |
+| PUT | /admin/news/:id | Admin | Full update |
+| DELETE | /admin/news/:id | Admin | Hard delete |
+
+**Public news DTO:** monolingual `title`, `excerpt`, `body`, plus `slug`, `coverImageUrl`, `publishedAt`, `isFeatured`. Soft-hide = `isPublished: false`. Body is plain multiline text (v1). Details: `specs/features/news.md`.
+
+**Admin news payload:** `titleUk` (required), `titleEn?`, `slug?`, `excerptUk?`, `excerptEn?`, `bodyUk`, `bodyEn?`, `coverImageUrl?`, `isPublished`, `isFeatured`, `publishedAt?`.
+
 ## Uploads
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| POST | /admin/uploads/images | Admin | Upload product image (multipart `file`; JPG/PNG ≤ 5 MB) → `{ url }` under `/uploads/products/...` |
+| POST | /admin/uploads/images | Admin | Upload image (multipart `file`; JPG/PNG ≤ 5 MB) → `{ url }` under `/uploads/products/...` (also reused for news covers) |
 
 Static files: API serves `/uploads` from `MediaStorage:RootPath` (default `wwwroot/uploads`) so `/uploads/products/{file}` is publicly readable; write only via the Admin upload endpoint. On Railway set `MediaStorage__RootPath` to a persistent volume.
 

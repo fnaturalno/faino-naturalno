@@ -22,6 +22,16 @@ const storefrontChildren: Routes = [
       import('./pages/about/about.component').then((module) => module.AboutComponent),
   },
   {
+    path: 'news',
+    loadComponent: () =>
+      import('./pages/news/news-list.component').then((module) => module.NewsListComponent),
+  },
+  {
+    path: 'news/:slug',
+    loadComponent: () =>
+      import('./pages/news/news-detail.component').then((module) => module.NewsDetailComponent),
+  },
+  {
     path: 'catalog',
     loadComponent: () =>
       import('./pages/catalog/catalog.component').then((module) => module.CatalogComponent),
@@ -125,6 +135,25 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/admin/admin-categories.component').then(
             (module) => module.AdminCategoriesComponent,
+          ),
+      },
+      {
+        path: 'news',
+        loadComponent: () =>
+          import('./pages/admin/admin-news.component').then((module) => module.AdminNewsComponent),
+      },
+      {
+        path: 'news/new',
+        loadComponent: () =>
+          import('./pages/admin/admin-news-form.component').then(
+            (module) => module.AdminNewsFormComponent,
+          ),
+      },
+      {
+        path: 'news/:id/edit',
+        loadComponent: () =>
+          import('./pages/admin/admin-news-form.component').then(
+            (module) => module.AdminNewsFormComponent,
           ),
       },
     ],

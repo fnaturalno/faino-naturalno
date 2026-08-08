@@ -219,6 +219,31 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 - `idx_order_items_product_id` — FK
 - `idx_order_items_variant_id` — FK
 
+#### news_posts
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | serial | PK |
+| title_uk | varchar(300) | NOT NULL |
+| title_en | varchar(300) | nullable — public API falls back to `title_uk` when empty |
+| slug | varchar(300) | UNIQUE NOT NULL — shared across locales |
+| excerpt_uk | varchar(500) | nullable |
+| excerpt_en | varchar(500) | nullable — falls back to `excerpt_uk` when empty |
+| body_uk | text | NOT NULL — plain multiline text (v1) |
+| body_en | text | nullable — falls back to `body_uk` when empty |
+| cover_image_url | varchar(500) | nullable |
+| published_at | timestamptz | nullable — required when `is_published`; set to now on publish if omitted |
+| is_published | bool | NOT NULL DEFAULT false |
+| is_featured | bool | NOT NULL DEFAULT false |
+| created_at | timestamptz | NOT NULL DEFAULT now() |
+| updated_at | timestamptz | NOT NULL DEFAULT now() |
+
+**Indexes:**
+- `idx_news_posts_slug` — UNIQUE (detail route)
+- `idx_news_posts_is_published_published_at` — composite `(is_published ASC, published_at DESC)` for public list filter + newest sort
+- `idx_news_posts_is_featured` — featured-first sort
+
+Details: `specs/features/news.md`.
+
 ### Migrations
 
 | Name | Purpose |
@@ -234,6 +259,7 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | `I18nSchema` (`20260804125712_I18nSchema`) | bilingual content: rename product/category text columns to `*_uk`, add nullable `*_en`; shared `slug` unchanged; existing row data preserved via rename |
 | `ProductVariantsSchema` (`20260804165448_ProductVariantsSchema`) | `product_variants` table; drop `products.price`/`old_price`/`weight`/`weight_unit` + `idx_products_price` (no price→variant data migration); cart lines keyed by `variant_id` (RESTRICT); order lines gain `variant_id` + weight snapshots; clears existing cart/order lines before FK retrofit |
 | `DropVariantOldPrice` | drop `product_variants.old_price` — selling price only; no crossed-out / discount price |
+| `NewsSchema` (`20260808161313_NewsSchema`) | `news_posts` table + indexes (`idx_news_posts_slug`, `idx_news_posts_is_published_published_at`, `idx_news_posts_is_featured`) — see `specs/features/news.md` |
 
 ### Connection String
 ```

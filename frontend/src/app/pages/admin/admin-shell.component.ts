@@ -19,6 +19,7 @@ import { AuthService } from '../../services/auth.service';
           <a routerLink="/admin/products" routerLinkActive="bg-[#f5b800] !text-[#2a1a0d]" [routerLinkActiveOptions]="{ exact: false }" class="block rounded-lg px-4 py-3 font-semibold text-[#f5ecd8] hover:bg-white/10">{{ 'admin.products' | transloco }}</a>
           <a routerLink="/admin/orders" routerLinkActive="bg-[#f5b800] !text-[#2a1a0d]" class="block rounded-lg px-4 py-3 font-semibold text-[#f5ecd8] hover:bg-white/10">{{ 'admin.orders' | transloco }}</a>
           <a routerLink="/admin/categories" routerLinkActive="bg-[#f5b800] !text-[#2a1a0d]" class="block rounded-lg px-4 py-3 font-semibold text-[#f5ecd8] hover:bg-white/10">{{ 'admin.categories' | transloco }}</a>
+          <a routerLink="/admin/news" routerLinkActive="bg-[#f5b800] !text-[#2a1a0d]" [routerLinkActiveOptions]="{ exact: false }" class="block rounded-lg px-4 py-3 font-semibold text-[#f5ecd8] hover:bg-white/10">{{ 'admin.news' | transloco }}</a>
           <a [routerLink]="locale.storefrontCommands('catalog')" class="mt-2 block rounded-lg px-4 py-3 font-semibold text-[#f5ecd8] hover:bg-white/10">{{ 'admin.shop' | transloco }}</a>
         </nav>
         <button type="button" class="mt-auto rounded-lg px-4 py-3 text-left font-semibold hover:bg-white/10" (click)="logout()">{{ 'admin.logout' | transloco }}</button>
@@ -38,6 +39,7 @@ import { AuthService } from '../../services/auth.service';
             <a routerLink="/admin/products" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.products' | transloco }}</a>
             <a routerLink="/admin/orders" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.orders' | transloco }}</a>
             <a routerLink="/admin/categories" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.categories' | transloco }}</a>
+            <a routerLink="/admin/news" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.news' | transloco }}</a>
             <a [routerLink]="locale.storefrontCommands('catalog')" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.shop' | transloco }}</a>
             <button type="button" class="w-full rounded px-3 py-2 text-left" (click)="logout()">{{ 'admin.logout' | transloco }}</button>
           </nav>
@@ -60,6 +62,11 @@ export class AdminShellComponent {
     const url = this.router.url;
     if (url.includes('/orders')) return this.i18n.translate('admin.orders');
     if (url.includes('/categories')) return this.i18n.translate('admin.categories');
+    if (url.includes('/news')) {
+      return url.includes('/new') || url.includes('/edit')
+        ? this.i18n.translate('admin.newsPost')
+        : this.i18n.translate('admin.news');
+    }
     return url.includes('/new') || url.includes('/edit')
       ? this.i18n.translate('admin.product')
       : this.i18n.translate('admin.products');

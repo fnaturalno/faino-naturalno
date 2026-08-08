@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
         services.Configure<MediaStorageOptions>(configuration.GetSection(MediaStorageOptions.SectionName));
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<INewsService, NewsService>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IMediaUploadService, MediaUploadService>();
         services.AddValidatorsFromAssemblyContaining<Program>();

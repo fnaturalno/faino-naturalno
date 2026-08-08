@@ -19,6 +19,8 @@
 |------|-----------|-------------|
 | `/:locale` | → catalog | Locale home (catalog) |
 | `/:locale/about` | AboutComponent | About / «Про нас» |
+| `/:locale/news` | NewsListComponent | News / «Новини» list |
+| `/:locale/news/:slug` | NewsDetailComponent | News article detail |
 | `/:locale/catalog` | CatalogComponent | Product grid + filters |
 | `/:locale/catalog/:slug` | ProductComponent | Product detail |
 | `/:locale/cart` | CartComponent | Cart page |
@@ -33,12 +35,15 @@
 | `/:locale/admin/products/:id/edit` | AdminProductFormComponent | Edit product |
 | `/:locale/admin/orders` | AdminOrdersComponent | Orders list + detail drawer |
 | `/:locale/admin/categories` | AdminCategoriesComponent | Tree table (expand, icons, + subcategory, drawer) |
+| `/:locale/admin/news` | AdminNewsComponent | News posts list (drafts + published) |
+| `/:locale/admin/news/new` | AdminNewsFormComponent | Create news post |
+| `/:locale/admin/news/:id/edit` | AdminNewsFormComponent | Edit news post |
 
 All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the shared shop navbar for main-menu navigation.
 
 ## Shared Components
 - `TestModeBannerComponent` — sticky marigold marquee «Сайт працює в тестовому режимі» / «The site is running in test mode» (above all pages; navbar sticks below it)
-- `NavbarComponent` — logo, nav, cart icon, auth, language switcher; shows «Адмін» → admin when `currentUser.isAdmin`
+- `NavbarComponent` — logo, nav (Catalog, About, News, Contacts `#contacts`), cart icon, auth, language switcher; shows «Адмін» → admin when `currentUser.isAdmin`
 - `FooterComponent`
 - `ProductCardComponent` — catalog / similar / featured; `priceFrom` + split «В кошик» (main = cheapest variant; dropdown = choose weight when `variants.length > 1`)
 - `CartDrawerComponent` — slide-in cart preview
@@ -52,7 +57,8 @@ All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the 
 - `CartService` — cart CRUD + signal for item count; guest `X-Cart-Session-Id`; rotates session after merge / stale-session recovery
 - `OrderService` — POST /orders, GET /orders/:id
 - `AuthService` — login, register, token management
-- `AdminService` — admin product/category/order CRUD + image upload (category create/update includes optional `parentId`)
+- `AdminService` — admin product/category/order/news CRUD + image upload (category create/update includes optional `parentId`)
+- `NewsService` — GET /news, /news/:slug (public)
 - `LocaleService` — active locale, route commands, number/price formatting
 
 ## State (Signals)

@@ -22,6 +22,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Форма товару: двомовні поля Product, категорія, 7 рядків фасування з ціною (`variants`), зображення, IsActive, IsFeatured, IsAvailable (без старої ціни / product-level price/weight).
 - Категорії: ієрархічний список (expand/collapse, підкатегорії), створення / редагування в drawer, видалення; деталі в `specs/features/subcategories.md`.
 - Замовлення: список усіх з пошуком / фільтром статусу, drawer деталей, зміна статусу.
+- Новини: список (чернетки + опубліковані), створення / редагування / видалення; cover через існуючий upload (`specs/features/news.md`).
 - Український copy з `design/admin.dc.html`.
 - Спільний `ApiResponse` envelope; admin-операції за контрактами `specs/api.md` (і уточненнями нижче).
 
@@ -88,7 +89,12 @@ Every endpoint returns:
 | GET | `/api/admin/orders` | Admin | All orders (paginated / filterable) |
 | GET | `/api/admin/orders/:id` | Admin | Order detail for the drawer (lines + customer + delivery) |
 | PUT | `/api/admin/orders/:id/status` | Admin | Update order status |
-| POST | `/api/admin/uploads/images` | Admin | Upload product image (multipart `file`) → relative `/uploads/products/...` URL |
+| GET | `/api/admin/news` | Admin | All news posts (drafts + published; search / pagination) |
+| GET | `/api/admin/news/:id` | Admin | Single post for edit (bilingual) |
+| POST | `/api/admin/news` | Admin | Create news post |
+| PUT | `/api/admin/news/:id` | Admin | Full update news post |
+| DELETE | `/api/admin/news/:id` | Admin | Hard delete news post |
+| POST | `/api/admin/uploads/images` | Admin | Upload product/news cover image (multipart `file`) → relative `/uploads/products/...` URL |
 
 Existing auth endpoints reused, not redefined:
 
@@ -218,13 +224,16 @@ Badge tones follow the design language (e.g. ink / marigold / fresh / sale).
 | `/admin/products/:id/edit` | Product edit form |
 | `/admin/orders` | Orders table + detail drawer |
 | `/admin/categories` | Categories table + create/edit drawer |
+| `/admin/news` | News posts list (drafts + published) |
+| `/admin/news/new` | Create news post |
+| `/admin/news/:id/edit` | Edit news post |
 
 All routes are admin-only. The **admin shell** (sidebar + top bar) is the primary chrome for admin screens, but the **public main navbar** remains visible above it so the admin can navigate to the shop (Каталог, Про нас, Контакти, Кошик, Профіль) without leaving via «Вихід».
 
 ### 2.2 Shell (desktop)
 
 - Above the admin layout: the shared shop `NavbarComponent` (same as catalog) — including «Адмін» as the active-area entry when already in admin.
-- Left sidebar (~240px), espresso background: logo, nav items «Товари», «Замовлення», «Категорії», link «Магазин» → `/catalog`, bottom «Вихід».
+- Left sidebar (~240px), espresso background: logo, nav items «Товари», «Замовлення», «Категорії», «Новини», link «Магазин» → `/catalog`, bottom «Вихід».
 - Active admin nav item highlighted (marigold) as in the design.
 - Top bar: page title; admin display name + «Адміністратор» + initials avatar.
 - Main content scrolls independently.
@@ -234,7 +243,7 @@ All routes are admin-only. The **admin shell** (sidebar + top bar) is the primar
 - Shared shop navbar remains at the top (main menu via its hamburger).
 - Compact admin top bar: menu control for admin sections, title «Товари», initials avatar.
 - On the products page itself (mobile viewport): card list matching `design/admin.dc.html` mobile — thumbnail, name, «категорія · ціна ₴», switches for active / available, pencil edit, trash delete.
-- Admin menu opens navigation to Orders / Categories / Logout (same destinations as sidebar).
+- Admin menu opens navigation to Orders / Categories / News / Logout (same destinations as sidebar).
 
 ### 2.4 Products list
 

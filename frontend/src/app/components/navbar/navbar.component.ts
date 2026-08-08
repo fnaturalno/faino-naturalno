@@ -41,6 +41,11 @@ import { IconComponent } from '../icon/icon.component';
             routerLinkActive="text-[var(--cinnamon-700)]"
             class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
           >{{ 'nav.about' | transloco }}</a>
+          <a
+            [routerLink]="locale.commands('news')"
+            routerLinkActive="text-[var(--cinnamon-700)]"
+            class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
+          >{{ 'nav.news' | transloco }}</a>
           <a href="#contacts" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
             <a
@@ -126,6 +131,11 @@ import { IconComponent } from '../icon/icon.component';
             class="rounded-lg px-3 py-3 font-semibold"
             (click)="menuOpen.set(false)"
           >{{ 'nav.about' | transloco }}</a>
+          <a
+            [routerLink]="locale.commands('news')"
+            class="rounded-lg px-3 py-3 font-semibold"
+            (click)="menuOpen.set(false)"
+          >{{ 'nav.news' | transloco }}</a>
           <a href="#contacts" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
             <a routerLink="/admin" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.admin' | transloco }}</a>

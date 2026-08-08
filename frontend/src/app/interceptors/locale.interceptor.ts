@@ -5,7 +5,7 @@ import { LocaleService } from '../i18n/locale.service';
 
 /** API paths whose responses include locale-selected product/category display names. */
 const LOCALE_API_PATTERN =
-  /\/api\/(products|categories|cart|orders|admin\/orders)(\/|$|\?)/i;
+  /\/api\/(products|categories|cart|orders|news|admin\/orders)(\/|$|\?)/i;
 
 /**
  * Attach `?locale=` so names match the active UI language (including cart mutations

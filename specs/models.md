@@ -145,3 +145,23 @@ Product for display/joins is derived via Variant.Product.
 | BranchLabel | string | |
 | Summary | string | display line |
 | UpdatedAt | DateTime | |
+
+## NewsPost
+| Field | Type | Notes |
+|-------|------|-------|
+| Id | int | PK |
+| TitleUk | string | required |
+| TitleEn | string? | public reads fall back to TitleUk when empty |
+| Slug | string | unique, URL-friendly; shared across locales |
+| ExcerptUk | string? | list blurb |
+| ExcerptEn | string? | falls back to ExcerptUk when empty |
+| BodyUk | string | plain multiline text (v1; no HTML/Markdown pipeline) |
+| BodyEn | string? | falls back to BodyUk when empty |
+| CoverImageUrl | string? | relative `/uploads/...` from admin upload |
+| PublishedAt | DateTime? | required when IsPublished; default now on publish if omitted |
+| IsPublished | bool | default false (draft); public APIs return published only |
+| IsFeatured | bool | default false; public list highlight |
+| CreatedAt | DateTime | |
+| UpdatedAt | DateTime | |
+
+See `specs/features/news.md`.
