@@ -66,7 +66,7 @@ export interface ProductDetail {
   similarProducts: CatalogProduct[];
 }
 
-export type CatalogSort = 'popular' | 'price-asc' | 'price-desc' | 'new';
+export type CatalogSort = 'popular' | 'price-asc' | 'price-desc' | 'new' | 'name-asc';
 
 export interface CatalogFilters {
   categories: string[];

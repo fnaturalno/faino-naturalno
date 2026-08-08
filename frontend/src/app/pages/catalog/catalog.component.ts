@@ -99,6 +99,7 @@ export class CatalogComponent {
     { value: 'price-asc', labelKey: 'catalog.sortPriceAsc' },
     { value: 'price-desc', labelKey: 'catalog.sortPriceDesc' },
     { value: 'new', labelKey: 'catalog.sortNew' },
+    { value: 'name-asc', labelKey: 'catalog.sortNameAsc' },
   ];
 
   protected readonly productsCountLabel = computed(() => {

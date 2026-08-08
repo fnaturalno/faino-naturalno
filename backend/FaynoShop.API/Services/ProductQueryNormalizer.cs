@@ -21,7 +21,8 @@ public static class ProductQueryNormalizer
         "popular",
         "price-asc",
         "price-desc",
-        "new"
+        "new",
+        "name-asc"
     };
 
     public static NormalizedProductQuery Normalize(ProductQuery query)

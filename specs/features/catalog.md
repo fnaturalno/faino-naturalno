@@ -76,7 +76,7 @@ Every endpoint returns:
 | `maxPrice` | Optional inclusive maximum price |
 | `page` | One-based page number; defaults to `1` |
 | `pageSize` | Batch size for catalog infinite scroll; default / UI use **`15`** |
-| `sortBy` | `popular`, `price-asc`, `price-desc`, or `new`; defaults to `popular` |
+| `sortBy` | `popular`, `price-asc`, `price-desc`, `new`, or `name-asc`; defaults to `popular` |
 
 Only products with `IsActive = true` are returned.
 
@@ -90,6 +90,7 @@ Invalid or unsupported query values fall back to valid defaults. A requested pag
 - `price-asc`: lowest current price first.
 - `price-desc`: highest current price first.
 - `new`: most recent `CreatedAt` first.
+- `name-asc`: alphabetical by localized product name (`NameEn` when locale is English, otherwise `NameUk`).
 
 #### Product list data
 
@@ -194,6 +195,7 @@ The sorting control uses this order:
 2. «За ціною ↑»
 3. «За ціною ↓»
 4. «Новинки»
+5. «За алфавітом»
 
 «За популярністю» is selected by default.
 
@@ -305,7 +307,7 @@ The sorting control uses this order:
 - [ ] `minPrice > maxPrice` is resolved by swapping the values.
 - [ ] Product responses include page, pageSize 15, totalCount, totalPages, and catalog price bounds.
 - [ ] Category responses include active-product counts.
-- [ ] Sorting follows the defined popular, price, and CreatedAt semantics.
+- [ ] Sorting follows the defined popular, price, CreatedAt, and name (alphabetical) semantics.
 - [ ] Products created within the last 30 days receive «Новинка».
 - [ ] No discount / old-price badge on cards.
 
@@ -320,7 +322,7 @@ The sorting control uses this order:
 ### Filters, sorting, and navigation
 
 - [ ] Users can select multiple categories and filter by inclusive price range.
-- [ ] Users can sort by popularity, ascending price, descending price, and newest.
+- [ ] Users can sort by popularity, ascending price, descending price, newest, and alphabetically.
 - [ ] Filter or sort changes reset to page 1.
 - [ ] Filters, sort, and page are reflected in the URL and restored by browser navigation.
 - [ ] Catalog uses infinite scroll with batches of 15 (no numbered pagination UI).

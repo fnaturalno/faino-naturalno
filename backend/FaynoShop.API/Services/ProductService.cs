@@ -154,7 +154,7 @@ public sealed class ProductService : IProductService
 
         var page = ResolveNearestPage(normalized.Page, totalPages);
 
-        var sorted = ApplySort(filtered, normalized.SortBy);
+        var sorted = ApplySort(filtered, normalized.SortBy, useEn);
 
         var items = await ProjectProductCards(
                 sorted
@@ -655,7 +655,7 @@ public sealed class ProductService : IProductService
         return source;
     }
 
-    private static IQueryable<Product> ApplySort(IQueryable<Product> source, string sortBy)
+    private static IQueryable<Product> ApplySort(IQueryable<Product> source, string sortBy, bool useEn)
     {
         return sortBy switch
         {
@@ -666,6 +666,11 @@ public sealed class ProductService : IProductService
                 .OrderByDescending(p => p.Variants.Where(v => v.IsActive).Min(v => (decimal?)v.Price) ?? decimal.MinValue)
                 .ThenBy(p => p.Id),
             "new" => source.OrderByDescending(p => p.CreatedAt).ThenBy(p => p.Id),
+            "name-asc" => useEn
+                ? source
+                    .OrderBy(p => p.NameEn != null && p.NameEn != "" ? p.NameEn : p.NameUk)
+                    .ThenBy(p => p.Id)
+                : source.OrderBy(p => p.NameUk).ThenBy(p => p.Id),
             _ => source.OrderByDescending(p => p.IsFeatured).ThenBy(p => p.Id)
         };
     }

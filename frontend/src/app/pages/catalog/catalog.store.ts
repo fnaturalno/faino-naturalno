@@ -33,7 +33,7 @@ const DEFAULT_FILTERS: CatalogFilters = {
   sortBy: 'popular',
   page: 1,
 };
-const SORTS = new Set<CatalogSort>(['popular', 'price-asc', 'price-desc', 'new']);
+const SORTS = new Set<CatalogSort>(['popular', 'price-asc', 'price-desc', 'new', 'name-asc']);
 
 @Injectable()
 export class CatalogStore {
