@@ -17,7 +17,7 @@ import { AppLocale } from '../../i18n/locale.types';
       @for (option of options; track option.code) {
         <button
           type="button"
-          class="inline-flex min-w-9 items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-extrabold uppercase tracking-wide transition"
+          class="inline-flex min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-extrabold uppercase tracking-wide transition"
           [class.bg-white]="active() === option.code"
           [class.text-[var(--espresso-900)]]="active() === option.code"
           [class.shadow-sm]="active() === option.code"

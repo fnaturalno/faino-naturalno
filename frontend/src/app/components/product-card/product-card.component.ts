@@ -99,7 +99,7 @@ export type ProductCardAddEvent = {
               >
                 <button
                   type="button"
-                  class="min-w-0 flex-1 px-3 py-2 text-left disabled:cursor-not-allowed"
+                  class="min-w-0 flex-1 cursor-pointer px-3 py-2 text-left disabled:cursor-not-allowed"
                   [disabled]="status() === 'adding'"
                   [attr.aria-label]="'productCard.addAria' | transloco: { name: product().name }"
                   (click)="addCheapest($event)"
@@ -115,7 +115,7 @@ export type ProductCardAddEvent = {
                 @if (hasMultipleVariants()) {
                   <button
                     type="button"
-                    class="grid w-9 shrink-0 place-items-center border-l border-[var(--kraft-500)] disabled:cursor-not-allowed"
+                    class="grid w-9 shrink-0 cursor-pointer place-items-center border-l border-[var(--kraft-500)] disabled:cursor-not-allowed"
                     [disabled]="status() === 'adding'"
                     [attr.aria-label]="'productCard.chooseWeight' | transloco"
                     [attr.aria-expanded]="menuOpen()"
@@ -152,7 +152,7 @@ export type ProductCardAddEvent = {
                       <button
                         type="button"
                         role="menuitem"
-                        class="flex w-full items-baseline justify-between gap-3 px-3 py-2 text-left text-sm text-[var(--espresso-900)] transition hover:bg-[var(--marigold-100)]"
+                        class="flex w-full cursor-pointer items-baseline justify-between gap-3 px-3 py-2 text-left text-sm text-[var(--espresso-900)] transition hover:bg-[var(--marigold-100)]"
                         (click)="addVariant(variant, $event)"
                       >
                         <span class="font-semibold">{{ variantLabel(variant) }}</span>

@@ -2,11 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { filter, map, startWith } from 'rxjs';
+import { filter, map, merge, of } from 'rxjs';
 
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 import { LocaleService } from '../../i18n/locale.service';
-import { isAppLocale } from '../../i18n/locale.types';
 import { initialsOf } from '../../pages/auth/auth.helpers';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
@@ -120,7 +119,7 @@ import { IconComponent } from '../icon/icon.component';
           <button
             type="button"
             [attr.aria-label]="'nav.cart' | transloco"
-            class="relative grid size-10 place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)]"
+            class="relative grid size-10 cursor-pointer place-items-center rounded-xl bg-[var(--kraft-100)] text-[var(--espresso-800)]"
             (click)="onCartClick()"
           >
             <app-icon name="bag" [size]="20" />
@@ -215,41 +214,40 @@ export class NavbarComponent {
   private readonly router = inject(Router);
   protected readonly menuOpen = signal(false);
 
+  /** Re-read router.url on every NavigationEnd and once on subscribe (covers redirects). */
   private readonly currentUrl = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.router.url),
-      startWith(this.router.url),
-    ),
+    merge(
+      of(null),
+      this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)),
+    ).pipe(map(() => this.router.url)),
     { initialValue: this.router.url },
   );
 
-  private readonly pathSegments = computed(() => {
-    const path = this.currentUrl().split(/[?#]/)[0] ?? '';
-    return path.split('/').filter(Boolean);
+  private readonly path = computed(() => {
+    this.locale.lang();
+    return (this.currentUrl().split(/[?#]/)[0] ?? '').replace(/\/$/, '') || '/';
   });
 
   /** Admin pages have no locale prefix — switcher only updates UI language. */
   protected readonly switcherMode = computed(() =>
-    this.router.url.startsWith('/admin') ? 'ui' : 'storefront',
+    this.path().startsWith('/admin') ? 'ui' : 'storefront',
   );
 
   protected readonly isCatalogActive = computed(() => {
-    const parts = this.pathSegments();
-    if (parts[0] === 'admin') return false;
-    if (!parts.length || !isAppLocale(parts[0])) return false;
-    if (parts.length === 1) return true;
-    return parts[1] === 'catalog';
+    const path = this.path();
+    const locale = this.locale.lang();
+    return path === `/${locale}` || path.startsWith(`/${locale}/catalog`);
   });
 
   protected readonly isAboutActive = computed(() => this.isStorefrontSection('about'));
   protected readonly isNewsActive = computed(() => this.isStorefrontSection('news'));
   protected readonly isProfileActive = computed(() => this.isStorefrontSection('profile'));
   protected readonly isLoginActive = computed(() => {
-    const parts = this.pathSegments();
-    return isAppLocale(parts[0]) && parts[1] === 'auth' && parts[2] === 'login';
+    const path = this.path();
+    const locale = this.locale.lang();
+    return path === `/${locale}/auth/login`;
   });
-  protected readonly isAdminActive = computed(() => this.pathSegments()[0] === 'admin');
+  protected readonly isAdminActive = computed(() => this.path().startsWith('/admin'));
 
   protected readonly fullName = computed(() => {
     const user = this.auth.currentUser();
@@ -271,8 +269,10 @@ export class NavbarComponent {
   protected readonly loggingOut = signal(false);
 
   private isStorefrontSection(section: string): boolean {
-    const parts = this.pathSegments();
-    return isAppLocale(parts[0]) && parts[1] === section;
+    const path = this.path();
+    const locale = this.locale.lang();
+    const prefix = `/${locale}/${section}`;
+    return path === prefix || path.startsWith(`${prefix}/`);
   }
 
   protected logout(): void {
