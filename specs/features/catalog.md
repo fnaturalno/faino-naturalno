@@ -75,7 +75,7 @@ Every endpoint returns:
 | `minPrice` | Optional inclusive minimum price |
 | `maxPrice` | Optional inclusive maximum price |
 | `page` | One-based page number; defaults to `1` |
-| `pageSize` | Number of products per page; catalog uses `9` |
+| `pageSize` | Batch size for catalog infinite scroll; default / UI use **`15`** |
 | `sortBy` | `popular`, `price-asc`, `price-desc`, or `new`; defaults to `popular` |
 
 Only products with `IsActive = true` are returned.
@@ -118,7 +118,7 @@ The response data also includes:
 
 - `items`: products for the current page
 - `page`: resolved current page
-- `pageSize`: `9`
+- `pageSize`: `15`
 - `totalCount`: total products matching the current filters
 - `totalPages`: total available pages
 - `priceMin` / `priceMax`: min/max of per-product MIN(active variant price) among included catalog products
@@ -127,7 +127,7 @@ The response data also includes:
 
 Each category includes its identifier, name, slug, sort order, and count of active products. Categories follow `SortOrder`. Public `activeProductCount` matches catalog inclusion (`IsActive` + `IsAvailable` + ≥1 active variant).
 
-Category data may be reused between catalog visits. Product results are refreshed whenever filters, sorting, or pagination change.
+Category data may be reused between catalog visits. Product results are refreshed whenever filters or sorting change (infinite scroll resets to the first batch).
 
 ### 1.5 Product badges
 
@@ -197,19 +197,19 @@ The sorting control uses this order:
 
 «За популярністю» is selected by default.
 
-### 2.6 Result count and pagination
+### 2.6 Result count and loading more
 
 - The interface displays the filtered `totalCount` using the design wording «N товари».
-- The catalog shows 9 products per page on every viewport.
-- Pagination displays previous/next controls, the current page, nearby pages, and ellipses when the page count is large.
-- Previous/next controls are unavailable at their respective boundaries.
+- The catalog loads products in batches of **15** via infinite scroll (IntersectionObserver); no numbered pagination.
+- Filter/sort changes reset the list and reload from the first batch.
+- URL keeps filter/sort params; `page` is not synced (client-side batch only).
 
 ---
 
 ## 3. User interactions and navigation state
 
 - Selecting a category, changing price, sorting, or choosing a page updates the product results.
-- Changing filters or sorting resets pagination to page 1.
+- Changing filters or sorting resets the list to the first batch.
 - Active filters, sorting, and page are synchronized with the URL.
 - Opening a shared catalog URL restores its valid catalog state.
 - Browser back and forward navigation restore the corresponding catalog state.
@@ -249,7 +249,7 @@ The sorting control uses this order:
 
 ### Success
 
-- A successful response replaces or refreshes the product grid, count, and pagination.
+- A successful response replaces or appends the product grid and updates the count.
 - Page focus and scroll behavior remain predictable when results change.
 
 ---
@@ -286,7 +286,7 @@ The sorting control uses this order:
 - Products without `ShortDescription` omit that line without leaving misleading separators.
 - Only catalog-included products contribute to results, category counts, and catalog price bounds.
 - Long names and descriptions do not change card-grid alignment.
-- The grid and pagination remain usable for large result sets.
+- The grid and infinite scroll remain usable for large result sets.
 - If filtering reduces the number of pages, the catalog resolves to a valid page.
 - A zero-result price range displays the empty state.
 - Invalid category slugs are ignored; valid selected category slugs remain active.
@@ -303,7 +303,7 @@ The sorting control uses this order:
 - [ ] `search` remains supported by the API but no search field appears in the catalog UI.
 - [ ] Invalid query values fall back to valid defaults.
 - [ ] `minPrice > maxPrice` is resolved by swapping the values.
-- [ ] Product responses include page, pageSize 9, totalCount, totalPages, and catalog price bounds.
+- [ ] Product responses include page, pageSize 15, totalCount, totalPages, and catalog price bounds.
 - [ ] Category responses include active-product counts.
 - [ ] Sorting follows the defined popular, price, and CreatedAt semantics.
 - [ ] Products created within the last 30 days receive «Новинка».
@@ -313,7 +313,7 @@ The sorting control uses this order:
 
 - [ ] The catalog shows 3 columns on desktop, 3 on tablet, and 2 on mobile.
 - [ ] Desktop cards include category and short description; tablet/mobile cards omit both.
-- [ ] Header, filters, cards, pagination, empty state, and loading skeleton match the referenced design.
+- [ ] Header, filters, cards, infinite scroll, empty state, and loading skeleton match the referenced design.
 - [ ] All customer-facing catalog labels are Ukrainian.
 - [ ] Missing images, optional data, long names, and long descriptions display without breaking the grid.
 
@@ -323,7 +323,7 @@ The sorting control uses this order:
 - [ ] Users can sort by popularity, ascending price, descending price, and newest.
 - [ ] Filter or sort changes reset to page 1.
 - [ ] Filters, sort, and page are reflected in the URL and restored by browser navigation.
-- [ ] Catalog pagination uses pageSize 9 and ellipses for large page counts.
+- [ ] Catalog uses infinite scroll with batches of 15 (no numbered pagination UI).
 - [ ] Mobile filters apply only after «Показати N товарів» and the sheet then closes.
 - [ ] Closing the mobile sheet without applying does not change active results.
 - [ ] Selecting a product card navigates to `/catalog/:slug`.

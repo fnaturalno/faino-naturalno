@@ -1,5 +1,6 @@
 import { A11yModule } from '@angular/cdk/a11y';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -9,6 +10,7 @@ import {
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
@@ -40,8 +42,10 @@ export class CatalogComponent {
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
   private toastTimer?: ReturnType<typeof setTimeout>;
+  private loadMoreObserver?: IntersectionObserver;
 
   @ViewChild('mobileFilterButton') private mobileFilterButton?: ElementRef<HTMLButtonElement>;
+  private readonly loadMoreSentinel = viewChild<ElementRef<HTMLElement>>('loadMoreSentinel');
 
   constructor() {
     effect(() => {
@@ -52,10 +56,34 @@ export class CatalogComponent {
         this.i18n.translate(isHome ? 'brand' : 'catalog.title'),
       );
     });
+
+    afterNextRender(() => {
+      this.loadMoreObserver = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            this.store.loadMore();
+          }
+        },
+        { root: null, rootMargin: '280px 0px', threshold: 0 },
+      );
+    });
+
+    effect(() => {
+      const sentinel = this.loadMoreSentinel()?.nativeElement;
+      const hasMore = this.store.hasMore();
+      const busy =
+        this.store.initialLoading() || this.store.refetching() || this.store.loadingMore();
+      this.loadMoreObserver?.disconnect();
+      if (sentinel && hasMore && !busy && this.loadMoreObserver) {
+        this.loadMoreObserver.observe(sentinel);
+      }
+    });
+
     this.destroyRef.onDestroy(() => {
       clearTimeout(this.toastTimer);
       document.body.style.overflow = '';
       this.seo.clear();
+      this.loadMoreObserver?.disconnect();
     });
   }
 
@@ -64,7 +92,7 @@ export class CatalogComponent {
   protected readonly pendingFilters = signal<CatalogFilters | null>(null);
   protected readonly toast = signal<{ message: string; error: boolean } | null>(null);
   protected readonly cartStatuses = signal<Record<number, 'idle' | 'adding' | 'added'>>({});
-  protected readonly skeletons = Array.from({ length: 9 }, (_, index) => index);
+  protected readonly skeletons = Array.from({ length: 15 }, (_, index) => index);
 
   protected readonly sortOptions: { value: CatalogSort; labelKey: string }[] = [
     { value: 'popular', labelKey: 'catalog.sortPopular' },
@@ -82,24 +110,6 @@ export class CatalogComponent {
   protected readonly activeFilterCount = computed(() => {
     const filters = this.store.filters();
     return filters.categories.length + Number(filters.minPrice !== null) + Number(filters.maxPrice !== null);
-  });
-
-  protected readonly pagination = computed<(number | 'ellipsis')[]>(() => {
-    const total = this.store.page()?.totalPages ?? 0;
-    const current = this.store.page()?.page ?? 1;
-    if (total <= 7) {
-      return Array.from({ length: total }, (_, index) => index + 1);
-    }
-    const pages = new Set([1, total, current - 1, current, current + 1]);
-    const sorted = [...pages].filter((page) => page > 0 && page <= total).sort((a, b) => a - b);
-    const result: (number | 'ellipsis')[] = [];
-    sorted.forEach((page, index) => {
-      if (index && page - sorted[index - 1] > 1) {
-        result.push('ellipsis');
-      }
-      result.push(page);
-    });
-    return result;
   });
 
   protected toggleAppliedCategory(slug: string): void {

@@ -134,6 +134,7 @@
     "sortNew": "New arrivals",
     "loading": "Loading products",
     "updating": "Updating products",
+    "loadingMore": "Loading more…",
     "loadErrorLive": "Error loading products",
     "shown": "Showing {{count}} products",
     "errorTitle": "Something went wrong",

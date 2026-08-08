@@ -4,12 +4,12 @@ namespace FaynoShop.API.Services;
 
 /// <summary>
 /// Normalizes product list query params per catalog spec:
-/// invalid values → defaults; min/max price swap; pageSize catalog default 9.
+/// invalid values → defaults; min/max price swap; pageSize catalog default 15 (infinite scroll batches).
 /// </summary>
 public static class ProductQueryNormalizer
 {
     public const int DefaultPage = 1;
-    public const int DefaultPageSize = 9;
+    public const int DefaultPageSize = 15;
     public const int MaxPageSize = 48;
     public const int MaxSearchLength = 100;
     public const int MaxCategorySlugs = 20;
@@ -42,7 +42,7 @@ public static class ProductQueryNormalizer
 
         var page = query.Page is > 0 ? query.Page.Value : DefaultPage;
 
-        // Catalog contract defaults to 9; accept 1..MaxPageSize, otherwise fall back to 9.
+        // Catalog infinite-scroll batches default to 15; accept 1..MaxPageSize, otherwise fall back.
         var pageSize = query.PageSize is >= 1 and <= MaxPageSize
             ? query.PageSize.Value
             : DefaultPageSize;

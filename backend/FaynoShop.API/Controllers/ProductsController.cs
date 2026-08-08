@@ -22,7 +22,7 @@ public sealed class ProductsController : ControllerBase
 
     /// <summary>
     /// Filtered, sorted, paginated list of active products.
-    /// Invalid query values fall back to safe defaults; pageSize defaults to 9.
+    /// Invalid query values fall back to safe defaults; pageSize defaults to 15 (catalog infinite scroll).
     /// Display names follow <c>?locale=</c> → Accept-Language → uk.
     /// </summary>
     [HttpGet]

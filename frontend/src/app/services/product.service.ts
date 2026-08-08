@@ -18,7 +18,7 @@ export class ProductService {
   getProducts(filters: CatalogFilters): Observable<ApiResponse<ProductPage>> {
     let params = new HttpParams()
       .set('page', filters.page)
-      .set('pageSize', 9)
+      .set('pageSize', 15)
       .set('sortBy', filters.sortBy);
 
     if (filters.categories.length) {

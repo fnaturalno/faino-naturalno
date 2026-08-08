@@ -1,4 +1,4 @@
-import { DestroyRef, effect, inject, Injectable, signal, untracked } from '@angular/core';
+import { DestroyRef, computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
@@ -16,12 +16,15 @@ import {
 import { LocaleService } from '../../i18n/locale.service';
 import {
   CatalogFilters,
+  CatalogProduct,
   CatalogSort,
   CategorySummary,
   ProductPage,
 } from '../../models/catalog.models';
 import { CategoryService } from '../../services/category.service';
 import { ProductService } from '../../services/product.service';
+
+export const CATALOG_PAGE_SIZE = 15;
 
 const DEFAULT_FILTERS: CatalogFilters = {
   categories: [],
@@ -41,7 +44,7 @@ export class CatalogStore {
   private readonly destroyRef = inject(DestroyRef);
   private readonly i18n = inject(TranslocoService);
   private readonly locale = inject(LocaleService);
-  private readonly loadRequests = new Subject<CatalogFilters>();
+  private readonly loadRequests = new Subject<{ filters: CatalogFilters; append: boolean }>();
   private readonly priceRequests = new Subject<Pick<CatalogFilters, 'minPrice' | 'maxPrice'>>();
   private readonly previewRequests = new Subject<CatalogFilters>();
   private priceDraft: Pick<CatalogFilters, 'minPrice' | 'maxPrice'> = {
@@ -52,8 +55,10 @@ export class CatalogStore {
   private readonly filtersState = signal<CatalogFilters>(DEFAULT_FILTERS);
   private readonly categoriesState = signal<CategorySummary[]>([]);
   private readonly pageState = signal<ProductPage | null>(null);
+  private readonly itemsState = signal<CatalogProduct[]>([]);
   private readonly initialLoadingState = signal(true);
   private readonly refetchingState = signal(false);
+  private readonly loadingMoreState = signal(false);
   private readonly errorState = signal<string | null>(null);
   private readonly categoryErrorState = signal(false);
   private readonly previewCountState = signal<number | null>(null);
@@ -61,11 +66,17 @@ export class CatalogStore {
   readonly filters = this.filtersState.asReadonly();
   readonly categories = this.categoriesState.asReadonly();
   readonly page = this.pageState.asReadonly();
+  readonly items = this.itemsState.asReadonly();
   readonly initialLoading = this.initialLoadingState.asReadonly();
   readonly refetching = this.refetchingState.asReadonly();
+  readonly loadingMore = this.loadingMoreState.asReadonly();
   readonly error = this.errorState.asReadonly();
   readonly categoryError = this.categoryErrorState.asReadonly();
   readonly previewCount = this.previewCountState.asReadonly();
+  readonly hasMore = computed(() => {
+    const page = this.pageState();
+    return !!page && page.page < page.totalPages;
+  });
 
   constructor() {
     this.bindProductRequests();
@@ -81,10 +92,9 @@ export class CatalogStore {
         firstLocale = false;
         return;
       }
-      // Do not track filters/loading signals here — only refetch when locale changes.
       untracked(() => {
         this.loadCategories();
-        this.loadRequests.next(this.filtersState());
+        this.reload({ ...this.filtersState(), page: 1 });
       });
     });
   }
@@ -105,8 +115,18 @@ export class CatalogStore {
     this.priceRequests.next(this.priceDraft);
   }
 
-  updatePage(page: number): void {
-    this.navigate({ ...this.filtersState(), page: Math.max(1, page) });
+  /** Load the next batch (append). No-op if already loading or no more pages. */
+  loadMore(): void {
+    const page = this.pageState();
+    if (!page || this.loadingMoreState() || this.refetchingState() || this.initialLoadingState()) {
+      return;
+    }
+    if (page.page >= page.totalPages) {
+      return;
+    }
+    const nextFilters = { ...this.filtersState(), page: page.page + 1 };
+    this.filtersState.set(nextFilters);
+    this.loadRequests.next({ filters: nextFilters, append: true });
   }
 
   reset(): void {
@@ -114,7 +134,7 @@ export class CatalogStore {
   }
 
   retry(): void {
-    this.loadRequests.next(this.filtersState());
+    this.reload({ ...this.filtersState(), page: 1 });
   }
 
   preview(filters: CatalogFilters): void {
@@ -128,6 +148,11 @@ export class CatalogStore {
 
   applyPending(filters: CatalogFilters): void {
     this.navigate({ ...filters, page: 1 });
+  }
+
+  private reload(filters: CatalogFilters): void {
+    this.filtersState.set(filters);
+    this.loadRequests.next({ filters, append: false });
   }
 
   private bindUrl(): void {
@@ -145,12 +170,17 @@ export class CatalogStore {
           }
           const requestedSort = params.get('sortBy') as CatalogSort | null;
           const sortBy = requestedSort && SORTS.has(requestedSort) ? requestedSort : 'popular';
-          const requestedPage = Number(params.get('page'));
-          const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
-          const filters = { categories: [...new Set(categories)], minPrice, maxPrice, sortBy, page };
+          const filters: CatalogFilters = {
+            categories: [...new Set(categories)],
+            minPrice,
+            maxPrice,
+            sortBy,
+            page: 1,
+          };
           const requiresNormalization =
-            (params.has('sortBy') && (!requestedSort || !SORTS.has(requestedSort) || sortBy === 'popular')) ||
-            (params.has('page') && (page === 1 || String(page) !== params.get('page'))) ||
+            (params.has('sortBy') &&
+              (!requestedSort || !SORTS.has(requestedSort) || sortBy === 'popular')) ||
+            params.has('page') ||
             (params.has('minPrice') && minPrice === null) ||
             (params.has('maxPrice') && maxPrice === null) ||
             (minPrice !== null &&
@@ -166,43 +196,58 @@ export class CatalogStore {
           return;
         }
         this.priceDraft = { minPrice: filters.minPrice, maxPrice: filters.maxPrice };
-        this.filtersState.set(filters);
-        this.loadRequests.next(filters);
+        this.reload(filters);
       });
   }
 
   private bindProductRequests(): void {
     this.loadRequests
       .pipe(
-        tap(() => {
+        tap(({ append }) => {
           this.errorState.set(null);
-          this.pageState() ? this.refetchingState.set(true) : this.initialLoadingState.set(true);
+          if (append) {
+            this.loadingMoreState.set(true);
+          } else if (this.itemsState().length) {
+            this.refetchingState.set(true);
+          } else {
+            this.initialLoadingState.set(true);
+          }
         }),
-        switchMap((filters) =>
+        switchMap(({ filters, append }) =>
           this.productsApi.getProducts(filters).pipe(
             map((response) => {
               if (!response.success) {
                 throw new Error(response.error ?? this.i18n.translate('catalog.errorLoad'));
               }
-              return response.data;
+              return { page: response.data, append };
             }),
             catchError(() => {
               this.errorState.set(this.i18n.translate('catalog.errorBody'));
               this.initialLoadingState.set(false);
               this.refetchingState.set(false);
+              this.loadingMoreState.set(false);
               return EMPTY;
             }),
           ),
         ),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((page) => {
+      .subscribe(({ page, append }) => {
         this.pageState.set(page);
+        if (append) {
+          const existingIds = new Set(this.itemsState().map((item) => item.id));
+          const merged = [
+            ...this.itemsState(),
+            ...page.items.filter((item) => !existingIds.has(item.id)),
+          ];
+          this.itemsState.set(merged);
+        } else {
+          this.itemsState.set(page.items ?? []);
+        }
+        this.filtersState.update((filters) => ({ ...filters, page: page.page }));
         this.initialLoadingState.set(false);
         this.refetchingState.set(false);
-        if (page.page !== this.filtersState().page) {
-          this.navigate({ ...this.filtersState(), page: page.page }, true);
-        }
+        this.loadingMoreState.set(false);
       });
   }
 
@@ -267,7 +312,7 @@ export class CatalogStore {
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
         sortBy: filters.sortBy === 'popular' ? null : filters.sortBy,
-        page: filters.page === 1 ? null : filters.page,
+        page: null,
       },
       replaceUrl,
     });
