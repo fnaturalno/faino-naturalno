@@ -227,13 +227,13 @@ Add-to-cart rejects inactive product, unavailable product, inactive/missing vari
 - Price area shows **«від {priceFrom} ₴»** / **«from {priceFrom} ₴»** (locale).
 - No crossed-out old price and no discount-% badge (price is always current).
 - No single weight line on the card (weight chosen via variant).
-- «В кошик» adds **one unit of the cheapest active variant** (min price; tie-break: lower `sort_order`).
-- Slug navigation, badges (new/featured), category eyebrow, short description — unchanged aside from price/variant fields.
+- «В кошик» is a **split control**: main click adds the **cheapest** active variant (qty 1); when `variants.length > 1`, a dropdown lists pack sizes + prices and adds the chosen `variantId`.
+- Slug navigation, «Новинка» badge, category eyebrow, short description — unchanged aside from price/variant fields.
 - Card omitted entirely when product fails catalog inclusion rules (including `IsAvailable = false`).
 
 ### 2.2 Product page
 
-- **Multiple active variants:** selectable table ordered by `sort_order`; columns enough to show weight label, price, optional old price; rows selectable.
+- **Multiple active variants:** selectable table ordered by `sort_order`; columns: weight label, price; rows selectable.
 - **Cheapest active variant preselected** (min price; tie-break `sort_order`).
 - **Single active variant:** plain text (weight + price), not a table.
 - **Mobile:** multi-variant table supports horizontal scroll.
@@ -305,7 +305,6 @@ Add-to-cart rejects inactive product, unavailable product, inactive/missing vari
 - Merging guest cart after login merges by **variant** identity (same variant → sum qty capped at 12).
 - If a variant becomes inactive / deleted after it was in the cart: line is non-purchasable; place order / qty update follows existing inactive-line spirit (block purchase; allow remove). Prefer consistent messaging with inactive product lines.
 - Price changes after add: cart shows **live** variant price; order snapshots at place time.
-- Discount % always from the min-price active variant used for «від», even if another variant has a larger %.
 - Permission: public read/add for included products; admin mutations require `IsAdmin`.
 - `мл` / `л` are **not** in the predefined list for variants v1 (only г/кг/шт).
 
@@ -347,7 +346,7 @@ This feature **supersedes** single-price / single-weight assumptions in:
 - [ ] Cards show Transloco «від {{price}} ₴» / «from {{price}} ₴» using `priceFrom`.
 - [ ] Price sort/filter and catalog price bounds use MIN(active variant price).
 - [ ] No old price / discount badge on cards.
-- [ ] Card «В кошик» adds the cheapest active variant (qty 1).
+- [ ] Card «В кошик» adds the cheapest active variant (qty 1); when multiple variants, dropdown selects a specific pack.
 
 ### Product page
 

@@ -93,15 +93,13 @@ No product-level `price` / `weight` — packaging and price come from `variants`
 - Up to 3 catalog-included products from the same category as the current product.
 - The current product is excluded.
 - Ordering follows catalog «popular» semantics (featured products first).
-- Each similar product uses the same card-level fields as the catalog list (`priceFrom`, optional `oldPrice`/`discountPercent`, image, category, created-at for badges).
+- Each similar product uses the same card-level fields as the catalog list (`priceFrom`, `cheapestVariantId`, `variants[]`, image, category, created-at for «Новинка»).
 - The list may contain fewer than 3 items when fewer peers exist; an empty list is allowed.
 
 ### 1.4 Product badges
 
 - A product is marked «Новинка» when its `CreatedAt` is within the last 30 days.
-- Similar-card discount badge uses the min-price active variant (`oldPrice > price`).
-- On the product page, discount display follows the **selected** variant.
-- A discount badge takes precedence when a product qualifies for both discount and «Новинка».
+- No discount / sale badge (old price removed).
 
 ### 1.5 Cart mutation
 
@@ -115,7 +113,7 @@ Inactive / unavailable products and inactive variants are rejected.
 
 The cart is identified by the existing session header (`X-Cart-Session-Id`), consistent with the catalog.
 
-Selecting «В кошик» on a similar-product card adds quantity `1`, without navigating away.
+Selecting «В кошик» on a similar-product card uses the same split control as the catalog (cheapest or dropdown-selected variant), quantity `1`, without navigating away.
 
 ### 1.6 Loading freshness
 
@@ -234,9 +232,8 @@ Opening `/catalog/:slug` or changing the slug triggers a fresh product detail re
 ## 6. Edge cases
 
 - Long names and descriptions flow downward without breaking the gallery or sticky mobile bar.
-- Optional fields (`ShortDescription`, `Description`, `OldPrice`, `Weight`, `WeightUnit`, images) omit corresponding UI without misleading separators when absent.
+- Optional fields (`ShortDescription`, `Description`, images) omit corresponding UI without misleading separators when absent.
 - `similarProducts` length may be 0–3; hide the section when empty.
-- Discount percentage is never shown when `OldPrice` is absent, equal to, or lower than `Price`.
 - The 30-day «Новинка» rule uses the product creation timestamp.
 - The page is public; there are no permission gates for viewing or guest add-to-cart.
 - Accessibility expectations follow the catalog pattern: keyboard-operable controls, meaningful Ukrainian labels for icon-only controls, disabled state exposed for busy add, toasts announced without stealing focus.
@@ -250,7 +247,7 @@ Opening `/catalog/:slug` or changing the slug triggers a fresh product detail re
 - [ ] `GET /api/products/:slug` returns only an active product in the common API envelope.
 - [ ] Detail data includes full product fields, category, gallery URLs, and `similarProducts` (0–3, same category, popular order, current excluded).
 - [ ] Unknown or inactive slug yields a not-found style failure without usable product data.
-- [ ] Badge rules match the catalog (Новинка 30 days; discount only when `OldPrice > Price`; discount wins over Новинка).
+- [ ] Badge rules match the catalog («Новинка» within 30 days; no discount / old-price badge).
 - [ ] `POST /api/cart/items` accepts the stepper quantity with session identification; max quantity is `12`.
 - [ ] Active products can always be added.
 - [ ] Product detail is freshly loaded on each visit and slug change.

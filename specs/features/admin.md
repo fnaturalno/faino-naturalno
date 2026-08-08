@@ -19,7 +19,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Захищена зона `/admin/*`: JWT + `IsAdmin`; неадмін / гість — redirect або forbidden.
 - Оболонка адмінки: лівий сайдбар, топбар з іменем адміна, мобільний вигляд списку товарів.
 - Товари: список з пошуком / фільтром / пагінацією (номери сторінок), switch-toggle активності, switch-toggle наявності (жовтий), іконки edit/delete, мобільні картки; створення, редагування, видалення.
-- Форма товару: поля моделі Product (назва, slug, категорія, описи, ціна, стара ціна, вага/одиниця, зображення URL(и), IsActive, IsFeatured, IsAvailable).
+- Форма товару: двомовні поля Product, категорія, 7 рядків фасування з ціною (`variants`), зображення, IsActive, IsFeatured, IsAvailable (без старої ціни / product-level price/weight).
 - Категорії: ієрархічний список (expand/collapse, підкатегорії), створення / редагування в drawer, видалення; деталі в `specs/features/subcategories.md`.
 - Замовлення: список усіх з пошуком / фільтром статусу, drawer деталей, зміна статусу.
 - Український copy з `design/admin.dc.html`.
@@ -454,7 +454,7 @@ Matches `design/admin.dc.html` and `specs/features/subcategories.md` §2.3:
 ### Products
 
 - [ ] Admin can list products (including inactive) with search, category **slug** filter (parents + subs), pagination «Показано A–B з N», and numbered page controls.
-- [ ] Admin can create and edit products with fields from the Product model (name, slug, category, descriptions, price/oldPrice, weight/unit, images, isActive, isFeatured).
+- [ ] Admin can create and edit products with bilingual fields, category, images, flags (`isActive`, `isFeatured`, `isAvailable`), and the 7-row variant price editor (no product-level price/oldPrice/weight).
 - [ ] Product images are uploaded via `POST /api/admin/uploads/images` (JPG/PNG ≤ 5 MB); gallery supports reorder and remove; first image is primary.
 - [ ] List **switch** toggle updates `isActive` via `PUT /api/products/:id/active` without confirmation; delete requires confirmation (icon trash).
 - [ ] `POST` / `PUT` / `DELETE` `/api/products` (Admin) use the common API envelope; slug uniqueness and validation errors are clear.

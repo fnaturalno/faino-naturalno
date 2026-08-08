@@ -5,46 +5,58 @@
 - Tailwind CSS
 - Signals for state management
 - HttpClient with typed interfaces
+- `@jsverse/transloco` for UI strings (`ua` / `en`)
+
+## Locale
+- Public routes are locale-prefixed: `/ua/...`, `/en/...`
+- Bare `/` redirects to `/ua/`
+- Legacy `/uk/...` redirects to `/ua/...`
+- Content locale for API reads: query `?locale=` / `Accept-Language` / default `ua`
+- BCP 47 `html lang` / hreflang for Ukrainian stay `uk`
 
 ## Routes
 | Path | Component | Description |
 |------|-----------|-------------|
-| / | HomeComponent | Featured products, categories |
-| /catalog | CatalogComponent | Product grid + filters |
-| /catalog/:slug | ProductComponent | Product detail |
-| /cart | CartComponent | Cart page |
-| /checkout | CheckoutComponent | Order form |
-| /order/:id | OrderConfirmComponent | Order confirmation |
-| /profile | ProfileComponent | User profile + orders |
-| /auth/login | LoginComponent | Login |
-| /auth/register | RegisterComponent | Register |
-| /admin | → redirect | Redirects to `/admin/products` |
-| /admin/products | AdminProductsComponent | Products table + mobile cards per admin design |
-| /admin/products/new | AdminProductFormComponent | Create product |
-| /admin/products/:id/edit | AdminProductFormComponent | Edit product |
-| /admin/orders | AdminOrdersComponent | Orders list + detail drawer |
-| /admin/categories | AdminCategoriesComponent | Tree table per admin design (expand, icons, + subcategory, drawer) |
+| `/:locale` | → catalog | Locale home (catalog) |
+| `/:locale/catalog` | CatalogComponent | Product grid + filters |
+| `/:locale/catalog/:slug` | ProductComponent | Product detail |
+| `/:locale/cart` | CartComponent | Cart page |
+| `/:locale/checkout` | CheckoutComponent | Order form |
+| `/:locale/order/:id` | OrderConfirmComponent | Order confirmation |
+| `/:locale/profile` | ProfileComponent | User profile + orders |
+| `/:locale/auth/login` | LoginComponent | Login |
+| `/:locale/auth/register` | RegisterComponent | Register |
+| `/:locale/admin` | → redirect | Redirects to `/admin/products` (locale-prefixed admin shell) |
+| `/:locale/admin/products` | AdminProductsComponent | Products table + mobile cards |
+| `/:locale/admin/products/new` | AdminProductFormComponent | Create product (7 variant rows) |
+| `/:locale/admin/products/:id/edit` | AdminProductFormComponent | Edit product |
+| `/:locale/admin/orders` | AdminOrdersComponent | Orders list + detail drawer |
+| `/:locale/admin/categories` | AdminCategoriesComponent | Tree table (expand, icons, + subcategory, drawer) |
 
 All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the shared shop navbar for main-menu navigation.
 
 ## Shared Components
-- `NavbarComponent` — logo, nav, cart icon, auth; shows «Адмін» → `/admin` when `currentUser.isAdmin`
+- `TestModeBannerComponent` — sticky marigold marquee «Сайт працює в тестовому режимі» / «The site is running in test mode» (above all pages; navbar sticks below it)
+- `NavbarComponent` — logo, nav, cart icon, auth, language switcher; shows «Адмін» → admin when `currentUser.isAdmin`
 - `FooterComponent`
-- `ProductCardComponent` — used in catalog and featured
+- `ProductCardComponent` — catalog / similar / featured; `priceFrom` + split «В кошик» (main = cheapest variant; dropdown = choose weight when `variants.length > 1`)
 - `CartDrawerComponent` — slide-in cart preview
 - `LoadingSkeletonComponent`
 - `EmptyStateComponent`
+- `LanguageSwitcherComponent` — UA / EN (flags)
 
 ## Services
 - `ProductService` — GET /products, /products/:slug
 - `CategoryService` — GET /categories (nested tree with `children[]` / `parentId`)
-- `CartService` — cart CRUD + signal for item count
+- `CartService` — cart CRUD + signal for item count; guest `X-Cart-Session-Id`; rotates session after merge / stale-session recovery
 - `OrderService` — POST /orders, GET /orders/:id
 - `AuthService` — login, register, token management
 - `AdminService` — admin product/category/order CRUD + image upload (category create/update includes optional `parentId`)
+- `LocaleService` — active locale, route commands, number/price formatting
 
 ## State (Signals)
 - `CartService.itemCount` — navbar badge
 - `CartService.items` — cart contents
 - `AuthService.currentUser` — logged-in user (`isAdmin` for navbar / guard)
 - `CatalogComponent.filters` — active filters
+- `LocaleService.lang` — `ua` | `en`

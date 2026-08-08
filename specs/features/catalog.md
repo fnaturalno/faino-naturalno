@@ -100,12 +100,15 @@ Each product includes:
 - `Slug`
 - `ShortDescription`
 - `PriceFrom` — MIN price among **active** variants
-- Catalog cards expose `priceFrom` (and `cheapestVariantId`); no `oldPrice` / discount percent.
+- `CheapestVariantId` — id of that min-price variant (tie-break `sortOrder`)
+- `Variants` — active variants `[{ id, weight, weightUnit, price, sortOrder }]` for the card weight dropdown
 - `ImageUrl`
 - `IsFeatured`
 - `IsAvailable`
 - `CreatedAt`
 - Category identifier, name, and slug
+
+No `oldPrice` / discount fields — price is always the current selling price.
 
 **Public inclusion** (overrides older OOS-card notes): `IsActive` + `IsAvailable` + ≥1 active priced variant. Unavailable / inactive / zero-variant products are **excluded** from the public catalog.
 
@@ -122,21 +125,21 @@ The response data also includes:
 
 ### 1.4 GET `/api/categories`
 
-Each category includes its identifier, name, slug, sort order, and count of active products. Categories follow `SortOrder`.
+Each category includes its identifier, name, slug, sort order, and count of active products. Categories follow `SortOrder`. Public `activeProductCount` matches catalog inclusion (`IsActive` + `IsAvailable` + ≥1 active variant).
 
 Category data may be reused between catalog visits. Product results are refreshed whenever filters, sorting, or pagination change.
 
 ### 1.5 Product badges
 
 - A product is marked «Новинка» when its `CreatedAt` is within the last 30 days.
-- A discount badge is shown only when the min-price active variant has `OldPrice > Price`.
-- The discount percentage is derived from that variant and displayed as a whole percentage.
-- A discount badge takes precedence when a product qualifies for both discount and «Новинка».
+- No discount / sale badge (old price removed).
 - Card price copy uses Transloco «від {{price}} ₴» / «from {{price}} ₴» with `priceFrom`.
 
 ### 1.6 Cart mutation
 
-Selecting «В кошик» adds **one unit of the cheapest active variant** (`variantId`; min price, tie-break lower `sortOrder`).
+Card «В кошик» is a **split control**:
+- Main click adds **one unit of the cheapest active variant** (`variantId`; min price, tie-break lower `sortOrder`).
+- When there is more than one active variant, a dropdown lists pack sizes with prices; choosing a row adds that `variantId`.
 
 On success, the response provides enough information to update the cart item-count badge. Only catalog-included products/variants can be added.
 
@@ -159,7 +162,7 @@ On success, the response provides enough information to update the cart item-cou
 | Tablet | 3 columns | Collapsible filter bar with category chips and price summary | Simplified card |
 | Mobile | 2 columns | Sticky bottom button opens a bottom sheet | Simplified card |
 
-The full desktop card shows category eyebrow, name, short description, price, optional old price, weight unit, badge, image, and «В кошик».
+The full desktop card shows category eyebrow, name, short description, «від» price, optional «Новинка» badge, image, and split «В кошик» (weight dropdown when multiple variants).
 
 Tablet and mobile cards omit the category eyebrow and short description.
 
@@ -169,9 +172,9 @@ Tablet and mobile cards omit the category eyebrow and short description.
 - Missing images use the neutral «фото» placeholder from the design.
 - Product names occupy at most two lines and are then truncated.
 - Desktop short descriptions occupy one line and end with an ellipsis when necessary.
-- Current price, optional crossed-out old price, and weight/unit are visible.
+- Price shows Transloco «від {{priceFrom}} ₴» / «from {{priceFrom}} ₴»; no crossed-out old price; no per-card weight line.
 - Hover-capable devices show the designed card lift, stronger shadow, and button emphasis.
-- The card links to `/catalog/:slug`; «В кошик» performs only the cart action.
+- The card links to `/catalog/:slug`; «В кошик» performs only the cart action (cheapest or dropdown-selected variant).
 
 ### 2.4 Filters
 
@@ -280,14 +283,13 @@ The sorting control uses this order:
 ## 7. Edge cases
 
 - Products without an image use the catalog placeholder without breaking card dimensions.
-- Products without `ShortDescription`, `OldPrice`, `Weight`, or `WeightUnit` omit the corresponding optional content without leaving misleading separators.
-- Only active products contribute to results, category counts, and catalog price bounds.
+- Products without `ShortDescription` omit that line without leaving misleading separators.
+- Only catalog-included products contribute to results, category counts, and catalog price bounds.
 - Long names and descriptions do not change card-grid alignment.
 - The grid and pagination remain usable for large result sets.
 - If filtering reduces the number of pages, the catalog resolves to a valid page.
 - A zero-result price range displays the empty state.
 - Invalid category slugs are ignored; valid selected category slugs remain active.
-- Discount percentage is never shown when `OldPrice` is absent, equal to, or lower than `Price`.
 - The 30-day «Новинка» rule uses the product creation timestamp and remains valid across calendar boundaries.
 
 ---
@@ -305,7 +307,7 @@ The sorting control uses this order:
 - [ ] Category responses include active-product counts.
 - [ ] Sorting follows the defined popular, price, and CreatedAt semantics.
 - [ ] Products created within the last 30 days receive «Новинка».
-- [ ] A discount badge appears only when `OldPrice > Price` and shows the derived whole percentage.
+- [ ] No discount / old-price badge on cards.
 
 ### Layout and content
 
@@ -328,7 +330,7 @@ The sorting control uses this order:
 
 ### Cart interaction and feedback
 
-- [ ] «В кошик» adds exactly one unit of an active product without navigating to the product page.
+- [ ] «В кошик» split control: main click = cheapest variant; dropdown (when multiple) = chosen pack; no navigation to the product page.
 - [ ] Successful addition updates the badge, highlights the button briefly, and shows «Додано в кошик».
 - [ ] Failed addition leaves the badge unchanged and shows an error toast.
 - [ ] Cart toasts dismiss after 3 seconds.
