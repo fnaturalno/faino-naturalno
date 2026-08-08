@@ -14,7 +14,7 @@ import { IconComponent } from '../icon/icon.component';
   imports: [RouterLink, RouterLinkActive, IconComponent, LanguageSwitcherComponent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <header class="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-white">
+    <header class="sticky top-8 z-30 border-b border-[var(--border-subtle)] bg-white">
       <div class="mx-auto flex h-[60px] max-w-[1280px] items-center justify-between px-4 sm:h-[68px] sm:px-6 lg:h-[76px] lg:px-8">
         <button
           type="button"

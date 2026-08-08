@@ -44,7 +44,8 @@
     "photo": "photo",
     "hidden": "Hidden",
     "allCategories": "All categories",
-    "closeToast": "Dismiss notification"
+    "closeToast": "Dismiss notification",
+    "testMode": "The site is running in test mode"
   },
   "plural": {
     "products": {

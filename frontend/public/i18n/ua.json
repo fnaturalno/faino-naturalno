@@ -44,7 +44,8 @@
     "photo": "фото",
     "hidden": "Прихований",
     "allCategories": "Усі категорії",
-    "closeToast": "Закрити сповіщення"
+    "closeToast": "Закрити сповіщення",
+    "testMode": "Сайт працює в тестовому режимі"
   },
   "plural": {
     "products": {
