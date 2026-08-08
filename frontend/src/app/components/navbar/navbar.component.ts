@@ -36,7 +36,11 @@ import { IconComponent } from '../icon/icon.component';
             routerLinkActive="text-[var(--cinnamon-700)]"
             class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
           >{{ 'nav.catalog' | transloco }}</a>
-          <a href="#about" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">{{ 'nav.about' | transloco }}</a>
+          <a
+            [routerLink]="locale.commands('about')"
+            routerLinkActive="text-[var(--cinnamon-700)]"
+            class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
+          >{{ 'nav.about' | transloco }}</a>
           <a href="#contacts" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
             <a
@@ -117,7 +121,11 @@ import { IconComponent } from '../icon/icon.component';
         <nav [attr.aria-label]="'nav.mobileNav' | transloco" class="flex flex-col border-t border-[var(--border-subtle)] bg-white px-4 py-3 sm:hidden">
           <div class="mb-2 px-3"><app-language-switcher [mode]="switcherMode()" /></div>
           <a [routerLink]="locale.commands('catalog')" class="rounded-lg px-3 py-3 font-bold text-[var(--cinnamon-700)]">{{ 'nav.catalog' | transloco }}</a>
-          <a href="#about" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.about' | transloco }}</a>
+          <a
+            [routerLink]="locale.commands('about')"
+            class="rounded-lg px-3 py-3 font-semibold"
+            (click)="menuOpen.set(false)"
+          >{{ 'nav.about' | transloco }}</a>
           <a href="#contacts" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
             <a routerLink="/admin" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.admin' | transloco }}</a>

@@ -18,6 +18,7 @@
 | Path | Component | Description |
 |------|-----------|-------------|
 | `/:locale` | → catalog | Locale home (catalog) |
+| `/:locale/about` | AboutComponent | About / «Про нас» |
 | `/:locale/catalog` | CatalogComponent | Product grid + filters |
 | `/:locale/catalog/:slug` | ProductComponent | Product detail |
 | `/:locale/cart` | CartComponent | Cart page |

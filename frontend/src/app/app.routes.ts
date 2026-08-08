@@ -17,6 +17,11 @@ const storefrontChildren: Routes = [
       import('./pages/catalog/catalog.component').then((module) => module.CatalogComponent),
   },
   {
+    path: 'about',
+    loadComponent: () =>
+      import('./pages/about/about.component').then((module) => module.AboutComponent),
+  },
+  {
     path: 'catalog',
     loadComponent: () =>
       import('./pages/catalog/catalog.component').then((module) => module.CatalogComponent),
