@@ -1,9 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { filter, map, startWith } from 'rxjs';
 
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 import { LocaleService } from '../../i18n/locale.service';
+import { isAppLocale } from '../../i18n/locale.types';
 import { initialsOf } from '../../pages/auth/auth.helpers';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
@@ -11,7 +14,7 @@ import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, IconComponent, LanguageSwitcherComponent, TranslocoPipe],
+  imports: [RouterLink, IconComponent, LanguageSwitcherComponent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="sticky top-8 z-30 border-b border-[var(--border-subtle)] bg-white">
@@ -33,25 +36,29 @@ import { IconComponent } from '../icon/icon.component';
         <nav [attr.aria-label]="'nav.mainNav' | transloco" class="hidden items-center gap-6 sm:flex lg:gap-8">
           <a
             [routerLink]="locale.commands('catalog')"
-            routerLinkActive="text-[var(--cinnamon-700)]"
-            class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
+            class="nav-link"
+            [class.nav-link-active]="isCatalogActive()"
+            [attr.aria-current]="isCatalogActive() ? 'page' : null"
           >{{ 'nav.catalog' | transloco }}</a>
           <a
             [routerLink]="locale.commands('about')"
-            routerLinkActive="text-[var(--cinnamon-700)]"
-            class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
+            class="nav-link"
+            [class.nav-link-active]="isAboutActive()"
+            [attr.aria-current]="isAboutActive() ? 'page' : null"
           >{{ 'nav.about' | transloco }}</a>
           <a
             [routerLink]="locale.commands('news')"
-            routerLinkActive="text-[var(--cinnamon-700)]"
-            class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
+            class="nav-link"
+            [class.nav-link-active]="isNewsActive()"
+            [attr.aria-current]="isNewsActive() ? 'page' : null"
           >{{ 'nav.news' | transloco }}</a>
-          <a href="#contacts" class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]">{{ 'nav.contacts' | transloco }}</a>
+          <a href="#contacts" class="nav-link">{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
             <a
               routerLink="/admin"
-              routerLinkActive="text-[var(--cinnamon-700)]"
-              class="font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)]"
+              class="nav-link"
+              [class.nav-link-active]="isAdminActive()"
+              [attr.aria-current]="isAdminActive() ? 'page' : null"
             >{{ 'nav.admin' | transloco }}</a>
           }
         </nav>
@@ -63,6 +70,8 @@ import { IconComponent } from '../icon/icon.component';
             <a
               [routerLink]="locale.commands('profile')"
               class="flex items-center gap-2.5 rounded-xl py-1 pl-1 pr-0.5 text-[var(--espresso-800)] hover:opacity-90 sm:gap-3 sm:pl-2"
+              [class.nav-profile-active]="isProfileActive()"
+              [attr.aria-current]="isProfileActive() ? 'page' : null"
               [attr.aria-label]="'nav.profile' | transloco: { name: fullName() }"
             >
               <div class="hidden text-right sm:block">
@@ -95,6 +104,9 @@ import { IconComponent } from '../icon/icon.component';
             <a
               [routerLink]="locale.commands('auth', 'login')"
               class="hidden rounded-xl px-3 py-2 text-sm font-semibold text-[var(--espresso-800)] hover:text-[var(--cinnamon-700)] sm:inline"
+              [class.text-[var(--cinnamon-700)]]="isLoginActive()"
+              [class.font-extrabold]="isLoginActive()"
+              [attr.aria-current]="isLoginActive() ? 'page' : null"
             >{{ 'nav.login' | transloco }}</a>
             <a
               [routerLink]="locale.commands('auth', 'login')"
@@ -125,23 +137,45 @@ import { IconComponent } from '../icon/icon.component';
       @if (menuOpen()) {
         <nav [attr.aria-label]="'nav.mobileNav' | transloco" class="flex flex-col border-t border-[var(--border-subtle)] bg-white px-4 py-3 sm:hidden">
           <div class="mb-2 px-3"><app-language-switcher [mode]="switcherMode()" /></div>
-          <a [routerLink]="locale.commands('catalog')" class="rounded-lg px-3 py-3 font-bold text-[var(--cinnamon-700)]">{{ 'nav.catalog' | transloco }}</a>
+          <a
+            [routerLink]="locale.commands('catalog')"
+            class="nav-link-mobile"
+            [class.nav-link-active]="isCatalogActive()"
+            [attr.aria-current]="isCatalogActive() ? 'page' : null"
+            (click)="menuOpen.set(false)"
+          >{{ 'nav.catalog' | transloco }}</a>
           <a
             [routerLink]="locale.commands('about')"
-            class="rounded-lg px-3 py-3 font-semibold"
+            class="nav-link-mobile"
+            [class.nav-link-active]="isAboutActive()"
+            [attr.aria-current]="isAboutActive() ? 'page' : null"
             (click)="menuOpen.set(false)"
           >{{ 'nav.about' | transloco }}</a>
           <a
             [routerLink]="locale.commands('news')"
-            class="rounded-lg px-3 py-3 font-semibold"
+            class="nav-link-mobile"
+            [class.nav-link-active]="isNewsActive()"
+            [attr.aria-current]="isNewsActive() ? 'page' : null"
             (click)="menuOpen.set(false)"
           >{{ 'nav.news' | transloco }}</a>
-          <a href="#contacts" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.contacts' | transloco }}</a>
+          <a href="#contacts" class="nav-link-mobile" (click)="menuOpen.set(false)">{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
-            <a routerLink="/admin" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.admin' | transloco }}</a>
+            <a
+              routerLink="/admin"
+              class="nav-link-mobile"
+              [class.nav-link-active]="isAdminActive()"
+              [attr.aria-current]="isAdminActive() ? 'page' : null"
+              (click)="menuOpen.set(false)"
+            >{{ 'nav.admin' | transloco }}</a>
           }
           @if (auth.isAuthenticated()) {
-            <a [routerLink]="locale.commands('profile')" class="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold">
+            <a
+              [routerLink]="locale.commands('profile')"
+              class="nav-link-mobile flex items-center gap-3"
+              [class.nav-link-active]="isProfileActive()"
+              [attr.aria-current]="isProfileActive() ? 'page' : null"
+              (click)="menuOpen.set(false)"
+            >
               <span
                 class="grid size-9 place-items-center rounded-full border border-[#c48a00] bg-[#f5b800] text-sm font-black"
                 aria-hidden="true"
@@ -160,7 +194,13 @@ import { IconComponent } from '../icon/icon.component';
               {{ 'nav.logout' | transloco }}
             </button>
           } @else {
-            <a [routerLink]="locale.commands('auth', 'login')" class="rounded-lg px-3 py-3 font-semibold">{{ 'nav.login' | transloco }}</a>
+            <a
+              [routerLink]="locale.commands('auth', 'login')"
+              class="nav-link-mobile"
+              [class.nav-link-active]="isLoginActive()"
+              [attr.aria-current]="isLoginActive() ? 'page' : null"
+              (click)="menuOpen.set(false)"
+            >{{ 'nav.login' | transloco }}</a>
           }
         </nav>
       }
@@ -175,10 +215,41 @@ export class NavbarComponent {
   private readonly router = inject(Router);
   protected readonly menuOpen = signal(false);
 
+  private readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(() => this.router.url),
+      startWith(this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+
+  private readonly pathSegments = computed(() => {
+    const path = this.currentUrl().split(/[?#]/)[0] ?? '';
+    return path.split('/').filter(Boolean);
+  });
+
   /** Admin pages have no locale prefix — switcher only updates UI language. */
   protected readonly switcherMode = computed(() =>
     this.router.url.startsWith('/admin') ? 'ui' : 'storefront',
   );
+
+  protected readonly isCatalogActive = computed(() => {
+    const parts = this.pathSegments();
+    if (parts[0] === 'admin') return false;
+    if (!parts.length || !isAppLocale(parts[0])) return false;
+    if (parts.length === 1) return true;
+    return parts[1] === 'catalog';
+  });
+
+  protected readonly isAboutActive = computed(() => this.isStorefrontSection('about'));
+  protected readonly isNewsActive = computed(() => this.isStorefrontSection('news'));
+  protected readonly isProfileActive = computed(() => this.isStorefrontSection('profile'));
+  protected readonly isLoginActive = computed(() => {
+    const parts = this.pathSegments();
+    return isAppLocale(parts[0]) && parts[1] === 'auth' && parts[2] === 'login';
+  });
+  protected readonly isAdminActive = computed(() => this.pathSegments()[0] === 'admin');
 
   protected readonly fullName = computed(() => {
     const user = this.auth.currentUser();
@@ -198,6 +269,11 @@ export class NavbarComponent {
   );
 
   protected readonly loggingOut = signal(false);
+
+  private isStorefrontSection(section: string): boolean {
+    const parts = this.pathSegments();
+    return isAppLocale(parts[0]) && parts[1] === section;
+  }
 
   protected logout(): void {
     if (this.loggingOut()) return;

@@ -36,10 +36,32 @@ import { AuthService } from '../../services/auth.service';
         </header>
         @if (menuOpen()) {
           <nav class="border-b border-[#dac7a2] bg-[#3b2412] p-3 text-[#fbf6ea] lg:hidden">
-            <a routerLink="/admin/products" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.products' | transloco }}</a>
-            <a routerLink="/admin/orders" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.orders' | transloco }}</a>
-            <a routerLink="/admin/categories" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.categories' | transloco }}</a>
-            <a routerLink="/admin/news" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.news' | transloco }}</a>
+            <a
+              routerLink="/admin/products"
+              routerLinkActive="bg-[#f5b800] !text-[#2a1a0d]"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="block rounded px-3 py-2"
+              (click)="menuOpen.set(false)"
+            >{{ 'admin.products' | transloco }}</a>
+            <a
+              routerLink="/admin/orders"
+              routerLinkActive="bg-[#f5b800] !text-[#2a1a0d]"
+              class="block rounded px-3 py-2"
+              (click)="menuOpen.set(false)"
+            >{{ 'admin.orders' | transloco }}</a>
+            <a
+              routerLink="/admin/categories"
+              routerLinkActive="bg-[#f5b800] !text-[#2a1a0d]"
+              class="block rounded px-3 py-2"
+              (click)="menuOpen.set(false)"
+            >{{ 'admin.categories' | transloco }}</a>
+            <a
+              routerLink="/admin/news"
+              routerLinkActive="bg-[#f5b800] !text-[#2a1a0d]"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="block rounded px-3 py-2"
+              (click)="menuOpen.set(false)"
+            >{{ 'admin.news' | transloco }}</a>
             <a [routerLink]="locale.storefrontCommands('catalog')" class="block rounded px-3 py-2" (click)="menuOpen.set(false)">{{ 'admin.shop' | transloco }}</a>
             <button type="button" class="w-full rounded px-3 py-2 text-left" (click)="logout()">{{ 'admin.logout' | transloco }}</button>
           </nav>
