@@ -44,36 +44,23 @@ import { LocaleService } from '../../i18n/locale.service';
             >
               {{ 'about.whyTitle' | transloco }}
             </h2>
-            <p class="mt-4 m-0 text-base leading-relaxed sm:text-lg">{{ 'about.whyBody' | transloco }}</p>
+            <div class="mt-4 space-y-6 text-base leading-relaxed sm:text-lg">
+              <p class="m-0">{{ 'about.whyBody' | transloco }}</p>
+              <p class="m-0">{{ 'about.blends' | transloco }}</p>
+              <p class="m-0">{{ 'about.natural' | transloco }}</p>
+            </div>
           </section>
 
-          <section class="mt-14" [attr.aria-labelledby]="'about-topics-title'">
-            <h2
-              id="about-topics-title"
-              class="m-0 font-[var(--font-display)] text-xl font-bold text-[var(--espresso-900)] sm:text-2xl"
-            >
-              {{ 'about.topicsTitle' | transloco }}
-            </h2>
-            <ul class="mt-6 list-none space-y-5 p-0">
-              <li class="border-l-4 border-[var(--marigold-400)] pl-4">
-                <p class="m-0 font-bold text-[var(--espresso-900)]">{{ 'about.topic1Title' | transloco }}</p>
-                <p class="mt-1 m-0 text-[var(--espresso-700)]">{{ 'about.topic1Body' | transloco }}</p>
-              </li>
-              <li class="border-l-4 border-[var(--garden-500)] pl-4">
-                <p class="m-0 font-bold text-[var(--espresso-900)]">{{ 'about.topic2Title' | transloco }}</p>
-                <p class="mt-1 m-0 text-[var(--espresso-700)]">{{ 'about.topic2Body' | transloco }}</p>
-              </li>
-              <li class="border-l-4 border-[var(--cinnamon-700)] pl-4">
-                <p class="m-0 font-bold text-[var(--espresso-900)]">{{ 'about.topic3Title' | transloco }}</p>
-                <p class="mt-1 m-0 text-[var(--espresso-700)]">{{ 'about.topic3Body' | transloco }}</p>
-              </li>
-            </ul>
-          </section>
+          <p
+            class="mt-14 max-w-2xl font-[var(--font-accent)] text-[clamp(1.35rem,3vw,1.85rem)] leading-snug text-[var(--cinnamon-700)]"
+          >
+            {{ 'about.closing' | transloco }}
+          </p>
 
-          <div class="mt-14">
+          <div class="mt-10">
             <a
               [routerLink]="locale.commands('catalog')"
-              class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 py-3 text-sm font-extrabold text-[var(--espresso-900)] transition hover:bg-[var(--marigold-500)]"
+              class="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 py-3 text-sm font-extrabold text-[var(--espresso-900)] transition hover:bg-[var(--marigold-500)]"
             >
               {{ 'about.ctaCatalog' | transloco }}
             </a>
