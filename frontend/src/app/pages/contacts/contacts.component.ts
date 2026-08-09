@@ -71,15 +71,15 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
             </a>
           </section>
 
-          <div class="mt-14 grid gap-10 sm:grid-cols-2">
-            <section aria-labelledby="contacts-online-hours">
+          <div class="mt-14 grid items-stretch gap-10 sm:grid-cols-2">
+            <section class="flex h-full flex-col" aria-labelledby="contacts-online-hours">
               <h2
                 id="contacts-online-hours"
-                class="m-0 font-[var(--font-display)] text-lg font-bold text-[var(--espresso-900)] sm:text-xl"
+                class="m-0 min-h-[2.75em] font-[var(--font-display)] text-lg font-bold leading-snug text-[var(--espresso-900)] sm:text-xl"
               >
                 {{ 'contacts.onlineHoursTitle' | transloco }}
               </h2>
-              <ul class="mt-4 list-none space-y-2 p-0 text-sm sm:text-base">
+              <ul class="mt-auto list-none space-y-2 p-0 pt-4 text-sm sm:text-base">
                 @for (day of days; track day) {
                   <li class="flex justify-between gap-4 border-b border-[var(--border-subtle)] py-1.5">
                     <span class="font-semibold text-[var(--espresso-800)]">{{ ('contacts.' + day) | transloco }}</span>
@@ -89,14 +89,14 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
               </ul>
             </section>
 
-            <section aria-labelledby="contacts-shop-hours">
+            <section class="flex h-full flex-col" aria-labelledby="contacts-shop-hours">
               <h2
                 id="contacts-shop-hours"
-                class="m-0 font-[var(--font-display)] text-lg font-bold text-[var(--espresso-900)] sm:text-xl"
+                class="m-0 min-h-[2.75em] font-[var(--font-display)] text-lg font-bold leading-snug text-[var(--espresso-900)] sm:text-xl"
               >
                 {{ 'contacts.shopHoursTitle' | transloco }}
               </h2>
-              <ul class="mt-4 list-none space-y-2 p-0 text-sm sm:text-base">
+              <ul class="mt-auto list-none space-y-2 p-0 pt-4 text-sm sm:text-base">
                 @for (day of days; track day) {
                   <li class="flex justify-between gap-4 border-b border-[var(--border-subtle)] py-1.5">
                     <span class="font-semibold text-[var(--espresso-800)]">{{ ('contacts.' + day) | transloco }}</span>
