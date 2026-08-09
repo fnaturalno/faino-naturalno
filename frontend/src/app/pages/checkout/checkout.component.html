@@ -111,174 +111,242 @@
         <section
           class="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-[18px] shadow-[var(--shadow-xs)] sm:p-8"
         >
-          <div class="mb-4 flex items-center justify-between gap-3 sm:mb-5">
-            <div class="flex items-center gap-3">
-              <span
-                class="grid size-[30px] shrink-0 place-items-center rounded-full bg-[var(--espresso-800)] text-sm font-extrabold text-[var(--kraft-50)]"
-                >2</span
-              >
-              <h2 class="m-0 text-base sm:text-lg">
-                <span class="sm:hidden">{{ 'checkout.novaPoshta' | transloco }}</span>
-                <span class="hidden sm:inline">{{ 'checkout.novaPoshtaDelivery' | transloco }}</span>
-              </h2>
-            </div>
+          <div class="mb-4 flex items-center gap-3 sm:mb-5">
             <span
-              class="inline-flex items-center gap-1.5 rounded-full bg-[#DA291C] px-2.5 py-1.5 sm:gap-1.5 sm:px-3 sm:py-1.5"
+              class="grid size-[30px] shrink-0 place-items-center rounded-full bg-[var(--espresso-800)] text-sm font-extrabold text-[var(--kraft-50)]"
+              >2</span
             >
-              <span
-                class="grid size-3.5 place-items-center rounded-[3px] bg-white text-[10px] font-black text-[#DA291C] sm:size-4 sm:text-xs"
-                >{{ 'checkout.novaPoshtaShort' | transloco }}</span
-              >
-              <span class="text-[11px] font-extrabold tracking-wide text-white sm:text-xs"
-                >{{ 'checkout.novaPoshta' | transloco }}</span
-              >
-            </span>
+            <h2 class="m-0 text-base sm:text-lg">{{ 'checkout.delivery' | transloco }}</h2>
           </div>
 
-          @if (showSavedBanner()) {
-            <div
-              class="mb-4 flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--marigold-300)] bg-[var(--marigold-50)] px-4 py-3.5"
-            >
-              <span class="mt-0.5 text-[var(--cinnamon-700)]">
-                <app-icon name="truck" [size]="18" />
-              </span>
-              <div class="min-w-0 flex-1">
-                <span class="mb-0.5 block text-sm font-bold text-[var(--espresso-900)]"
-                  >{{ 'checkout.savedAddressApplied' | transloco }}</span
+          <fieldset class="m-0 mb-5 border-0 p-0" [disabled]="formLocked()">
+            <legend class="sr-only">{{ 'checkout.deliveryMethod' | transloco }}</legend>
+            <div class="grid gap-2 sm:grid-cols-3" role="radiogroup" [attr.aria-label]="'checkout.deliveryMethod' | transloco">
+              @for (opt of deliveryOptions; track opt.value) {
+                <label
+                  class="flex cursor-pointer items-center gap-2.5 rounded-[var(--radius-md)] border px-3 py-3 text-sm font-semibold transition"
+                  [class.border-[var(--marigold-400)]]="deliveryMethod() === opt.value"
+                  [class.bg-[var(--marigold-100)]]="deliveryMethod() === opt.value"
+                  [class.border-[var(--border-strong)]]="deliveryMethod() !== opt.value"
+                  [class.bg-white]="deliveryMethod() !== opt.value"
                 >
-                <span class="text-sm text-[var(--espresso-700)]">{{ savedAddress()!.summary }}</span>
-              </div>
-              <button
-                type="button"
-                [class]="linkClasses + ' shrink-0 text-sm whitespace-nowrap'"
-                [disabled]="formLocked()"
-                (click)="changeSavedAddress()"
-              >
-                {{ 'checkout.change' | transloco }}
-              </button>
-            </div>
-          }
-
-          @if (showDeliveryEditors()) {
-            <div class="flex flex-col gap-4">
-              <div class="relative flex flex-col gap-1.5">
-                <label for="co-city" [class]="labelClasses">{{ 'checkout.city' | transloco }}</label>
-                <div class="relative">
-                  <span
-                    class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--kraft-500)]"
-                  >
-                    <app-icon name="search" [size]="17" />
-                  </span>
                   <input
-                    #cityInput
-                    id="co-city"
-                    type="text"
-                    role="combobox"
-                    autocomplete="off"
-                    [placeholder]="'checkout.cityPlaceholder' | transloco"
-                    class="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white py-3 pr-3.5 pl-[42px] text-[var(--espresso-800)] outline-none focus-visible:border-[var(--marigold-400)] disabled:cursor-not-allowed disabled:opacity-60"
-                    [value]="cityQuery()"
-                    [disabled]="formLocked()"
-                    [attr.aria-expanded]="showCityList()"
-                    [attr.aria-controls]="showCityList() ? 'co-city-list' : null"
-                    [attr.aria-invalid]="!!cityError()"
-                    (input)="onCityInput($any($event.target).value)"
+                    type="radio"
+                    class="accent-[var(--cinnamon-700)]"
+                    name="deliveryMethod"
+                    [value]="opt.value"
+                    [checked]="deliveryMethod() === opt.value"
+                    (change)="setDeliveryMethod(opt.value)"
                   />
+                  <span>{{ opt.labelKey | transloco }}</span>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          @if (deliveryMethod() === 'nova-poshta') {
+            <div class="mb-4 flex items-center justify-between gap-3">
+              <p class="m-0 text-sm font-bold text-[var(--espresso-800)]">{{ 'checkout.novaPoshtaDelivery' | transloco }}</p>
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full bg-[#DA291C] px-2.5 py-1.5"
+              >
+                <span
+                  class="grid size-3.5 place-items-center rounded-[3px] bg-white text-[10px] font-black text-[#DA291C] sm:size-4 sm:text-xs"
+                  >{{ 'checkout.novaPoshtaShort' | transloco }}</span
+                >
+                <span class="text-[11px] font-extrabold tracking-wide text-white sm:text-xs"
+                  >{{ 'checkout.novaPoshta' | transloco }}</span
+                >
+              </span>
+            </div>
+
+            @if (showSavedBanner()) {
+              <div
+                class="mb-4 flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--marigold-300)] bg-[var(--marigold-50)] px-4 py-3.5"
+              >
+                <span class="mt-0.5 text-[var(--cinnamon-700)]">
+                  <app-icon name="truck" [size]="18" />
+                </span>
+                <div class="min-w-0 flex-1">
+                  <span class="mb-0.5 block text-sm font-bold text-[var(--espresso-900)]"
+                    >{{ 'checkout.savedAddressApplied' | transloco }}</span
+                  >
+                  <span class="text-sm text-[var(--espresso-700)]">{{ savedAddress()!.summary }}</span>
+                </div>
+                <button
+                  type="button"
+                  [class]="linkClasses + ' shrink-0 text-sm whitespace-nowrap'"
+                  [disabled]="formLocked()"
+                  (click)="changeSavedAddress()"
+                >
+                  {{ 'checkout.change' | transloco }}
+                </button>
+              </div>
+            }
+
+            @if (showDeliveryEditors()) {
+              <div class="flex flex-col gap-4">
+                <div class="relative flex flex-col gap-1.5">
+                  <label for="co-city" [class]="labelClasses">{{ 'checkout.city' | transloco }}</label>
+                  <div class="relative">
+                    <span
+                      class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--kraft-500)]"
+                    >
+                      <app-icon name="search" [size]="17" />
+                    </span>
+                    <input
+                      #cityInput
+                      id="co-city"
+                      type="text"
+                      role="combobox"
+                      autocomplete="off"
+                      [placeholder]="'checkout.cityPlaceholder' | transloco"
+                      class="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white py-3 pr-3.5 pl-[42px] text-[var(--espresso-800)] outline-none focus-visible:border-[var(--marigold-400)] disabled:cursor-not-allowed disabled:opacity-60"
+                      [value]="cityQuery()"
+                      [disabled]="formLocked()"
+                      [attr.aria-expanded]="showCityList()"
+                      [attr.aria-controls]="showCityList() ? 'co-city-list' : null"
+                      [attr.aria-invalid]="!!cityError()"
+                      (input)="onCityInput($any($event.target).value)"
+                    />
+                  </div>
+
+                  @if (showCityList()) {
+                    <ul
+                      id="co-city-list"
+                      class="absolute top-full right-0 left-0 z-20 mt-1.5 max-h-[230px] overflow-y-auto rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white shadow-[var(--shadow-lg)]"
+                      role="listbox"
+                      [attr.aria-label]="'checkout.citiesFound' | transloco"
+                    >
+                      @for (city of cityMatches(); track city.cityId) {
+                        <li>
+                          <button
+                            type="button"
+                            role="option"
+                            class="flex min-h-12 w-full items-center gap-2.5 border-b border-[var(--border-subtle)] px-4 py-3 text-left last:border-b-0 hover:bg-[var(--kraft-100)]"
+                            (click)="pickCity(city)"
+                          >
+                            <app-icon name="map-pin" [size]="16" class="text-[var(--kraft-500)]" />
+                            <span class="min-w-0 flex-1 truncate">{{ city.cityName }}</span>
+                            @if (city.region) {
+                              <span class="hidden shrink-0 text-xs text-[var(--text-muted)] sm:inline">{{
+                                city.region
+                              }}</span>
+                            }
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+
+                  @if (showCityEmpty()) {
+                    <span class="text-sm text-[var(--text-muted)]"
+                      >{{ 'checkout.nothingFound' | transloco }}</span
+                    >
+                  }
+                  @if (cityError()) {
+                    <p role="alert" [class]="errorClasses">{{ cityError() }}</p>
+                  }
                 </div>
 
-                @if (showCityList()) {
-                  <ul
-                    id="co-city-list"
-                    class="absolute top-full right-0 left-0 z-20 mt-1.5 max-h-[230px] overflow-y-auto rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white shadow-[var(--shadow-lg)]"
-                    role="listbox"
-                    [attr.aria-label]="'checkout.citiesFound' | transloco"
+                <div class="flex flex-col gap-1.5">
+                  <label
+                    for="co-branch"
+                    class="text-sm font-semibold"
+                    [class.text-[var(--kraft-500)]]="!selectedCity()"
+                    [class.text-[var(--espresso-800)]]="!!selectedCity()"
+                    >{{ 'checkout.branch' | transloco }}</label
                   >
-                    @for (city of cityMatches(); track city.cityId) {
-                      <li>
-                        <button
-                          type="button"
-                          role="option"
-                          class="flex min-h-12 w-full items-center gap-2.5 border-b border-[var(--border-subtle)] px-4 py-3 text-left last:border-b-0 hover:bg-[var(--kraft-100)]"
-                          (click)="pickCity(city)"
-                        >
-                          <app-icon name="map-pin" [size]="16" class="text-[var(--kraft-500)]" />
-                          <span class="min-w-0 flex-1 truncate">{{ city.cityName }}</span>
-                          @if (city.region) {
-                            <span class="hidden shrink-0 text-xs text-[var(--text-muted)] sm:inline">{{
-                              city.region
-                            }}</span>
-                          }
-                        </button>
-                      </li>
-                    }
-                  </ul>
-                }
 
-                @if (showCityEmpty()) {
-                  <span class="text-sm text-[var(--text-muted)]"
-                    >{{ 'checkout.nothingFound' | transloco }}</span
-                  >
-                }
-                @if (cityError()) {
-                  <p role="alert" [class]="errorClasses">{{ cityError() }}</p>
-                }
-              </div>
-
-              <div class="flex flex-col gap-1.5">
-                <label
-                  for="co-branch"
-                  class="text-sm font-semibold"
-                  [class.text-[var(--kraft-500)]]="!selectedCity()"
-                  [class.text-[var(--espresso-800)]]="!!selectedCity()"
-                  >{{ 'checkout.branch' | transloco }}</label
-                >
-
-                @if (branchesLoading()) {
-                  <div
-                    class="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--kraft-100)] px-4 py-3 text-sm text-[var(--text-muted)]"
-                    aria-live="polite"
-                  >
-                    <span class="fn-co-spin" aria-hidden="true"></span>
-                    {{ 'checkout.loadingBranches' | transloco }}
-                  </div>
-                } @else {
-                  <div class="relative">
-                    <select
-                      id="co-branch"
-                      class="w-full appearance-none rounded-[var(--radius-md)] border border-[var(--border-strong)] py-3 pr-10 pl-4 outline-none focus-visible:border-[var(--marigold-400)] disabled:cursor-not-allowed disabled:bg-[var(--kraft-100)] disabled:text-[var(--kraft-500)]"
-                      [disabled]="!selectedCity() || formLocked()"
-                      [value]="selectedBranchId()"
-                      [attr.aria-invalid]="!!branchError()"
-                      (change)="onBranchChange($any($event.target).value)"
+                  @if (branchesLoading()) {
+                    <div
+                      class="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--kraft-100)] px-4 py-3 text-sm text-[var(--text-muted)]"
+                      aria-live="polite"
                     >
-                      <option value="">
-                        {{ selectedCity() ? ('checkout.selectBranch' | transloco) : ('checkout.selectCityFirst' | transloco) }}
-                      </option>
-                      @for (branch of branches(); track branch.branchId) {
-                        <option [value]="branch.branchId">{{ branch.label }}</option>
-                      }
-                    </select>
-                    <span
-                      class="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-[var(--espresso-700)]"
-                    >
-                      <app-icon name="chevron-down" [size]="16" />
-                    </span>
-                  </div>
-                }
-                @if (branchError()) {
-                  <p role="alert" [class]="errorClasses">{{ branchError() }}</p>
-                }
-              </div>
+                      <span class="fn-co-spin" aria-hidden="true"></span>
+                      {{ 'checkout.loadingBranches' | transloco }}
+                    </div>
+                  } @else {
+                    <div class="relative">
+                      <select
+                        id="co-branch"
+                        class="w-full appearance-none rounded-[var(--radius-md)] border border-[var(--border-strong)] py-3 pr-10 pl-4 outline-none focus-visible:border-[var(--marigold-400)] disabled:cursor-not-allowed disabled:bg-[var(--kraft-100)] disabled:text-[var(--kraft-500)]"
+                        [disabled]="!selectedCity() || formLocked()"
+                        [value]="selectedBranchId()"
+                        [attr.aria-invalid]="!!branchError()"
+                        (change)="onBranchChange($any($event.target).value)"
+                      >
+                        <option value="">
+                          {{ selectedCity() ? ('checkout.selectBranch' | transloco) : ('checkout.selectCityFirst' | transloco) }}
+                        </option>
+                        @for (branch of branches(); track branch.branchId) {
+                          <option [value]="branch.branchId">{{ branch.label }}</option>
+                        }
+                      </select>
+                      <span
+                        class="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-[var(--espresso-700)]"
+                      >
+                        <app-icon name="chevron-down" [size]="16" />
+                      </span>
+                    </div>
+                  }
+                  @if (branchError()) {
+                    <p role="alert" [class]="errorClasses">{{ branchError() }}</p>
+                  }
+                </div>
 
+                <div class="inline-flex items-center gap-2 text-sm text-[var(--garden-700)]">
+                  <app-icon name="clock" [size]="16" />
+                  {{ 'checkout.eta' | transloco }}
+                </div>
+              </div>
+            } @else {
               <div class="inline-flex items-center gap-2 text-sm text-[var(--garden-700)]">
                 <app-icon name="clock" [size]="16" />
                 {{ 'checkout.eta' | transloco }}
               </div>
+            }
+          }
+
+          @if (deliveryMethod() === 'pickup') {
+            <div
+              class="rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--kraft-100)] px-4 py-4"
+            >
+              <p class="m-0 text-sm font-bold text-[var(--espresso-900)]">{{ 'checkout.pickupTitle' | transloco }}</p>
+              <p class="mt-2 mb-0 text-sm leading-relaxed text-[var(--espresso-700)]">
+                {{ 'checkout.pickupAddress' | transloco }}
+              </p>
+              <a
+                [routerLink]="locale.commands('contacts')"
+                class="mt-3 inline-flex text-sm font-bold text-[var(--cinnamon-700)] hover:text-[var(--espresso-900)]"
+              >
+                {{ 'checkout.pickupContactsLink' | transloco }}
+              </a>
             </div>
-          } @else {
-            <div class="inline-flex items-center gap-2 text-sm text-[var(--garden-700)]">
-              <app-icon name="clock" [size]="16" />
-              {{ 'checkout.eta' | transloco }}
+          }
+
+          @if (deliveryMethod() === 'city') {
+            <div class="flex flex-col gap-3">
+              <p class="m-0 text-sm text-[var(--espresso-700)]">
+                <span class="font-bold text-[var(--espresso-900)]">{{ 'checkout.cityFixed' | transloco }}</span>
+              </p>
+              <div class="flex flex-col gap-1.5">
+                <label for="co-street" [class]="labelClasses">{{ 'checkout.streetAddress' | transloco }}</label>
+                <input
+                  id="co-street"
+                  type="text"
+                  autocomplete="street-address"
+                  [class]="fieldClasses"
+                  [placeholder]="'checkout.streetPlaceholder' | transloco"
+                  [value]="streetAddress()"
+                  [disabled]="formLocked()"
+                  [attr.aria-invalid]="!!streetError()"
+                  (input)="onStreetInput($any($event.target).value)"
+                />
+                @if (streetError()) {
+                  <p role="alert" [class]="errorClasses">{{ streetError() }}</p>
+                }
+              </div>
             </div>
           }
         </section>
@@ -443,7 +511,7 @@
           </div>
           <div class="mb-4 flex items-start justify-between gap-3">
             <span class="text-[var(--espresso-700)]">{{ 'cart.delivery' | transloco }}</span>
-            <span class="text-right text-sm text-[var(--text-muted)]">{{ 'checkout.deliveryNpRates' | transloco }}</span>
+            <span class="text-right text-sm text-[var(--text-muted)]">{{ deliveryFeeLabelKey() | transloco }}</span>
           </div>
           <div
             class="flex items-baseline justify-between border-t border-[var(--border-subtle)] pt-4"

@@ -61,7 +61,7 @@ Hierarchy details: `specs/features/subcategories.md`.
 ## Orders
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| POST | /orders | — | Place order (returns confirmationToken) |
+| POST | /orders | — | Place order (`deliveryMethod`: `nova-poshta` \| `pickup` \| `city`; returns confirmationToken) |
 | GET | /orders/:id | — (token or owner) | Get order confirmation (`?token=` or JWT owner); `?locale=` for line product names from live Product |
 | GET | /orders | User | User's orders (no product names) |
 | GET | /admin/orders | Admin | All orders (search / status / pagination) |

@@ -37,6 +37,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasMaxLength(256)
             .IsRequired();
 
+        builder.Property(o => o.DeliveryMethod)
+            .HasMaxLength(32)
+            .IsRequired();
+
         builder.Property(o => o.DeliveryAddress)
             .HasMaxLength(500)
             .IsRequired();

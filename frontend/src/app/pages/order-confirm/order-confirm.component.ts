@@ -75,6 +75,29 @@ export class OrderConfirmComponent {
     return o ? this.locale.formatPrice(o.totalAmount) : '';
   });
 
+  protected readonly deliveryMethodLabel = computed(() => {
+    const method = this.order()?.deliveryMethod;
+    switch (method) {
+      case 'pickup':
+        return this.i18n.translate('order.methodPickup');
+      case 'city':
+        return this.i18n.translate('order.methodCity');
+      default:
+        return this.i18n.translate('order.methodNovaPoshta');
+    }
+  });
+
+  protected readonly deliveryNoteKey = computed(() => {
+    switch (this.order()?.deliveryMethod) {
+      case 'pickup':
+        return 'order.deliveryPickupNote';
+      case 'city':
+        return 'order.deliveryCityNote';
+      default:
+        return 'order.deliveryNpNote';
+    }
+  });
+
   constructor() {
     merge(toObservable(this.id), toObservable(this.token), this.retry$)
       .pipe(

@@ -28,7 +28,7 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { LocaleService } from '../../i18n/locale.service';
 import { DeliveryAddressDto, NpBranch, NpCity } from '../../models/auth.models';
 import { cartItemCountLabel } from '../../models/cart.models';
-import { PlaceOrderRequest } from '../../models/order.models';
+import { PlaceOrderRequest, DeliveryMethod } from '../../models/order.models';
 import { AuthService, extractApiError } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
 import { OrderService } from '../../services/order.service';
@@ -129,6 +129,9 @@ export class CheckoutComponent {
   protected readonly branches = signal<NpBranch[]>([]);
   protected readonly branchesLoading = signal(false);
   protected readonly selectedBranchId = signal('');
+  protected readonly deliveryMethod = signal<DeliveryMethod>('nova-poshta');
+  protected readonly streetAddress = signal('');
+  protected readonly streetError = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(50)]],
@@ -170,12 +173,28 @@ export class CheckoutComponent {
   });
 
   protected readonly showSavedBanner = computed(
-    () => !!this.savedAddress() && !this.editingDelivery(),
+    () =>
+      this.deliveryMethod() === 'nova-poshta' &&
+      !!this.savedAddress() &&
+      !this.editingDelivery(),
   );
 
   protected readonly showDeliveryEditors = computed(
-    () => !this.savedAddress() || this.editingDelivery(),
+    () =>
+      this.deliveryMethod() === 'nova-poshta' &&
+      (!this.savedAddress() || this.editingDelivery()),
   );
+
+  protected readonly deliveryFeeLabelKey = computed(() => {
+    switch (this.deliveryMethod()) {
+      case 'pickup':
+        return 'checkout.deliveryFree';
+      case 'city':
+        return 'checkout.deliveryByArrangement';
+      default:
+        return 'checkout.deliveryNpRates';
+    }
+  });
 
   protected readonly formLocked = computed(() => this.submitting());
 
@@ -194,6 +213,12 @@ export class CheckoutComponent {
   });
 
   protected readonly skeletonSlots = [0, 1, 2];
+
+  protected readonly deliveryOptions: { value: DeliveryMethod; labelKey: string }[] = [
+    { value: 'nova-poshta', labelKey: 'checkout.methodNovaPoshta' },
+    { value: 'pickup', labelKey: 'checkout.methodPickup' },
+    { value: 'city', labelKey: 'checkout.methodCity' },
+  ];
 
   constructor() {
     this.cart.closeDrawer();
@@ -337,56 +362,117 @@ export class CheckoutComponent {
     return this.i18n.translate('checkout.checkField');
   }
 
+  protected setDeliveryMethod(method: DeliveryMethod): void {
+    this.deliveryMethod.set(method);
+    this.cityError.set(null);
+    this.branchError.set(null);
+    this.streetError.set(null);
+  }
+
+  protected onStreetInput(value: string): void {
+    this.streetError.set(null);
+    this.streetAddress.set(value);
+  }
+
   protected placeOrder(): void {
     if (this.submitBlocked()) return;
 
     this.submitted.set(true);
     this.cityError.set(null);
     this.branchError.set(null);
+    this.streetError.set(null);
 
     this.form.markAllAsTouched();
 
-    const city = this.selectedCity();
-    const branchId = this.selectedBranchId();
-    let branch = this.branches().find((b) => b.branchId === branchId);
-    const saved = this.savedAddress();
-    if (!branch && saved && !this.editingDelivery() && saved.branchId === branchId) {
-      branch = { branchId: saved.branchId, label: saved.branchLabel };
-    }
+    const method = this.deliveryMethod();
+    const value = this.form.getRawValue();
 
-    if (!city) {
-      this.cityError.set(this.i18n.translate('checkout.pickCityList'));
-      this.editingDelivery.set(true);
-    }
-    if (!branch) {
-      this.branchError.set(this.i18n.translate('checkout.pickBranch'));
-      this.editingDelivery.set(true);
-    }
-
-    if (this.form.invalid || !city || !branch) {
+    if (this.form.invalid) {
       return;
     }
 
-    const value = this.form.getRawValue();
-    const phoneRaw = value.phone.trim();
-    const deliveryAddress =
-      saved && !this.editingDelivery()
-        ? saved.summary
-        : `${city.cityName}, ${branch.label}`;
+    let payload: PlaceOrderRequest;
 
-    const payload: PlaceOrderRequest = {
-      firstName: value.firstName.trim(),
-      lastName: value.lastName.trim(),
-      phone: normalizePhone(phoneRaw),
-      email: value.email.trim(),
-      cityId: city.cityId,
-      cityName: city.cityName,
-      cityRegion: city.region ?? null,
-      branchId: branch.branchId,
-      branchLabel: branch.label,
-      deliveryAddress,
-      comment: value.comment.trim() || null,
-    };
+    if (method === 'pickup') {
+      payload = {
+        firstName: value.firstName.trim(),
+        lastName: value.lastName.trim(),
+        phone: normalizePhone(value.phone.trim()),
+        email: value.email.trim(),
+        deliveryMethod: 'pickup',
+        cityId: '',
+        cityName: '',
+        cityRegion: null,
+        branchId: '',
+        branchLabel: '',
+        streetAddress: null,
+        deliveryAddress: '',
+        comment: value.comment.trim() || null,
+      };
+    } else if (method === 'city') {
+      const street = this.streetAddress().trim();
+      if (!street) {
+        this.streetError.set(this.i18n.translate('checkout.reqStreet'));
+        return;
+      }
+      payload = {
+        firstName: value.firstName.trim(),
+        lastName: value.lastName.trim(),
+        phone: normalizePhone(value.phone.trim()),
+        email: value.email.trim(),
+        deliveryMethod: 'city',
+        cityId: '',
+        cityName: '',
+        cityRegion: null,
+        branchId: '',
+        branchLabel: '',
+        streetAddress: street,
+        deliveryAddress: '',
+        comment: value.comment.trim() || null,
+      };
+    } else {
+      const city = this.selectedCity();
+      const branchId = this.selectedBranchId();
+      let branch = this.branches().find((b) => b.branchId === branchId);
+      const saved = this.savedAddress();
+      if (!branch && saved && !this.editingDelivery() && saved.branchId === branchId) {
+        branch = { branchId: saved.branchId, label: saved.branchLabel };
+      }
+
+      if (!city) {
+        this.cityError.set(this.i18n.translate('checkout.pickCityList'));
+        this.editingDelivery.set(true);
+      }
+      if (!branch) {
+        this.branchError.set(this.i18n.translate('checkout.pickBranch'));
+        this.editingDelivery.set(true);
+      }
+
+      if (!city || !branch) {
+        return;
+      }
+
+      const deliveryAddress =
+        saved && !this.editingDelivery()
+          ? saved.summary
+          : `${city.cityName}, ${branch.label}`;
+
+      payload = {
+        firstName: value.firstName.trim(),
+        lastName: value.lastName.trim(),
+        phone: normalizePhone(value.phone.trim()),
+        email: value.email.trim(),
+        deliveryMethod: 'nova-poshta',
+        cityId: city.cityId,
+        cityName: city.cityName,
+        cityRegion: city.region ?? null,
+        branchId: branch.branchId,
+        branchLabel: branch.label,
+        streetAddress: null,
+        deliveryAddress,
+        comment: value.comment.trim() || null,
+      };
+    }
 
     this.submitting.set(true);
     this.form.disable({ emitEvent: false });

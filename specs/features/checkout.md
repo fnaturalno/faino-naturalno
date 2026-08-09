@@ -8,7 +8,7 @@
 
 ## Summary
 
-Публічний чекаут дозволяє гостю або авторизованому покупцю оформити поточний кошик без реєстрації: контактні дані, доставка Новою Поштою, необовʼязковий коментар, підсумок замовлення, створення замовлення та перехід на сторінку підтвердження.
+Публічний чекаут дозволяє гостю або авторизованому покупцю оформити поточний кошик без реєстрації: контактні дані, вибір способу доставки (Нова Пошта, самовивіз, доставка по Береговому), необовʼязковий коментар, підсумок замовлення, створення замовлення та перехід на сторінку підтвердження.
 
 ## Scope
 
@@ -21,7 +21,8 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Розміщення замовлення з поточного кошика (`POST /api/orders`).
 - Отримання деталей замовлення для підтвердження (`GET /api/orders/:id`).
 - Guest checkout без логіну; для залогіненого — підстановка профілю та збереженої NP-адреси.
-- Пошук міста / вибір відділення Нової Пошти (reuse NP API з auth).
+- Пошук міста / вибір відділення Нової Пошти (reuse NP API з auth) — коли обрано метод `nova-poshta`.
+- Самовивіз на фіксовану адресу магазину в Береговому; доставка по місту з адресою клієнта (без числової вартості).
 - Валідація активності товарів при оформленні; очищення кошика після успіху.
 - Стани: порожній кошик, завантаження, валідація полів, помилки NP/оформлення.
 
@@ -29,11 +30,11 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 
 - Платіжний шлюз / онлайн-оплата.
 - Промокоди та знижки.
-- Розрахунок вартості доставки (лише текст «за тарифами Нової Пошти»).
+- Розрахунок вартості доставки (лише текст: НП — «за тарифами НП»; місто — «за домовленістю»; самовивіз — «безкоштовно»).
 - Адмін CRUD / зміна статусів замовлень.
 - Повна історія замовлень (лише підтвердження щойно створеного; список — у auth/profile).
-- Збереження адреси доставки в профіль із чекауту (лише підстановка вже збереженої).
-- Альтернативні перевізники / адреса курʼєра.
+- Збереження адреси доставки в профіль із чекауту (лише підстановка вже збереженої NP).
+- Збереження адреси доставки по місту в профіль.
 
 ## References
 
@@ -97,12 +98,22 @@ The body includes everything needed to create the order (not a cart-id-only call
 - Recipient first name and last name (UI fields; stored as a single `RecipientName`, e.g. «Імʼя Прізвище»)
 - `Phone` — Ukrainian mobile, `+380…` (input may show a formatted mask; stored/normalized consistently with auth)
 - `Email`
-- Nova Poshta city identity + display name (and region when available)
-- Nova Poshta branch / parcel-locker identity + display label
-- Human-readable `DeliveryAddress` / summary line (city + branch text), suitable for order storage and confirmation
+- `DeliveryMethod` — required: `nova-poshta` | `pickup` | `city`
+- When `nova-poshta`: Nova Poshta city identity + display name (and region when available); branch / parcel-locker identity + display label
+- When `city`: `StreetAddress` — free-text street/building (required); city is fixed as Berehove server-side
+- When `pickup`: no NP or street fields required
+- Client may send a `DeliveryAddress` hint; **server composes and stores** the canonical `DeliveryAddress` (and persists `DeliveryMethod`)
 - Optional `Comment`
 
 Line items and totals are taken from the **current server cart** for the session (and user after merge), not invented by the client.
+
+#### Delivery address composition (server)
+
+| Method | Stored `DeliveryAddress` |
+|--------|--------------------------|
+| `nova-poshta` | `{CityName}, {BranchLabel}` |
+| `pickup` | `Самовивіз · м. Берегове, Центральний ринок, овочевий павільйон` |
+| `city` | `Доставка по Береговому · {StreetAddress}` |
 
 #### Server rules on place
 
@@ -207,12 +218,25 @@ The pages are public for guests and logged-in buyers. There is no admin checkout
 
 ### 2.4 Delivery block (step 2)
 
-- Heading «Доставка Новою Поштою» with Nova Poshta badge
-- **Saved address banner** (logged-in with saved address): marigold info strip — «Збережена адреса підставлена», summary text, link «Змінити»
-  - «Змінити» reveals / focuses the city + branch editors so the buyer can pick another address for this order only
-- **City**: search input, placeholder «Почніть вводити місто…», autocomplete dropdown (name + region); empty results message as in design
-- **Branch**: select; disabled until city chosen with placeholder «Спочатку оберіть місто»; when ready, «Оберіть відділення»; while loading, spinner row «Завантажуємо відділення…»
-- Static hint: «Орієнтовно: 2–3 робочі дні»
+- Heading «Доставка»
+- **Method selector** (required; default `nova-poshta`):
+  1. «Нова Пошта»
+  2. «Самовивіз»
+  3. «Доставка по Береговому»
+- **Nova Poshta** (when selected):
+  - Badge / subheading «Доставка Новою Поштою»
+  - **Saved address banner** (logged-in with saved address): marigold info strip — «Збережена адреса підставлена», summary text, link «Змінити»
+    - «Змінити» reveals / focuses the city + branch editors so the buyer can pick another address for this order only
+  - **City**: search input, placeholder «Почніть вводити місто…», autocomplete dropdown (name + region); empty results message as in design
+  - **Branch**: select; disabled until city chosen with placeholder «Спочатку оберіть місто»; when ready, «Оберіть відділення»; while loading, spinner row «Завантажуємо відділення…»
+  - Static hint: «Орієнтовно: 2–3 робочі дні»
+- **Pickup** (when selected):
+  - Info card with fixed pickup address: м. Берегове, Центральний ринок, овочевий павільйон
+  - Optional link to contacts / map
+- **City delivery** (when selected):
+  - Fixed city label «м. Берегове»
+  - Required text field for street address (street, building, apt as needed)
+- Prefill of saved NP address applies **only** when method is `nova-poshta`
 
 ### 2.5 Comment block (step 3)
 
@@ -238,7 +262,10 @@ Each line shows:
 Totals:
 
 - «Сума товарів» — cart subtotal
-- «Доставка» — copy only: «за тарифами Нової Пошти» (no numeric delivery fee)
+- «Доставка» — copy only (no numeric fee):
+  - `nova-poshta` → «за тарифами Нової Пошти»
+  - `city` → «за домовленістю»
+  - `pickup` → «безкоштовно»
 - «Разом» — equals subtotal
 
 Mobile compact summary: «Замовлення · {N товар/товари/товарів}», «Разом», «Редагувати».

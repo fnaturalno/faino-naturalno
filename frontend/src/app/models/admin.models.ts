@@ -118,6 +118,7 @@ export interface AdminOrderPage {
 
 export interface AdminOrderDetail extends AdminOrderSummary {
   email: string;
+  deliveryMethod?: string | null;
   deliveryAddress: string;
   comment?: string | null;
   items: OrderLineDto[];

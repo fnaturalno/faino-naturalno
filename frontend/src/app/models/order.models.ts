@@ -3,18 +3,23 @@ import { ApiResponse } from './catalog.models';
 
 export type { ApiResponse, OrderStatusValue };
 
+export type DeliveryMethod = 'nova-poshta' | 'pickup' | 'city';
+
 /** POST /api/orders body — lines/totals come from the server cart. */
 export interface PlaceOrderRequest {
   firstName: string;
   lastName: string;
   phone: string;
   email: string;
+  deliveryMethod: DeliveryMethod;
   cityId: string;
   cityName: string;
   cityRegion?: string | null;
   branchId: string;
   branchLabel: string;
-  /** Human-readable city + branch summary for storage / confirmation. */
+  /** Required when deliveryMethod is city. */
+  streetAddress?: string | null;
+  /** Optional client hint; server composes the stored address. */
   deliveryAddress: string;
   comment?: string | null;
 }
@@ -56,6 +61,7 @@ export interface OrderDetailDto {
   recipientName: string;
   phone: string;
   email: string;
+  deliveryMethod: DeliveryMethod | string;
   deliveryAddress: string;
   comment?: string | null;
   items: OrderLineDto[];

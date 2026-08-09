@@ -9,6 +9,7 @@ public sealed record OrderDetailDto(
     string RecipientName,
     string Phone,
     string Email,
+    string DeliveryMethod,
     string DeliveryAddress,
     string? Comment,
     IReadOnlyList<OrderDetailItemDto> Items);

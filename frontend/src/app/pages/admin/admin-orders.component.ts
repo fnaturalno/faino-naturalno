@@ -117,6 +117,9 @@ import { ToastService } from '../../services/toast.service';
               <p class="font-bold">{{ detail()!.recipientName }}</p>
               <p>{{ detail()!.phone }}</p>
               <p>{{ detail()!.email }}</p>
+              @if (detail()!.deliveryMethod) {
+                <p class="mt-2 text-sm font-bold text-[#6a4425]">{{ deliveryMethodLabel(detail()!.deliveryMethod!) }}</p>
+              }
               <p>{{ detail()!.deliveryAddress }}</p>
             </div>
           </section>
@@ -194,6 +197,17 @@ export class AdminOrdersComponent {
       Cancelled: 'admin.statusCancelled',
     };
     return this.i18n.translate(keys[status]);
+  }
+
+  deliveryMethodLabel(method: string): string {
+    switch (method) {
+      case 'pickup':
+        return this.i18n.translate('order.methodPickup');
+      case 'city':
+        return this.i18n.translate('order.methodCity');
+      default:
+        return this.i18n.translate('order.methodNovaPoshta');
+    }
   }
 
   badgeClass(status: AdminOrderStatus): string {

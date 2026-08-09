@@ -96,8 +96,8 @@ public sealed class OrderService : IOrderService
         var lastName = request.LastName.Trim();
         var phone = request.Phone.Trim();
         var email = request.Email.Trim().ToLowerInvariant();
-        // Compose address server-side — do not trust free-form client DeliveryAddress.
-        var deliveryAddress = $"{request.CityName.Trim()}, {request.BranchLabel.Trim()}";
+        var method = DeliveryMethods.Normalize(request.DeliveryMethod);
+        var deliveryAddress = ComposeDeliveryAddress(method, request);
         if (deliveryAddress.Length > 500)
         {
             throw new BadRequestException("Адреса доставки занадто довга.");
@@ -215,6 +215,7 @@ public sealed class OrderService : IOrderService
             RecipientName = recipientName,
             Phone = phone,
             Email = email,
+            DeliveryMethod = method,
             DeliveryAddress = deliveryAddress,
             Comment = comment,
             UserId = userId,
@@ -291,6 +292,7 @@ public sealed class OrderService : IOrderService
                 o.RecipientName,
                 o.Phone,
                 o.Email,
+                o.DeliveryMethod,
                 o.DeliveryAddress,
                 o.Comment,
                 o.UserId,
@@ -344,6 +346,7 @@ public sealed class OrderService : IOrderService
             order.RecipientName,
             order.Phone,
             order.Email,
+            order.DeliveryMethod,
             order.DeliveryAddress,
             order.Comment,
             items);
@@ -427,6 +430,7 @@ public sealed class OrderService : IOrderService
                 o.RecipientName,
                 o.Phone,
                 o.Email,
+                o.DeliveryMethod,
                 o.DeliveryAddress,
                 o.Comment,
                 Items = o.Items.OrderBy(i => i.Id).Select(i => new
@@ -454,7 +458,7 @@ public sealed class OrderService : IOrderService
 
         return new OrderDetailDto(
             order.Id, order.OrderNumber, order.Status, order.TotalAmount, order.CreatedAt,
-            order.RecipientName, order.Phone, order.Email, order.DeliveryAddress, order.Comment, items);
+            order.RecipientName, order.Phone, order.Email, order.DeliveryMethod, order.DeliveryAddress, order.Comment, items);
     }
 
     public async Task<OrderDetailDto> UpdateStatusAsync(
@@ -494,8 +498,30 @@ public sealed class OrderService : IOrderService
             _ => false
         };
 
+    private static string ComposeDeliveryAddress(string method, PlaceOrderRequest request)
+    {
+        return method switch
+        {
+            DeliveryMethods.Pickup => DeliveryMethods.PickupAddressUa,
+            DeliveryMethods.City =>
+                $"Доставка по Береговому · {request.StreetAddress!.Trim()}",
+            _ => $"{request.CityName.Trim()}, {request.BranchLabel.Trim()}"
+        };
+    }
+
     private static string ExtractCity(string deliveryAddress)
     {
+        // Prefer readable labels for local methods (admin list "City" column).
+        if (deliveryAddress.StartsWith("Самовивіз", StringComparison.Ordinal))
+        {
+            return "Самовивіз · Берегове";
+        }
+
+        if (deliveryAddress.StartsWith("Доставка по Береговому", StringComparison.Ordinal))
+        {
+            return "Берегове";
+        }
+
         var separator = deliveryAddress.IndexOf(',');
         return separator < 0 ? deliveryAddress : deliveryAddress[..separator].Trim();
     }

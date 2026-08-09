@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using FaynoShop.API.DTOs.Orders;
+using FaynoShop.API.Models;
 using FluentValidation;
 
 namespace FaynoShop.API.Validators;
@@ -30,32 +31,50 @@ public sealed class PlaceOrderRequestValidator : AbstractValidator<PlaceOrderReq
             .EmailAddress().WithMessage("Некоректний формат email.")
             .MaximumLength(256).WithMessage("Email не може перевищувати 256 символів.");
 
-        RuleFor(x => x.CityId)
-            .NotEmpty().WithMessage("Оберіть місто.")
-            .MaximumLength(64);
+        RuleFor(x => x.DeliveryMethod)
+            .NotEmpty().WithMessage("Оберіть спосіб доставки.")
+            .Must(DeliveryMethods.IsKnown)
+            .WithMessage("Невідомий спосіб доставки.");
 
-        RuleFor(x => x.CityName)
-            .NotEmpty().WithMessage("Назва міста є обов'язковою.")
-            .MaximumLength(200);
+        When(x => IsMethod(x, DeliveryMethods.NovaPoshta), () =>
+        {
+            RuleFor(x => x.CityId)
+                .NotEmpty().WithMessage("Оберіть місто.")
+                .MaximumLength(64);
 
-        RuleFor(x => x.CityRegion)
-            .MaximumLength(200)
-            .When(x => x.CityRegion is not null);
+            RuleFor(x => x.CityName)
+                .NotEmpty().WithMessage("Назва міста є обов'язковою.")
+                .MaximumLength(200);
 
-        RuleFor(x => x.BranchId)
-            .NotEmpty().WithMessage("Оберіть відділення.")
-            .MaximumLength(64);
+            RuleFor(x => x.CityRegion)
+                .MaximumLength(200)
+                .When(x => x.CityRegion is not null);
 
-        RuleFor(x => x.BranchLabel)
-            .NotEmpty().WithMessage("Назва відділення є обов'язковою.")
-            .MaximumLength(300);
+            RuleFor(x => x.BranchId)
+                .NotEmpty().WithMessage("Оберіть відділення.")
+                .MaximumLength(64);
 
-        RuleFor(x => x.DeliveryAddress)
-            .NotEmpty().WithMessage("Адреса доставки є обов'язковою.")
-            .MaximumLength(500).WithMessage("Адреса доставки не може перевищувати 500 символів.");
+            RuleFor(x => x.BranchLabel)
+                .NotEmpty().WithMessage("Назва відділення є обов'язковою.")
+                .MaximumLength(300);
+        });
+
+        When(x => IsMethod(x, DeliveryMethods.City), () =>
+        {
+            RuleFor(x => x.StreetAddress)
+                .NotEmpty().WithMessage("Вкажіть адресу доставки.")
+                .MaximumLength(300).WithMessage("Адреса не може перевищувати 300 символів.");
+        });
 
         RuleFor(x => x.Comment)
             .MaximumLength(1000).WithMessage("Коментар не може перевищувати 1000 символів.")
             .When(x => x.Comment is not null);
     }
+
+    private static bool IsMethod(PlaceOrderRequest request, string method) =>
+        DeliveryMethods.IsKnown(request.DeliveryMethod)
+        && string.Equals(
+            DeliveryMethods.Normalize(request.DeliveryMethod),
+            method,
+            StringComparison.Ordinal);
 }

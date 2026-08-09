@@ -295,6 +295,12 @@ namespace FaynoShop.API.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("delivery_address");
 
+                    b.Property<string>("DeliveryMethod")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("delivery_method");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)

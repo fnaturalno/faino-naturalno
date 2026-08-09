@@ -71,7 +71,10 @@
         <div class="mb-5 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--kraft-100)] p-4">
           <p class="m-0 mb-1 text-sm font-semibold text-[var(--espresso-900)]">{{ o.recipientName }}</p>
           <p class="m-0 text-sm text-[var(--espresso-700)]">{{ o.phone }} · {{ o.email }}</p>
-          <p class="mt-2 mb-0 text-sm text-[var(--espresso-700)]">{{ o.deliveryAddress }}</p>
+          <p class="mt-2 mb-0 text-sm text-[var(--espresso-700)]">
+            <span class="font-semibold text-[var(--espresso-900)]">{{ deliveryMethodLabel() }} · </span>
+            {{ o.deliveryAddress }}
+          </p>
           @if (o.comment) {
             <p class="mt-2 mb-0 text-sm text-[var(--text-muted)]">{{ 'order.commentPrefix' | transloco }} {{ o.comment }}</p>
           }
@@ -126,7 +129,7 @@
         </div>
 
         <p class="mb-6 text-center text-sm text-[var(--text-muted)]">
-          {{ 'order.deliveryNpNote' | transloco }}
+          {{ deliveryNoteKey() | transloco }}
         </p>
 
         <a
