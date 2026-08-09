@@ -51,7 +51,12 @@ import { IconComponent } from '../icon/icon.component';
             [class.nav-link-active]="isNewsActive()"
             [attr.aria-current]="isNewsActive() ? 'page' : null"
           >{{ 'nav.news' | transloco }}</a>
-          <a href="#contacts" class="nav-link">{{ 'nav.contacts' | transloco }}</a>
+          <a
+            [routerLink]="locale.commands('contacts')"
+            class="nav-link"
+            [class.nav-link-active]="isContactsActive()"
+            [attr.aria-current]="isContactsActive() ? 'page' : null"
+          >{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
             <a
               routerLink="/admin"
@@ -157,7 +162,13 @@ import { IconComponent } from '../icon/icon.component';
             [attr.aria-current]="isNewsActive() ? 'page' : null"
             (click)="menuOpen.set(false)"
           >{{ 'nav.news' | transloco }}</a>
-          <a href="#contacts" class="nav-link-mobile" (click)="menuOpen.set(false)">{{ 'nav.contacts' | transloco }}</a>
+          <a
+            [routerLink]="locale.commands('contacts')"
+            class="nav-link-mobile"
+            [class.nav-link-active]="isContactsActive()"
+            [attr.aria-current]="isContactsActive() ? 'page' : null"
+            (click)="menuOpen.set(false)"
+          >{{ 'nav.contacts' | transloco }}</a>
           @if (auth.currentUser()?.isAdmin) {
             <a
               routerLink="/admin"
@@ -240,6 +251,7 @@ export class NavbarComponent {
   });
 
   protected readonly isAboutActive = computed(() => this.isStorefrontSection('about'));
+  protected readonly isContactsActive = computed(() => this.isStorefrontSection('contacts'));
   protected readonly isNewsActive = computed(() => this.isStorefrontSection('news'));
   protected readonly isProfileActive = computed(() => this.isStorefrontSection('profile'));
   protected readonly isLoginActive = computed(() => {

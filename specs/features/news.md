@@ -20,7 +20,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL.
 - Публічні маршрути `/:locale/news` (список) і `/:locale/news/:slug` (деталь).
 - Публічний API: список лише опублікованих (пагінація, sort), деталь за slug.
 - Admin CRUD: список (включно з чернетками), створення, редагування, видалення; cover через існуючий upload.
-- Navbar: пункт «Новини» / «News» поруч із «Про нас»; «Контакти» лишається `#contacts`.
+- Navbar: пункт «Новини» / «News» поруч із «Про нас»; «Контакти» → `/:locale/contacts`.
 - Базовий SEO для CSR: document `<title>` (і meta description, де практично в Angular) з title + excerpt.
 - Locale resolution як у товарів (`?locale=` / `Accept-Language` / default `ua`).
 
@@ -185,7 +185,7 @@ Admin list may include search by title/slug and filter published/draft (nice-to-
 
 - Add «Новини» (ua) / «News» (en) next to About (desktop + mobile).
 - Active state when on news list or detail.
-- Contacts remains `#contacts` (unchanged).
+- Contacts → `/:locale/contacts`.
 
 ### 2.3 List page
 

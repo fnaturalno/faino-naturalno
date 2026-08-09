@@ -22,6 +22,11 @@ const storefrontChildren: Routes = [
       import('./pages/about/about.component').then((module) => module.AboutComponent),
   },
   {
+    path: 'contacts',
+    loadComponent: () =>
+      import('./pages/contacts/contacts.component').then((module) => module.ContactsComponent),
+  },
+  {
     path: 'news',
     loadComponent: () =>
       import('./pages/news/news-list.component').then((module) => module.NewsListComponent),
