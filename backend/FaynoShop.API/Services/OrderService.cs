@@ -7,6 +7,8 @@ using FaynoShop.API.Exceptions;
 using FaynoShop.API.Localization;
 using FaynoShop.API.Models;
 using FaynoShop.API.Security;
+using FaynoShop.API.Services.Telegram;
+using FaynoShop.API.Services.Telegram.Models;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -54,11 +56,16 @@ public sealed class OrderService : IOrderService
     private const int MaxConfirmationTokenLength = 128;
 
     private readonly AppDbContext _db;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<OrderService> _logger;
 
-    public OrderService(AppDbContext db, ILogger<OrderService> logger)
+    public OrderService(
+        AppDbContext db,
+        IServiceScopeFactory scopeFactory,
+        ILogger<OrderService> logger)
     {
         _db = db;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -261,6 +268,8 @@ public sealed class OrderService : IOrderService
 
         _logger.LogInformation("Order {OrderId} placed ({OrderNumber})", order.Id, order.OrderNumber);
 
+        EnqueueTelegramOrderAlert(order, orderItems, productsById);
+
         return new PlaceOrderResponse(
             order.Id,
             order.OrderNumber,
@@ -268,6 +277,45 @@ public sealed class OrderService : IOrderService
             order.TotalAmount,
             order.CreatedAt,
             confirmationPlain);
+    }
+
+    private void EnqueueTelegramOrderAlert(
+        Order order,
+        IReadOnlyList<OrderItem> orderItems,
+        IReadOnlyDictionary<int, Product> productsById)
+    {
+        var lines = new List<TelegramOrderLine>(orderItems.Count);
+        foreach (var item in orderItems)
+        {
+            var name = productsById.TryGetValue(item.ProductId, out var product)
+                ? product.NameUk
+                : $"#{item.ProductId}";
+            lines.Add(new TelegramOrderLine(name, item.Quantity, item.UnitPrice));
+        }
+
+        var notification = new OrderNotification(
+            order.Id,
+            order.OrderNumber,
+            order.RecipientName,
+            order.Phone,
+            order.DeliveryMethod,
+            order.DeliveryAddress,
+            lines,
+            order.TotalAmount);
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await using var scope = _scopeFactory.CreateAsyncScope();
+                var telegram = scope.ServiceProvider.GetRequiredService<ITelegramNotificationService>();
+                await telegram.SendOrderNotificationAsync(notification);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Background Telegram alert failed for {OrderNumber}", order.OrderNumber);
+            }
+        });
     }
 
     public async Task<OrderDetailDto> GetByIdAsync(

@@ -126,6 +126,7 @@ Line items and totals are taken from the **current server cart** for the session
 - `OrderNumber` is a unique human-readable value (same style as existing samples, e.g. `FN-YYYY-NNNN`).
 - On success, the cart used for the order is **cleared / emptied**.
 - Place does **not** check or reduce inventory / stock.
+- After a successful place, the API may notify the admin via Telegram (see `specs/features/telegram-order-alerts.md`); failures do not affect the client response.
 
 #### Success response
 

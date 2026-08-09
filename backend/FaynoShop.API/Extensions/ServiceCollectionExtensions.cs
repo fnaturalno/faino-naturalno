@@ -1,12 +1,13 @@
-using System.Text;
-using System.Text.Json;
 using FaynoShop.API.DTOs;
 using FaynoShop.API.Options;
 using FaynoShop.API.Services;
+using FaynoShop.API.Services.Telegram;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Resend;
+using System.Text;
+using System.Text.Json;
 
 namespace FaynoShop.API.Extensions;
 
@@ -59,6 +60,12 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<NovaPoshtaOptions>()
             .Bind(configuration.GetSection(NovaPoshtaOptions.SectionName));
+
+        services.Configure<TelegramOptions>(configuration.GetSection(TelegramOptions.SectionName));
+        services.AddHttpClient<ITelegramNotificationService, TelegramNotificationService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
