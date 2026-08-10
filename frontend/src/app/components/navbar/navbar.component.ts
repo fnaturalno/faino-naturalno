@@ -52,6 +52,12 @@ import { IconComponent } from '../icon/icon.component';
             [attr.aria-current]="isNewsActive() ? 'page' : null"
           >{{ 'nav.news' | transloco }}</a>
           <a
+            [routerLink]="locale.commands('payment-delivery')"
+            class="nav-link"
+            [class.nav-link-active]="isPaymentDeliveryActive()"
+            [attr.aria-current]="isPaymentDeliveryActive() ? 'page' : null"
+          >{{ 'nav.paymentDelivery' | transloco }}</a>
+          <a
             [routerLink]="locale.commands('contacts')"
             class="nav-link"
             [class.nav-link-active]="isContactsActive()"
@@ -163,6 +169,13 @@ import { IconComponent } from '../icon/icon.component';
             (click)="menuOpen.set(false)"
           >{{ 'nav.news' | transloco }}</a>
           <a
+            [routerLink]="locale.commands('payment-delivery')"
+            class="nav-link-mobile"
+            [class.nav-link-active]="isPaymentDeliveryActive()"
+            [attr.aria-current]="isPaymentDeliveryActive() ? 'page' : null"
+            (click)="menuOpen.set(false)"
+          >{{ 'nav.paymentDelivery' | transloco }}</a>
+          <a
             [routerLink]="locale.commands('contacts')"
             class="nav-link-mobile"
             [class.nav-link-active]="isContactsActive()"
@@ -253,6 +266,9 @@ export class NavbarComponent {
   protected readonly isAboutActive = computed(() => this.isStorefrontSection('about'));
   protected readonly isContactsActive = computed(() => this.isStorefrontSection('contacts'));
   protected readonly isNewsActive = computed(() => this.isStorefrontSection('news'));
+  protected readonly isPaymentDeliveryActive = computed(() =>
+    this.isStorefrontSection('payment-delivery'),
+  );
   protected readonly isProfileActive = computed(() => this.isStorefrontSection('profile'));
   protected readonly isLoginActive = computed(() => {
     const path = this.path();

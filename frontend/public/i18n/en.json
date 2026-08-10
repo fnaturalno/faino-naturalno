@@ -9,6 +9,7 @@
     "catalog": "Catalog",
     "about": "About",
     "news": "News",
+    "paymentDelivery": "Payment & delivery",
     "contacts": "Contacts",
     "admin": "Admin",
     "profile": "Profile: {{name}}",
@@ -30,6 +31,24 @@
     "blends": "What we’re especially proud of are our signature spice blends. We create them from our own unique recipes, carefully choosing ingredients so they complement and bring out each other’s flavour. These aren’t just spices — they’re harmonious compositions born from a love of cooking and the search for that “perfect taste” for your dish.",
     "natural": "We choose only natural ingredients, so you can trust the quality of every gram that reaches your table.",
     "closing": "Discover new horizons of taste with Fayno Naturalno!",
+    "ctaCatalog": "Browse the catalog"
+  },
+  "paymentDelivery": {
+    "eyebrow": "Payment & delivery",
+    "title": "Payment & delivery",
+    "intro": "We care about getting your favourite spices to you quickly, and making ordering as easy as possible.",
+    "deliveryTitle": "Delivery terms",
+    "npTitle": "Nova Poshta (across Ukraine)",
+    "npBody": "Delivery to a branch, parcel locker, or courier to your address.",
+    "npEta": "Dispatch time: orders are usually shipped within 1–2 business days.",
+    "npCost": "Delivery cost is calculated according to the carrier’s tariffs.",
+    "ukrTitle": "Ukrposhta (across Ukraine)",
+    "ukrBody": "Delivery to the nearest post office.",
+    "ukrEta": "Dispatch time: 1–2 business days.",
+    "ukrFree": "Free delivery: on orders from 1300 UAH (confirm details at checkout).",
+    "paymentTitle": "Payment methods",
+    "paymentCashlessLabel": "Bank transfer: ",
+    "paymentCashlessBody": "payment to sole-proprietor (FOP) details for corporate clients or at the buyer’s request.",
     "ctaCatalog": "Browse the catalog"
   },
   "contacts": {

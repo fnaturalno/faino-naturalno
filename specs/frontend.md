@@ -19,6 +19,7 @@
 |------|-----------|-------------|
 | `/:locale` | → catalog | Locale home (catalog) |
 | `/:locale/about` | AboutComponent | About / «Про нас» |
+| `/:locale/payment-delivery` | PaymentDeliveryComponent | Payment & delivery / «Оплата і доставка» |
 | `/:locale/contacts` | ContactsComponent | Contacts / «Контакти» |
 | `/:locale/news` | NewsListComponent | News / «Новини» list |
 | `/:locale/news/:slug` | NewsDetailComponent | News article detail |
@@ -44,7 +45,7 @@ All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the 
 
 ## Shared Components
 - `TestModeBannerComponent` — sticky marigold marquee «Сайт працює в тестовому режимі» / «The site is running in test mode» (above all pages; navbar sticks below it)
-- `NavbarComponent` — logo, nav (Catalog, About, News, Contacts), cart icon, auth, language switcher; shows «Адмін» → admin when `currentUser.isAdmin`
+- `NavbarComponent` — logo, nav (Catalog, About, News, Payment & delivery, Contacts), cart icon, auth, language switcher; shows «Адмін» → admin when `currentUser.isAdmin`
 - `FooterComponent`
 - `ProductCardComponent` — catalog / similar / featured; `priceFrom` + split «В кошик» (main = cheapest variant; dropdown = choose weight when `variants.length > 1`)
 - `CartDrawerComponent` — slide-in cart preview

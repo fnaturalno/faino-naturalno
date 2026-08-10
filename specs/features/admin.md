@@ -228,7 +228,7 @@ Badge tones follow the design language (e.g. ink / marigold / fresh / sale).
 | `/admin/news/new` | Create news post |
 | `/admin/news/:id/edit` | Edit news post |
 
-All routes are admin-only. The **admin shell** (sidebar + top bar) is the primary chrome for admin screens, but the **public main navbar** remains visible above it so the admin can navigate to the shop (Каталог, Про нас, Контакти, Кошик, Профіль) without leaving via «Вихід».
+All routes are admin-only. The **admin shell** (sidebar + top bar) is the primary chrome for admin screens, but the **public main navbar** remains visible above it so the admin can navigate to the shop (Каталог, Про нас, Новини, Оплата і доставка, Контакти, Кошик, Профіль) without leaving via «Вихід».
 
 ### 2.2 Shell (desktop)
 

@@ -55,7 +55,10 @@ fayno-shop/
 │       ├── cart.md
 │       ├── checkout.md
 │       ├── auth.md
-│       └── admin.md
+│       ├── admin.md
+│       ├── news.md
+│       ├── payment-delivery.md
+│       └── telegram-order-alerts.md
 ├── .claude/
 │   ├── agents/                ← 8 агентів
 │   └── skills/                ← 3 custom skills

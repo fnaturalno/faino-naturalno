@@ -46,7 +46,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Frontend architecture: `specs/frontend.md` (`/checkout`, `/order/:id`)
 - Database schema: `specs/db.md` (orders, order_items)
 - Related: `specs/features/cart.md` (кошик, підсумок, навігація на checkout)
-- Related: `specs/features/auth.md` (профіль, NP city/branch, saved delivery address)
+- Related: `specs/features/payment-delivery.md` (informational copy for carriers / payment; not checkout logic)
 
 ---
 

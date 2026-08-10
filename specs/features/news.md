@@ -20,7 +20,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL.
 - Публічні маршрути `/:locale/news` (список) і `/:locale/news/:slug` (деталь).
 - Публічний API: список лише опублікованих (пагінація, sort), деталь за slug.
 - Admin CRUD: список (включно з чернетками), створення, редагування, видалення; cover через існуючий upload.
-- Navbar: пункт «Новини» / «News» поруч із «Про нас»; «Контакти» → `/:locale/contacts`.
+- Navbar: пункт «Новини» / «News» поруч із «Про нас»; далі «Оплата і доставка» → `/:locale/payment-delivery`; «Контакти» → `/:locale/contacts`.
 - Базовий SEO для CSR: document `<title>` (і meta description, де практично в Angular) з title + excerpt.
 - Locale resolution як у товарів (`?locale=` / `Accept-Language` / default `ua`).
 
@@ -185,6 +185,7 @@ Admin list may include search by title/slug and filter published/draft (nice-to-
 
 - Add «Новини» (ua) / «News» (en) next to About (desktop + mobile).
 - Active state when on news list or detail.
+- «Оплата і доставка» / «Payment & delivery» → `/:locale/payment-delivery` (see `specs/features/payment-delivery.md`).
 - Contacts → `/:locale/contacts`.
 
 ### 2.3 List page
@@ -308,7 +309,7 @@ Admin shell + `adminGuard` (JWT + `IsAdmin`), same pattern as products/categorie
 ### Public UI
 
 - [ ] Routes `/:locale/news` and `/:locale/news/:slug` work for `ua` and `en`.
-- [ ] Navbar shows «Новини» / «News» next to About; Contacts unchanged.
+- [ ] Navbar shows «Новини» / «News» next to About; «Оплата і доставка» and Contacts as separate storefront links.
 - [ ] List shows cover, title, excerpt, date, optional Featured badge; pagination 9.
 - [ ] Detail shows title, date, cover, body; back link to list.
 - [ ] Loading, empty, and error states behave as specified.

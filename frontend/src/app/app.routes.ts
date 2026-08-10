@@ -22,6 +22,13 @@ const storefrontChildren: Routes = [
       import('./pages/about/about.component').then((module) => module.AboutComponent),
   },
   {
+    path: 'payment-delivery',
+    loadComponent: () =>
+      import('./pages/payment-delivery/payment-delivery.component').then(
+        (module) => module.PaymentDeliveryComponent,
+      ),
+  },
+  {
     path: 'contacts',
     loadComponent: () =>
       import('./pages/contacts/contacts.component').then((module) => module.ContactsComponent),
