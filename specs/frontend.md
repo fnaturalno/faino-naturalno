@@ -45,7 +45,7 @@ All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the 
 
 ## Shared Components
 - `TestModeBannerComponent` — sticky marigold marquee «Сайт працює в тестовому режимі» / «The site is running in test mode» (above all pages; navbar sticks below it)
-- `NavbarComponent` — logo, nav (Catalog, About, News, Payment & delivery, Contacts), cart icon, auth, language switcher; shows «Адмін» → admin when `currentUser.isAdmin`
+- `NavbarComponent` — logo, nav (Catalog, About, News, Payment & delivery, Contacts), cart icon, auth, language switcher; shows «Адмін» → admin when `currentUser.isAdmin`. Mobile menu lists catalog categories and subcategories under Catalog (`?category=`).
 - `FooterComponent`
 - `ProductCardComponent` — catalog / similar / featured; `priceFrom` + split «В кошик» (main = cheapest variant; dropdown = choose weight when `variants.length > 1`)
 - `CartDrawerComponent` — slide-in cart preview

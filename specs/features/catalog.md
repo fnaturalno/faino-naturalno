@@ -182,6 +182,7 @@ Tablet and mobile cards omit the category eyebrow and short description.
 - Desktop displays category checkboxes, active-product counts, a price range, numeric «від»/«до» fields, and reset controls.
 - Tablet displays a collapsible filter panel with category chips and the selected price range.
 - Mobile displays category options, counts, price controls, «Скинути», and «Показати N товарів» in a bottom sheet.
+- The mobile hamburger menu lists categories and subcategories under «Каталог»; each link opens the catalog filtered by that slug.
 - The mobile filter button displays the number of active filters.
 - «Скинути» restores all filter and sort defaults and returns to page 1.
 - Price input changes trigger product refresh only after a short pause in input.

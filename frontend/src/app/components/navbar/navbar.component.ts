@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { filter, map, merge, of } from 'rxjs';
+import { catchError, filter, map, merge, of, switchMap } from 'rxjs';
 
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 import { LocaleService } from '../../i18n/locale.service';
+import { CategorySummary } from '../../models/catalog.models';
 import { initialsOf } from '../../pages/auth/auth.helpers';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
+import { CategoryService } from '../../services/category.service';
 import { IconComponent } from '../icon/icon.component';
 
 @Component({
@@ -149,11 +151,47 @@ import { IconComponent } from '../icon/icon.component';
           <div class="mb-2 px-3"><app-language-switcher [mode]="switcherMode()" /></div>
           <a
             [routerLink]="locale.commands('catalog')"
+            [queryParams]="{}"
             class="nav-link-mobile"
-            [class.nav-link-active]="isCatalogActive()"
-            [attr.aria-current]="isCatalogActive() ? 'page' : null"
+            [class.nav-link-active]="isCatalogAllActive()"
+            [attr.aria-current]="isCatalogAllActive() ? 'page' : null"
             (click)="menuOpen.set(false)"
           >{{ 'nav.catalog' | transloco }}</a>
+          @if (categories().length) {
+            <ul
+              class="mb-1 ml-3 flex flex-col border-l border-[var(--border-subtle)]"
+              [attr.aria-label]="'nav.catalogCategories' | transloco"
+            >
+              @for (category of categories(); track category.id) {
+                <li>
+                  <a
+                    [routerLink]="locale.commands('catalog')"
+                    [queryParams]="{ category: category.slug }"
+                    class="nav-link-mobile text-sm"
+                    [class.nav-link-active]="isCategoryActive(category.slug)"
+                    [attr.aria-current]="isCategoryActive(category.slug) ? 'page' : null"
+                    (click)="menuOpen.set(false)"
+                  >{{ category.name }}</a>
+                  @if (category.children?.length) {
+                    <ul class="flex flex-col pl-3">
+                      @for (child of category.children; track child.id) {
+                        <li>
+                          <a
+                            [routerLink]="locale.commands('catalog')"
+                            [queryParams]="{ category: child.slug }"
+                            class="nav-link-mobile py-2 text-sm font-medium text-[var(--espresso-700)]"
+                            [class.nav-link-active]="isCategoryActive(child.slug)"
+                            [attr.aria-current]="isCategoryActive(child.slug) ? 'page' : null"
+                            (click)="menuOpen.set(false)"
+                          >{{ child.name }}</a>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </li>
+              }
+            </ul>
+          }
           <a
             [routerLink]="locale.commands('about')"
             class="nav-link-mobile"
@@ -234,9 +272,22 @@ export class NavbarComponent {
   protected readonly cart = inject(CartService);
   protected readonly auth = inject(AuthService);
   protected readonly locale = inject(LocaleService);
+  private readonly categoriesApi = inject(CategoryService);
   private readonly i18n = inject(TranslocoService);
   private readonly router = inject(Router);
   protected readonly menuOpen = signal(false);
+
+  protected readonly categories = toSignal(
+    toObservable(this.locale.lang).pipe(
+      switchMap(() =>
+        this.categoriesApi.getCategories().pipe(
+          map((response) => (response.success ? sortCategories(response.data) : [])),
+          catchError(() => of([] as CategorySummary[])),
+        ),
+      ),
+    ),
+    { initialValue: [] as CategorySummary[] },
+  );
 
   /** Re-read router.url on every NavigationEnd and once on subscribe (covers redirects). */
   private readonly currentUrl = toSignal(
@@ -262,6 +313,25 @@ export class NavbarComponent {
     const locale = this.locale.lang();
     return path === `/${locale}` || path.startsWith(`/${locale}/catalog`);
   });
+
+  private readonly selectedCategorySlugs = computed(() => {
+    const query = this.currentUrl().split('?')[1]?.split('#')[0] ?? '';
+    const raw = new URLSearchParams(query).get('category') ?? '';
+    return new Set(
+      raw
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean),
+    );
+  });
+
+  protected readonly isCatalogAllActive = computed(
+    () => this.isCatalogActive() && this.selectedCategorySlugs().size === 0,
+  );
+
+  protected isCategoryActive(slug: string): boolean {
+    return this.selectedCategorySlugs().has(slug);
+  }
 
   protected readonly isAboutActive = computed(() => this.isStorefrontSection('about'));
   protected readonly isContactsActive = computed(() => this.isStorefrontSection('contacts'));
@@ -328,4 +398,13 @@ export class NavbarComponent {
     }
     void this.router.navigate(this.locale.commands('cart'));
   }
+}
+
+function sortCategories(categories: CategorySummary[]): CategorySummary[] {
+  return [...categories]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((category) => ({
+      ...category,
+      children: [...(category.children ?? [])].sort((a, b) => a.sortOrder - b.sortOrder),
+    }));
 }
