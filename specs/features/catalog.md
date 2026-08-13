@@ -18,7 +18,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 
 - Публічна сторінка `/catalog`.
 - Отримання товарів і категорій із сервера.
-- Фільтрація, сортування та пагінація товарів.
+- Фільтрація, пошук, сортування та пагінація товарів.
 - Перехід із картки на `/catalog/:slug`.
 - Додавання однієї одиниці товару в кошик.
 - Відображення кількості товарів у кошику в header.
@@ -28,7 +28,6 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Реалізація сторінки товару `/catalog/:slug`.
 - Повна реалізація кошика та cart drawer.
 - Адміністративний CRUD товарів і категорій.
-- Поле пошуку в інтерфейсі каталогу.
 
 ## References
 
@@ -71,7 +70,7 @@ Every endpoint returns:
 | Parameter | Semantics |
 |-----------|-----------|
 | `category` | Optional comma-separated category slugs; a product matches any selected category |
-| `search` | Optional text search supported by the API; the catalog UI does not expose a search field |
+| `search` | Optional text search (UK/EN name, short description, slug); max 100 chars; catalog UI |
 | `minPrice` | Optional inclusive minimum price |
 | `maxPrice` | Optional inclusive maximum price |
 | `page` | One-based page number; defaults to `1` |
@@ -187,6 +186,13 @@ Tablet and mobile cards omit the category eyebrow and short description.
 - «Скинути» restores all filter and sort defaults and returns to page 1.
 - Price input changes trigger product refresh only after a short pause in input.
 
+### 2.4a Search
+
+- Catalog toolbar has a search field above the result count / sort row.
+- Search is debounced (~350ms) like price; empty query clears the filter.
+- `search` is synced in the URL; reset filters also clears search.
+- Matches product `NameUk` / `NameEn`, `Slug`, `ShortDescriptionUk` / `ShortDescriptionEn` (API `ILIKE`).
+
 ### 2.5 Sorting
 
 The sorting control uses this order:
@@ -210,9 +216,9 @@ The sorting control uses this order:
 
 ## 3. User interactions and navigation state
 
-- Selecting a category, changing price, sorting, or choosing a page updates the product results.
-- Changing filters or sorting resets the list to the first batch.
-- Active filters, sorting, and page are synchronized with the URL.
+- Selecting a category, changing price, search, sorting, or choosing a page updates the product results.
+- Changing filters, search, or sorting resets the list to the first batch.
+- Active filters, search, sort, and page are synchronized with the URL.
 - Opening a shared catalog URL restores its valid catalog state.
 - Browser back and forward navigation restore the corresponding catalog state.
 - Invalid URL values are normalized to valid defaults without blocking the page.
@@ -302,7 +308,7 @@ The sorting control uses this order:
 
 - [ ] `GET /api/products` returns only active products in the common API envelope.
 - [ ] Product filtering supports multiple comma-separated category slugs and inclusive price bounds.
-- [ ] `search` remains supported by the API but no search field appears in the catalog UI.
+- [ ] `search` filters products by localized name, slug, and short description; the catalog UI exposes a search field.
 - [ ] Invalid query values fall back to valid defaults.
 - [ ] `minPrice > maxPrice` is resolved by swapping the values.
 - [ ] Product responses include page, pageSize 15, totalCount, totalPages, and catalog price bounds.
@@ -321,10 +327,10 @@ The sorting control uses this order:
 
 ### Filters, sorting, and navigation
 
-- [ ] Users can select multiple categories and filter by inclusive price range.
+- [ ] Users can select multiple categories, filter by inclusive price range, and search by text.
 - [ ] Users can sort by popularity, ascending price, descending price, newest, and alphabetically.
-- [ ] Filter or sort changes reset to page 1.
-- [ ] Filters, sort, and page are reflected in the URL and restored by browser navigation.
+- [ ] Filter, search, or sort changes reset to page 1.
+- [ ] Filters, search, sort, and page are reflected in the URL and restored by browser navigation.
 - [ ] Catalog uses infinite scroll with batches of 15 (no numbered pagination UI).
 - [ ] Mobile filters apply only after «Показати N товарів» and the sheet then closes.
 - [ ] Closing the mobile sheet without applying does not change active results.

@@ -9,7 +9,7 @@ public sealed class ProductQuery
     /// <summary>Optional comma-separated category slugs (OR match).</summary>
     public string? Category { get; set; }
 
-    /// <summary>Optional text search (name / short description). Catalog UI does not expose a search field.</summary>
+    /// <summary>Optional text search (UK/EN name, short description, slug).</summary>
     public string? Search { get; set; }
 
     public decimal? MinPrice { get; set; }

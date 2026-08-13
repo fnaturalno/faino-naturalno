@@ -26,8 +26,11 @@ import { ProductService } from '../../services/product.service';
 
 export const CATALOG_PAGE_SIZE = 15;
 
+export const CATALOG_MAX_SEARCH_LENGTH = 100;
+
 const DEFAULT_FILTERS: CatalogFilters = {
   categories: [],
+  search: '',
   minPrice: null,
   maxPrice: null,
   sortBy: 'popular',
@@ -46,6 +49,7 @@ export class CatalogStore {
   private readonly locale = inject(LocaleService);
   private readonly loadRequests = new Subject<{ filters: CatalogFilters; append: boolean }>();
   private readonly priceRequests = new Subject<Pick<CatalogFilters, 'minPrice' | 'maxPrice'>>();
+  private readonly searchRequests = new Subject<string>();
   private readonly previewRequests = new Subject<CatalogFilters>();
   private priceDraft: Pick<CatalogFilters, 'minPrice' | 'maxPrice'> = {
     minPrice: null,
@@ -81,6 +85,7 @@ export class CatalogStore {
   constructor() {
     this.bindProductRequests();
     this.bindPriceRequests();
+    this.bindSearchRequests();
     this.bindPreviewRequests();
     this.bindUrl();
     this.loadCategories();
@@ -105,6 +110,10 @@ export class CatalogStore {
 
   updateSort(sortBy: CatalogSort): void {
     this.navigate({ ...this.filtersState(), sortBy, page: 1 });
+  }
+
+  queueSearch(value: string): void {
+    this.searchRequests.next(normalizeSearch(value));
   }
 
   queuePrice(kind: 'min' | 'max', value: number | null): void {
@@ -170,8 +179,11 @@ export class CatalogStore {
           }
           const requestedSort = params.get('sortBy') as CatalogSort | null;
           const sortBy = requestedSort && SORTS.has(requestedSort) ? requestedSort : 'popular';
+          const rawSearch = params.get('search') ?? '';
+          const search = normalizeSearch(rawSearch);
           const filters: CatalogFilters = {
             categories: [...new Set(categories)],
+            search,
             minPrice,
             maxPrice,
             sortBy,
@@ -181,6 +193,7 @@ export class CatalogStore {
             (params.has('sortBy') &&
               (!requestedSort || !SORTS.has(requestedSort) || sortBy === 'popular')) ||
             params.has('page') ||
+            (params.has('search') && rawSearch !== search) ||
             (params.has('minPrice') && minPrice === null) ||
             (params.has('maxPrice') && maxPrice === null) ||
             (minPrice !== null &&
@@ -259,6 +272,17 @@ export class CatalogStore {
       });
   }
 
+  private bindSearchRequests(): void {
+    this.searchRequests
+      .pipe(debounceTime(350), takeUntilDestroyed(this.destroyRef))
+      .subscribe((search) => {
+        if (search === this.filtersState().search) {
+          return;
+        }
+        this.navigate({ ...this.filtersState(), search, page: 1 });
+      });
+  }
+
   private bindPreviewRequests(): void {
     this.previewRequests
       .pipe(
@@ -309,6 +333,7 @@ export class CatalogStore {
       relativeTo: this.route,
       queryParams: {
         category: filters.categories.length ? filters.categories.join(',') : null,
+        search: filters.search || null,
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
         sortBy: filters.sortBy === 'popular' ? null : filters.sortBy,
@@ -325,4 +350,8 @@ export class CatalogStore {
     const parsed = Number(value);
     return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
   }
+}
+
+function normalizeSearch(value: string): string {
+  return value.trim().slice(0, CATALOG_MAX_SEARCH_LENGTH);
 }

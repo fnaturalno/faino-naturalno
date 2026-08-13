@@ -24,6 +24,9 @@ export class ProductService {
     if (filters.categories.length) {
       params = params.set('category', filters.categories.join(','));
     }
+    if (filters.search.trim()) {
+      params = params.set('search', filters.search.trim());
+    }
     if (filters.minPrice !== null) {
       params = params.set('minPrice', filters.minPrice);
     }

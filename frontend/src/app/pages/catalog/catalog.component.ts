@@ -9,6 +9,7 @@ import {
   computed,
   effect,
   inject,
+  linkedSignal,
   signal,
   viewChild,
 } from '@angular/core';
@@ -93,6 +94,7 @@ export class CatalogComponent {
   protected readonly toast = signal<{ message: string; error: boolean } | null>(null);
   protected readonly cartStatuses = signal<Record<number, 'idle' | 'adding' | 'added'>>({});
   protected readonly skeletons = Array.from({ length: 15 }, (_, index) => index);
+  protected readonly searchDraft = linkedSignal(() => this.store.filters().search);
 
   protected readonly sortOptions: { value: CatalogSort; labelKey: string }[] = [
     { value: 'popular', labelKey: 'catalog.sortPopular' },
@@ -110,7 +112,12 @@ export class CatalogComponent {
 
   protected readonly activeFilterCount = computed(() => {
     const filters = this.store.filters();
-    return filters.categories.length + Number(filters.minPrice !== null) + Number(filters.maxPrice !== null);
+    return (
+      filters.categories.length +
+      Number(!!filters.search) +
+      Number(filters.minPrice !== null) +
+      Number(filters.maxPrice !== null)
+    );
   });
 
   protected toggleAppliedCategory(slug: string): void {
@@ -126,6 +133,16 @@ export class CatalogComponent {
 
   protected updateAppliedPrice(kind: 'min' | 'max', value: string): void {
     this.store.queuePrice(kind, this.toPrice(value));
+  }
+
+  protected updateSearch(value: string): void {
+    this.searchDraft.set(value);
+    this.store.queueSearch(value);
+  }
+
+  protected clearSearch(): void {
+    this.searchDraft.set('');
+    this.store.queueSearch('');
   }
 
   protected openSheet(): void {
@@ -165,6 +182,7 @@ export class CatalogComponent {
   protected resetPending(): void {
     const pending: CatalogFilters = {
       categories: [],
+      search: '',
       minPrice: null,
       maxPrice: null,
       sortBy: 'popular',

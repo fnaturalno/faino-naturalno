@@ -70,6 +70,7 @@ export type CatalogSort = 'popular' | 'price-asc' | 'price-desc' | 'new' | 'name
 
 export interface CatalogFilters {
   categories: string[];
+  search: string;
   minPrice: number | null;
   maxPrice: number | null;
   sortBy: CatalogSort;

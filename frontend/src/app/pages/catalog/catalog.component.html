@@ -167,6 +167,30 @@
 
       <section class="min-w-0 flex-1" aria-labelledby="catalog-heading">
         <h1 id="catalog-heading" class="sr-only">{{ 'catalog.title' | transloco }}</h1>
+        <div class="relative mb-4 sm:mb-5">
+          <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--kraft-500)]">
+            <app-icon name="search" [size]="18" />
+          </span>
+          <input
+            type="search"
+            class="min-h-11 w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white py-2.5 pl-11 pr-11 text-sm text-[var(--espresso-800)] outline-none focus-visible:border-[var(--marigold-400)]"
+            [attr.aria-label]="'catalog.searchAria' | transloco"
+            [placeholder]="'catalog.searchPlaceholder' | transloco"
+            maxlength="100"
+            [value]="searchDraft()"
+            (input)="updateSearch($any($event.target).value)"
+          />
+          @if (searchDraft()) {
+            <button
+              type="button"
+              class="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-[var(--kraft-500)] hover:text-[var(--espresso-800)]"
+              [attr.aria-label]="'catalog.clearSearch' | transloco"
+              (click)="clearSearch()"
+            >
+              ×
+            </button>
+          }
+        </div>
         <div class="mb-4 flex items-center justify-between gap-3 sm:mb-5">
           <p class="m-0 text-sm text-[var(--espresso-700)] sm:text-base" aria-live="polite">
             <strong class="text-[var(--espresso-900)]">{{
