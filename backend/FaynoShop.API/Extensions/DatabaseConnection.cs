@@ -10,10 +10,20 @@ public static class DatabaseConnection
     /// </summary>
     public static string Resolve(IConfiguration configuration, IHostEnvironment environment)
     {
-        var databaseUrl = configuration["DATABASE_URL"];
+        var databaseUrl =
+            FirstNonEmpty(
+                configuration["DATABASE_URL"],
+                configuration["DATABASE_PRIVATE_URL"],
+                configuration["DATABASE_PUBLIC_URL"]);
         if (!string.IsNullOrWhiteSpace(databaseUrl))
         {
             return ToNpgsql(databaseUrl);
+        }
+
+        var fromPgVars = FromPgEnvironment(configuration);
+        if (!string.IsNullOrWhiteSpace(fromPgVars))
+        {
+            return fromPgVars;
         }
 
         var configured = configuration.GetConnectionString("DefaultConnection");
@@ -57,13 +67,40 @@ public static class DatabaseConnection
         return builder.ConnectionString;
     }
 
+    private static string? FromPgEnvironment(IConfiguration configuration)
+    {
+        var host = configuration["PGHOST"];
+        if (string.IsNullOrWhiteSpace(host) || IsLoopbackHost(host))
+        {
+            return null;
+        }
+
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = host,
+            Port = int.TryParse(configuration["PGPORT"], out var port) ? port : 5432,
+            Database = configuration["PGDATABASE"] ?? "railway",
+            Username = configuration["PGUSER"] ?? "postgres",
+            Password = configuration["PGPASSWORD"] ?? string.Empty,
+            SslMode = SslMode.Require,
+            TrustServerCertificate = true,
+        };
+        return builder.ConnectionString;
+    }
+
+    private static string? FirstNonEmpty(params string?[] values) =>
+        values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+
+    private static bool IsLoopbackHost(string host) =>
+        host is "localhost" or "127.0.0.1" or "::1";
+
     private static bool IsLoopback(string connectionString)
     {
         try
         {
             var builder = new NpgsqlConnectionStringBuilder(connectionString);
             var host = builder.Host ?? string.Empty;
-            return host is "localhost" or "127.0.0.1" or "::1";
+            return IsLoopbackHost(host);
         }
         catch (ArgumentException)
         {

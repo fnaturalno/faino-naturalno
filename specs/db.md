@@ -246,6 +246,15 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 
 Details: `specs/features/news.md`.
 
+#### shop_settings
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | int | PK; singleton `1` (not identity) |
+| ukrposhta_free_from_amount | numeric(10,2) | NOT NULL — Ukrposhta free-from threshold (UAH) |
+| updated_at | timestamptz | NOT NULL DEFAULT now() |
+
+Seeded with `id=1`, `ukrposhta_free_from_amount=1300`.
+
 ### Migrations
 
 | Name | Purpose |
@@ -264,6 +273,7 @@ Details: `specs/features/news.md`.
 | `NewsSchema` (`20260808161313_NewsSchema`) | `news_posts` table + indexes (`idx_news_posts_slug`, `idx_news_posts_is_published_published_at`, `idx_news_posts_is_featured`) — see `specs/features/news.md` |
 | `OrderDeliveryMethod` (`20260809102500_OrderDeliveryMethod`) | `orders.delivery_method` varchar(32) NOT NULL default `nova-poshta` — checkout methods: NP / pickup / city |
 | `ProductStrength` (`20260815100000_ProductStrength`) | nullable `products.strength` (int) + CHECK 1–5 |
+| `ShopSettings` (`20260815120000_ShopSettings`) | `shop_settings` singleton + Ukrposhta free-from amount (default 1300) |
 
 ### Connection String
 ```

@@ -99,6 +99,13 @@ See `specs/features/subcategories.md` for hierarchy, counts, and filter expansio
 
 Product for display/joins is derived via Variant.Product.
 
+## ShopSettings
+| Field | Type | Notes |
+|-------|------|-------|
+| Id | int | PK; singleton row id = 1 |
+| UkrposhtaFreeFromAmount | decimal | UAH threshold on Payment & delivery (default 1300) |
+| UpdatedAt | DateTime | |
+
 ## User
 | Field | Type | Notes |
 |-------|------|-------|

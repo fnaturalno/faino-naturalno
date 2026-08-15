@@ -20,16 +20,17 @@
 - Content sections:
   - Intro
   - Delivery: Nova Poshta (branch / locker / courier; 1–2 business days; carrier tariffs)
-  - Delivery: Ukrposhta (post office; 1–2 days; free from 1300 ₴ — details at checkout)
+  - Delivery: Ukrposhta (post office; 1–2 days)
+  - Shared note below both: free delivery from a configurable UAH amount (details at checkout)
   - Payment: bank transfer to FOP details (corporate or buyer request)
 - CTA to catalog.
 
 ### Out of scope
 
 - Changing checkout carriers (Ukrposhta is **informational** on this page only; checkout methods remain NP / pickup / city per `checkout.md`).
-- Automatic free-shipping calculation at 1300 ₴.
+- Automatic free-shipping calculation at checkout.
 - Online payment gateway.
-- CMS / admin-editable copy (v1 = Transloco JSON).
+- CMS for the rest of the page copy (the free-from amount for NP and Ukrposhta is admin-editable).
 
 ## References
 
@@ -49,5 +50,5 @@
 
 - [x] `/ua/payment-delivery` and `/en/payment-delivery` render localized copy.
 - [x] Navbar shows «Оплата і доставка» / «Payment & delivery» with active state on that route.
-- [x] Page documents NP, Ukrposhta (incl. free-from-1300 note), and cashless FOP payment.
+- [x] Page documents NP, Ukrposhta (free-from amount from shop settings), and cashless FOP payment.
 - [x] Does not alter checkout API or place-order delivery methods.

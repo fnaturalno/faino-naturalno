@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<NewsPost> NewsPosts => Set<NewsPost>();
+    public DbSet<ShopSettings> ShopSettings => Set<ShopSettings>();
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

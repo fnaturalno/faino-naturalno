@@ -94,6 +94,9 @@ Every endpoint returns:
 | POST | `/api/admin/news` | Admin | Create news post |
 | PUT | `/api/admin/news/:id` | Admin | Full update news post |
 | DELETE | `/api/admin/news/:id` | Admin | Hard delete news post |
+| GET | `/api/settings` | — | Public shop settings (`ukrposhtaFreeFromAmount`) |
+| GET | `/api/admin/settings` | Admin | Shop settings for edit |
+| PUT | `/api/admin/settings` | Admin | Update shop settings |
 | POST | `/api/admin/uploads/images` | Admin | Upload product/news cover image (multipart `file`) → relative `/uploads/products/...` URL |
 
 Existing auth endpoints reused, not redefined:
@@ -228,13 +231,14 @@ Badge tones follow the design language (e.g. ink / marigold / fresh / sale).
 | `/admin/news` | News posts list (drafts + published) |
 | `/admin/news/new` | Create news post |
 | `/admin/news/:id/edit` | Edit news post |
+| `/admin/settings` | Shop settings (Ukrposhta free-from amount) |
 
 All routes are admin-only. The **admin shell** (sidebar + top bar) is the primary chrome for admin screens, but the **public main navbar** remains visible above it so the admin can navigate to the shop (Каталог, Про нас, Новини, Оплата і доставка, Контакти, Кошик, Профіль) without leaving via «Вихід».
 
 ### 2.2 Shell (desktop)
 
 - Above the admin layout: the shared shop `NavbarComponent` (same as catalog) — including «Адмін» as the active-area entry when already in admin.
-- Left sidebar (~240px), espresso background: logo, nav items «Товари», «Замовлення», «Категорії», «Новини», link «Магазин» → `/catalog`, bottom «Вихід».
+- Left sidebar (~240px), espresso background: logo, nav items «Товари», «Замовлення», «Категорії», «Новини», «Налаштування», link «Магазин» → `/catalog`, bottom «Вихід».
 - Active admin nav item highlighted (marigold) as in the design.
 - Top bar: page title; admin display name + «Адміністратор» + initials avatar.
 - Main content scrolls independently.

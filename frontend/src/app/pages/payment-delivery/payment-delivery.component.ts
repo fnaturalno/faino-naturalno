@@ -1,9 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { catchError, map, of } from 'rxjs';
 
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { LocaleService } from '../../i18n/locale.service';
+import { ShopSettingsService } from '../../services/shop-settings.service';
+
+const DEFAULT_UKR_FREE_FROM = 1300;
 
 @Component({
   selector: 'app-payment-delivery',
@@ -58,9 +63,12 @@ import { LocaleService } from '../../i18n/locale.service';
               <ul class="mt-3 list-none space-y-2 p-0 text-base leading-relaxed sm:text-lg">
                 <li class="m-0">{{ 'paymentDelivery.ukrBody' | transloco }}</li>
                 <li class="m-0">{{ 'paymentDelivery.ukrEta' | transloco }}</li>
-                <li class="m-0">{{ 'paymentDelivery.ukrFree' | transloco }}</li>
               </ul>
             </article>
+
+            <p class="mt-8 text-base leading-relaxed sm:text-lg">
+              {{ 'paymentDelivery.ukrFree' | transloco: { amount: ukrFreeAmount() } }}
+            </p>
           </section>
 
           <section class="mt-14" aria-labelledby="pd-payment-title">
@@ -91,4 +99,19 @@ import { LocaleService } from '../../i18n/locale.service';
 })
 export class PaymentDeliveryComponent {
   protected readonly locale = inject(LocaleService);
+  private readonly settings = inject(ShopSettingsService);
+
+  private readonly ukrFreeFrom = toSignal(
+    this.settings.get().pipe(
+      map((response) =>
+        response.success ? response.data.ukrposhtaFreeFromAmount : DEFAULT_UKR_FREE_FROM,
+      ),
+      catchError(() => of(DEFAULT_UKR_FREE_FROM)),
+    ),
+    { initialValue: DEFAULT_UKR_FREE_FROM },
+  );
+
+  protected readonly ukrFreeAmount = computed(() =>
+    this.locale.formatNumber(this.ukrFreeFrom(), { maximumFractionDigits: 0 }),
+  );
 }

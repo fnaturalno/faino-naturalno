@@ -19,6 +19,7 @@ import {
   AdminNewsPost,
   SaveNewsRequest,
 } from '../models/news.models';
+import { ShopSettings } from '../models/settings.models';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -123,5 +124,13 @@ export class AdminService {
 
   deleteNews(id: number): Observable<ApiResponse<object>> {
     return this.http.delete<ApiResponse<object>>(`${this.apiUrl}/admin/news/${id}`);
+  }
+
+  getSettings(): Observable<ApiResponse<ShopSettings>> {
+    return this.http.get<ApiResponse<ShopSettings>>(`${this.apiUrl}/admin/settings`);
+  }
+
+  updateSettings(payload: ShopSettings): Observable<ApiResponse<ShopSettings>> {
+    return this.http.put<ApiResponse<ShopSettings>>(`${this.apiUrl}/admin/settings`, payload);
   }
 }

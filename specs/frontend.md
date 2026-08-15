@@ -40,6 +40,7 @@
 | `/:locale/admin/news` | AdminNewsComponent | News posts list (drafts + published) |
 | `/:locale/admin/news/new` | AdminNewsFormComponent | Create news post |
 | `/:locale/admin/news/:id/edit` | AdminNewsFormComponent | Edit news post |
+| `/admin/settings` | AdminSettingsComponent | Shop settings (Ukrposhta free-from) |
 
 All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the shared shop navbar for main-menu navigation.
 
@@ -60,7 +61,7 @@ All `/admin/*` routes use `adminGuard` (JWT + `IsAdmin`). Admin shell keeps the 
 - `CartService` — cart CRUD + signal for item count; guest `X-Cart-Session-Id`; rotates session after merge / stale-session recovery
 - `OrderService` — POST /orders, GET /orders/:id
 - `AuthService` — login, register, token management
-- `AdminService` — admin product/category/order/news CRUD + image upload (category create/update includes optional `parentId`)
+- `AdminService` — admin product/category/order/news CRUD + image upload + shop settings
 - `NewsService` — GET /news, /news/:slug (public)
 - `LocaleService` — active locale, route commands, number/price formatting
 

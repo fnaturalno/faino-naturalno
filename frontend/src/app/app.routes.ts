@@ -168,6 +168,13 @@ export const routes: Routes = [
             (module) => module.AdminNewsFormComponent,
           ),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/admin/admin-settings.component').then(
+            (module) => module.AdminSettingsComponent,
+          ),
+      },
     ],
   },
   {

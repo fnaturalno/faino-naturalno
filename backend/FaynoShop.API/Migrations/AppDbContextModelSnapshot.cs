@@ -704,6 +704,28 @@ namespace FaynoShop.API.Migrations
                     b.ToTable("refresh_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("FaynoShop.API.Models.ShopSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("UkrposhtaFreeFromAmount")
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("ukrposhta_free_from_amount");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_shop_settings");
+
+                    b.ToTable("shop_settings", (string)null);
+                });
+
             modelBuilder.Entity("FaynoShop.API.Models.User", b =>
                 {
                     b.Property<int>("Id")

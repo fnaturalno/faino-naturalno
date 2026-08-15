@@ -83,6 +83,15 @@ Hierarchy details: `specs/features/subcategories.md`.
 
 **Admin news payload:** `titleUk` (required), `titleEn?`, `slug?`, `excerptUk?`, `excerptEn?`, `bodyUk`, `bodyEn?`, `coverImageUrl?`, `isPublished`, `isFeatured`, `publishedAt?`.
 
+## Settings
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /settings | — | Public shop settings (`ukrposhtaFreeFromAmount`) |
+| GET | /admin/settings | Admin | Same payload for admin form |
+| PUT | /admin/settings | Admin | Update `ukrposhtaFreeFromAmount` (> 0) |
+
+Default `ukrposhtaFreeFromAmount` is 1300. Shown on Payment & delivery via i18n `{{amount}}`. Checkout does not auto-apply free shipping.
+
 ## Uploads
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
