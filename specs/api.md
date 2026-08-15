@@ -95,7 +95,7 @@ Default `ukrposhtaFreeFromAmount` is 1300. Shown on Payment & delivery via i18n 
 ## Uploads
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| POST | /admin/uploads/images | Admin | Upload image (multipart `file`; JPG/PNG ≤ 5 MB) → `{ url }` under `/uploads/products/...` (also reused for news covers) |
+| POST | /admin/uploads/images | Admin | Upload image (multipart `file`; JPG/PNG ≤ 5 MB) → `{ url }` under `/uploads/products/...webp` (resized max 500×500, WebP q80; also reused for news covers) |
 
 Static files: API serves `/uploads` from `MediaStorage:RootPath` (default `wwwroot/uploads`) so `/uploads/products/{file}` is publicly readable; write only via the Admin upload endpoint. On Railway set `MediaStorage__RootPath` to a persistent volume.
 

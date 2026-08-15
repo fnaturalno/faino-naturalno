@@ -20,10 +20,15 @@ public sealed class MediaUploadService : IMediaUploadService
     };
 
     private readonly string _productsRoot;
+    private readonly IImageCompressionService _compression;
 
-    public MediaUploadService(IWebHostEnvironment environment, IOptions<MediaStorageOptions> options)
+    public MediaUploadService(
+        IWebHostEnvironment environment,
+        IOptions<MediaStorageOptions> options,
+        IImageCompressionService compression)
     {
         _productsRoot = Path.Combine(ResolveUploadsRoot(environment, options.Value), "products");
+        _compression = compression;
     }
 
     public static string ResolveUploadsRoot(IWebHostEnvironment environment, MediaStorageOptions options)
@@ -58,12 +63,19 @@ public sealed class MediaUploadService : IMediaUploadService
 
         Directory.CreateDirectory(_productsRoot);
 
-        var fileName = $"{Guid.NewGuid():N}{extension}";
+        await using var input = file.OpenReadStream();
+        await using var compressed = await _compression.CompressAsync(
+            input,
+            file.FileName is { Length: > 0 } name ? name : $"image{extension}",
+            cancellationToken);
+
+        var storedExtension = ".webp";
+        var fileName = $"{Guid.NewGuid():N}{storedExtension}";
         var fullPath = Path.Combine(_productsRoot, fileName);
 
         await using (var stream = File.Create(fullPath))
         {
-            await file.CopyToAsync(stream, cancellationToken);
+            await compressed.CopyToAsync(stream, cancellationToken);
         }
 
         return $"/uploads/products/{fileName}";

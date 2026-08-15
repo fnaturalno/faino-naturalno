@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INewsService, NewsService>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IShopSettingsService, ShopSettingsService>();
+        services.AddScoped<IImageCompressionService, ImageCompressionService>();
         services.AddScoped<IMediaUploadService, MediaUploadService>();
         services.AddValidatorsFromAssemblyContaining<Program>();
         return services;
