@@ -16,7 +16,7 @@ builder.Services.AddAuthRateLimiting();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options
-        .UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .UseNpgsql(DatabaseConnection.Resolve(builder.Configuration, builder.Environment))
         .UseSnakeCaseNamingConvention());
 
 builder.Services.AddCors(options =>
