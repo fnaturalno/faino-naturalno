@@ -27,6 +27,7 @@ import {
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { ProductStrengthComponent } from '../../components/product-strength/product-strength.component';
 import { LocaleService } from '../../i18n/locale.service';
 import { SeoService } from '../../i18n/seo.service';
 import {
@@ -49,6 +50,7 @@ type CartUiStatus = 'idle' | 'adding' | 'added';
     IconComponent,
     NavbarComponent,
     ProductCardComponent,
+    ProductStrengthComponent,
     RouterLink,
     TranslocoPipe,
   ],

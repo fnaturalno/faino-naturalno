@@ -172,6 +172,7 @@
             >
               {{ detail.name }}
             </h1>
+            <app-product-strength class="mb-3" [value]="detail.strength" [size]="18" />
 
             @if (detail.shortDescription) {
               <p class="mb-3.5 text-[var(--espresso-700)] sm:text-base">

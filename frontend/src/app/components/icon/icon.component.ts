@@ -45,6 +45,7 @@ export type IconName =
       viewBox="0 0 24 24"
       [attr.width]="size()"
       [attr.height]="size()"
+      [attr.fill]="filled() ? 'currentColor' : 'none'"
     >
       @switch (name()) {
         @case ('bag') {
@@ -157,4 +158,5 @@ export type IconName =
 export class IconComponent {
   readonly name = input.required<IconName>();
   readonly size = input(20);
+  readonly filled = input(false);
 }

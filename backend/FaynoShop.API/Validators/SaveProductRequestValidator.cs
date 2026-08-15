@@ -24,6 +24,11 @@ public sealed class SaveProductRequestValidator : AbstractValidator<SaveProductR
         RuleFor(x => x.ImageUrls).Must(urls => urls is null || urls.Count <= 20)
             .WithMessage("Галерея може містити не більше 20 зображень.");
 
+        RuleFor(x => x.Strength)
+            .InclusiveBetween(ProductStrength.Min, ProductStrength.Max)
+            .WithMessage($"Міцність має бути від {ProductStrength.Min} до {ProductStrength.Max}.")
+            .When(x => x.Strength.HasValue);
+
         RuleFor(x => x.Variants)
             .Must(variants => variants is null || variants.Count <= PredefinedWeights.All.Count)
             .WithMessage($"Товар може мати не більше {PredefinedWeights.All.Count} фасувань.");

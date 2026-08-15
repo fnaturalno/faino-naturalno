@@ -44,6 +44,7 @@
 | is_active | bool | NOT NULL DEFAULT true |
 | is_featured | bool | NOT NULL DEFAULT false |
 | is_available | bool | NOT NULL DEFAULT true |
+| strength | int | nullable; 1–5 spice heat; CHECK `ck_products_strength` |
 | category_id | int | FK → categories (ON DELETE RESTRICT) |
 | created_at | timestamptz | NOT NULL DEFAULT now() |
 | updated_at | timestamptz | NOT NULL DEFAULT now() |
@@ -262,6 +263,7 @@ Details: `specs/features/news.md`.
 | `DropVariantOldPrice` | drop `product_variants.old_price` — selling price only; no crossed-out / discount price |
 | `NewsSchema` (`20260808161313_NewsSchema`) | `news_posts` table + indexes (`idx_news_posts_slug`, `idx_news_posts_is_published_published_at`, `idx_news_posts_is_featured`) — see `specs/features/news.md` |
 | `OrderDeliveryMethod` (`20260809102500_OrderDeliveryMethod`) | `orders.delivery_method` varchar(32) NOT NULL default `nova-poshta` — checkout methods: NP / pickup / city |
+| `ProductStrength` (`20260815100000_ProductStrength`) | nullable `products.strength` (int) + CHECK 1–5 |
 
 ### Connection String
 ```

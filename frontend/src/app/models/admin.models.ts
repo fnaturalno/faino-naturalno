@@ -45,6 +45,7 @@ export interface AdminProduct {
   isActive: boolean;
   isFeatured: boolean;
   isAvailable: boolean;
+  strength?: number | null;
 }
 
 export interface AdminProductPage {
@@ -71,6 +72,7 @@ export interface SaveProductRequest {
   isActive: boolean;
   isFeatured: boolean;
   isAvailable: boolean;
+  strength?: number | null;
 }
 
 export interface AdminCategory {

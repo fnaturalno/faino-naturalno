@@ -1,3 +1,4 @@
+using FaynoShop.API.Constants;
 using FaynoShop.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -8,7 +9,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
     {
-        builder.ToTable("products");
+        builder.ToTable("products", t => t.HasCheckConstraint(
+            "ck_products_strength",
+            $"strength IS NULL OR (strength >= {ProductStrength.Min} AND strength <= {ProductStrength.Max})"));
 
         builder.HasKey(p => p.Id);
 
@@ -46,6 +49,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.IsAvailable)
             .IsRequired()
             .HasDefaultValue(true);
+
+        builder.Property(p => p.Strength);
 
         builder.Property(p => p.CreatedAt)
             .HasColumnType("timestamptz")

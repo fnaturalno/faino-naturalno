@@ -28,11 +28,11 @@ Applies to: `GET /products`, `GET /products/:slug`, `GET /categories`, `GET /new
 
 **GET /products query params:** `category` (slug(s); parent slug expands to parent-direct + subcategory products), `search` (matches UK+EN name/short + slug), `minPrice`, `maxPrice`, `page`, `pageSize`, `sortBy`, `includeInactive` (Admin only), `locale`
 
-**Admin product payload:** `nameUk`, `nameEn?`, `shortDescriptionUk?`, `shortDescriptionEn?`, `descriptionUk?`, `descriptionEn?`, images/flags/`categoryId`/`slug?`, plus `variants: [{ weight, weightUnit, price, isActive }]` (only priced rows from the 7 predefined packs). No product-level `price`/`weight`. Empty EN allowed.
+**Admin product payload:** `nameUk`, `nameEn?`, `shortDescriptionUk?`, `shortDescriptionEn?`, `descriptionUk?`, `descriptionEn?`, images/flags/`categoryId`/`slug?`, optional `strength` (1–5 or null), plus `variants: [{ weight, weightUnit, price, isActive }]` (only priced rows from the 7 predefined packs). No product-level `price`/`weight`. Empty EN allowed.
 
-**Public product list/card:** `priceFrom` (MIN active variant price), `cheapestVariantId`, `variants[]` (active, by `sortOrder`) for card weight dropdown. Dropped product-level `price`/`weight`. No `oldPrice` / discount fields — price is always the current selling price. Inclusion (public): `IsActive` + `IsAvailable` + ≥1 active variant. Sort/filter/bounds use MIN(active variant price).
+**Public product list/card:** `priceFrom` (MIN active variant price), `cheapestVariantId`, `variants[]` (active, by `sortOrder`) for card weight dropdown, optional `strength` (1–5). Dropped product-level `price`/`weight`. No `oldPrice` / discount fields — price is always the current selling price. Inclusion (public): `IsActive` + `IsAvailable` + ≥1 active variant. Sort/filter/bounds use MIN(active variant price).
 
-**Public product detail:** `variants: [{ id, weight, weightUnit, price, sortOrder }]` (active only, by `sortOrder`). No product-level price/weight.
+**Public product detail:** `variants: [{ id, weight, weightUnit, price, sortOrder }]` (active only, by `sortOrder`), optional `strength` (1–5). No product-level price/weight.
 
 **Cart POST body:** `{ variantId, quantity? }` only (no `productId`). Lines return `variantId`, weight/unit, live variant price.
 

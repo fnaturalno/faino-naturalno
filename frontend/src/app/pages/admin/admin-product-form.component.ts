@@ -4,6 +4,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
+import { IconComponent } from '../../components/icon/icon.component';
+import { productStrengthColor } from '../../components/product-strength/product-strength.component';
 import {
   AdminProduct,
   SaveProductRequest,
@@ -55,9 +57,14 @@ function mergeVariantsOntoPresets(
   return rows;
 }
 
+function toStrength(value: number | string | null | undefined): number | null {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 5 ? parsed : null;
+}
+
 @Component({
   selector: 'app-admin-product-form',
-  imports: [ReactiveFormsModule, TranslocoPipe],
+  imports: [ReactiveFormsModule, TranslocoPipe, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button type="button" class="mb-5 rounded border border-[#c2ab80] bg-white px-3 py-2 text-sm" (click)="back()">
@@ -235,7 +242,31 @@ function mergeVariantsOntoPresets(
             <label class="flex items-center justify-between font-bold">{{ 'admin.isFeatured' | transloco }} <input formControlName="isFeatured" type="checkbox" class="h-5 w-5 accent-[#5b7a3a]" /></label>
             <p class="mb-4 text-xs text-[#9c8461]">{{ 'admin.isFeaturedHint' | transloco }}</p>
             <label class="flex items-center justify-between font-bold">{{ 'admin.isAvailable' | transloco }} <input formControlName="isAvailable" type="checkbox" class="h-5 w-5 accent-[#5b7a3a]" /></label>
-            <p class="text-xs text-[#9c8461]">{{ 'admin.isAvailableHint' | transloco }}</p>
+            <p class="mb-4 text-xs text-[#9c8461]">{{ 'admin.isAvailableHint' | transloco }}</p>
+            <p class="mb-2 font-bold">{{ 'admin.strength' | transloco }}</p>
+            <p class="mb-2 text-xs text-[#9c8461]">{{ 'admin.strengthHint' | transloco }}</p>
+            <div class="flex flex-wrap items-center gap-1">
+              <button
+                type="button"
+                class="rounded-lg border px-2.5 py-1.5 text-xs font-bold"
+                [class.border-[#5b7a3a]]="form.controls.strength.value === null"
+                [class.bg-[#eef4e8]]="form.controls.strength.value === null"
+                [class.border-[#c2ab80]]="form.controls.strength.value !== null"
+                (click)="form.controls.strength.setValue(null)"
+              >{{ 'admin.strengthNone' | transloco }}</button>
+              @for (level of strengthLevels; track level) {
+                <button
+                  type="button"
+                  class="grid size-9 place-items-center rounded-lg"
+                  [style.color]="flameColor(level)"
+                  [attr.aria-label]="'admin.strengthLevel' | transloco: { value: level }"
+                  [attr.aria-pressed]="form.controls.strength.value === level"
+                  (click)="form.controls.strength.setValue(level)"
+                >
+                  <app-icon name="flame" [size]="20" [filled]="(form.controls.strength.value ?? 0) >= level" />
+                </button>
+              }
+            </div>
           </section>
 
           <div class="flex gap-3">
@@ -269,6 +300,13 @@ export class AdminProductFormComponent {
   readonly descTab = signal<'ua' | 'en'>('ua');
   readonly variantRows = signal<VariantRow[]>(emptyVariantRows());
   readonly variantError = signal<string | null>(null);
+  protected readonly strengthLevels = [1, 2, 3, 4, 5] as const;
+
+  protected flameColor(level: number): string {
+    const strength = this.form.controls.strength.value ?? 0;
+    if (level > strength) return 'var(--kraft-300)';
+    return productStrengthColor(strength);
+  }
   private readonly failedImageUrls = signal(new Set<string>());
   private dragFrom: number | null = null;
 
@@ -283,6 +321,7 @@ export class AdminProductFormComponent {
     isActive: [true],
     isFeatured: [false],
     isAvailable: [true],
+    strength: this.fb.control<number | null>(null),
   });
   readonly slug = () =>
     this.form.controls.nameUk.value
@@ -377,6 +416,7 @@ export class AdminProductFormComponent {
       isActive: product.isActive,
       isFeatured: product.isFeatured,
       isAvailable: product.isAvailable,
+      strength: toStrength(product.strength),
     });
     this.variantRows.set(mergeVariantsOntoPresets(product.variants));
     const urls = product.imageUrls?.length
@@ -512,6 +552,7 @@ export class AdminProductFormComponent {
       isActive: value.isActive,
       isFeatured: value.isFeatured,
       isAvailable: value.isAvailable,
+      strength: toStrength(value.strength),
     };
     const request = this.id ? this.admin.updateProduct(this.id, payload) : this.admin.createProduct(payload);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({

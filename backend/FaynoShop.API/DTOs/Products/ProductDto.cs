@@ -18,4 +18,5 @@ public sealed record ProductDto(
     string CategoryName,
     string CategorySlug,
     bool IsAvailable = true,
-    bool IsActive = true);
+    bool IsActive = true,
+    int? Strength = null);

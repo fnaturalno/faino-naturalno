@@ -66,6 +66,7 @@ public sealed class ProductService : IProductService
                     ? p.Category.NameEn
                     : p.Category.NameUk,
                 CategorySlug = p.Category.Slug,
+                p.Strength,
                 Variants = p.Variants
                     .Where(v => v.IsActive)
                     .OrderBy(v => v.SortOrder)
@@ -109,6 +110,7 @@ public sealed class ProductService : IProductService
             product.CategoryId,
             product.CategoryName,
             product.CategorySlug,
+            product.Strength,
             product.Variants,
             similarProducts);
     }
@@ -198,6 +200,7 @@ public sealed class ProductService : IProductService
                 p.IsActive,
                 p.IsFeatured,
                 p.IsAvailable,
+                p.Strength,
                 p.CreatedAt,
                 p.UpdatedAt,
                 PriceFrom = p.Variants.Where(v => v.IsActive).Min(v => (decimal?)v.Price),
@@ -237,6 +240,7 @@ public sealed class ProductService : IProductService
             product.IsActive,
             product.IsFeatured,
             product.IsAvailable,
+            product.Strength,
             product.CreatedAt,
             product.UpdatedAt,
             product.Variants);
@@ -267,6 +271,7 @@ public sealed class ProductService : IProductService
             IsActive = request.IsActive,
             IsFeatured = request.IsFeatured,
             IsAvailable = request.IsAvailable,
+            Strength = request.Strength,
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -309,6 +314,7 @@ public sealed class ProductService : IProductService
         product.IsActive = request.IsActive;
         product.IsFeatured = request.IsFeatured;
         product.IsAvailable = request.IsAvailable;
+        product.Strength = request.Strength;
         product.UpdatedAt = DateTime.UtcNow;
 
         await SyncVariantsAsync(product, request.Variants, cancellationToken);
@@ -612,7 +618,8 @@ public sealed class ProductService : IProductService
                 : p.Category.NameUk,
             p.Category.Slug,
             p.IsAvailable,
-            p.IsActive));
+            p.IsActive,
+            p.Strength));
     }
 
     private static IQueryable<Product> ApplyFilters(

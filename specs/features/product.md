@@ -93,7 +93,7 @@ No product-level `price` / `weight` — packaging and price come from `variants`
 - Up to 3 catalog-included products from the same category as the current product.
 - The current product is excluded.
 - Ordering follows catalog «popular» semantics (featured products first).
-- Each similar product uses the same card-level fields as the catalog list (`priceFrom`, `cheapestVariantId`, `variants[]`, image, category, created-at for «Новинка»).
+- Each similar product uses the same card-level fields as the catalog list (`priceFrom`, `cheapestVariantId`, `variants[]`, `strength`, image, category, created-at for «Новинка»).
 - The list may contain fewer than 3 items when fewer peers exist; an empty list is allowed.
 
 ### 1.4 Product badges
@@ -154,8 +154,7 @@ Opening `/catalog/:slug` or changing the slug triggers a fresh product detail re
 
 ### 2.5 Product details
 
-- Product name, short description, current price, optional crossed-out old price, and «/ {Weight} {WeightUnit}».
-- Packaging line: «Фасування: {Weight} {WeightUnit}» (same weight fields as the price unit).
+- Product name, optional 1–5 flame strength meter, short description, current price, and variant table / selected pack.
 - Full description under heading «Опис».
 - Static info strip (not from API): «Доставка Новою Поштою» and «100% натуральний склад».
 - Rating, heart/wishlist, and notify controls are not shown in this feature.

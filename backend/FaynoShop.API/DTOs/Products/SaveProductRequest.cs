@@ -14,4 +14,5 @@ public sealed record SaveProductRequest(
     bool IsActive,
     bool IsFeatured,
     bool IsAvailable,
+    int? Strength,
     IReadOnlyList<SaveProductVariantRequest>? Variants);

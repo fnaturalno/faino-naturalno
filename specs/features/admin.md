@@ -134,6 +134,7 @@ Request body fields matching the Product model:
 - `IsActive = true` requires ≥1 priced **and** active variant
 - `imageUrl` (primary) and `imageUrls` (gallery); first / primary is the main catalog image
 - `isActive`, `isFeatured`, `isAvailable`
+- optional `strength` (1–5 or null) — spice heat meter
 - Admin GET returns existing DB variants (incl. inactive) for merging onto the 7 UI rows
 
 Images are uploaded separately before save:
@@ -463,7 +464,7 @@ Matches `design/admin.dc.html` and `specs/features/subcategories.md` §2.3:
 ### Products
 
 - [ ] Admin can list products (including inactive) with search, category **slug** filter (parents + subs), pagination «Показано A–B з N», and numbered page controls.
-- [ ] Admin can create and edit products with bilingual fields, category, images, flags (`isActive`, `isFeatured`, `isAvailable`), and the 7-row variant price editor (no product-level price/oldPrice/weight).
+- [ ] Admin can create and edit products with bilingual fields, category, images, flags (`isActive`, `isFeatured`, `isAvailable`), optional strength 1–5, and the 7-row variant price editor (no product-level price/oldPrice/weight).
 - [ ] Product images are uploaded via `POST /api/admin/uploads/images` (JPG/PNG ≤ 5 MB); gallery supports reorder and remove; first image is primary.
 - [ ] List **switch** toggle updates `isActive` via `PUT /api/products/:id/active` without confirmation; delete requires confirmation (icon trash).
 - [ ] `POST` / `PUT` / `DELETE` `/api/products` (Admin) use the common API envelope; slug uniqueness and validation errors are clear.

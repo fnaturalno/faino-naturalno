@@ -558,6 +558,10 @@ namespace FaynoShop.API.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("slug");
 
+                    b.Property<int?>("Strength")
+                        .HasColumnType("integer")
+                        .HasColumnName("strength");
+
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamptz")
@@ -586,7 +590,10 @@ namespace FaynoShop.API.Migrations
                     b.HasIndex("CategoryId", "IsActive")
                         .HasDatabaseName("idx_products_category_id_is_active");
 
-                    b.ToTable("products", (string)null);
+                    b.ToTable("products", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_products_strength", "strength IS NULL OR (strength >= 1 AND strength <= 5)");
+                        });
                 });
 
             modelBuilder.Entity("FaynoShop.API.Models.ProductVariant", b =>

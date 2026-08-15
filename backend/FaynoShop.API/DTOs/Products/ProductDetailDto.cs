@@ -17,5 +17,6 @@ public sealed record ProductDetailDto(
     int CategoryId,
     string CategoryName,
     string CategorySlug,
+    int? Strength,
     IReadOnlyList<ProductVariantDto> Variants,
     IReadOnlyList<ProductDto> SimilarProducts);

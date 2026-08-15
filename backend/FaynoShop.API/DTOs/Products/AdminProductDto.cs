@@ -18,6 +18,7 @@ public sealed record AdminProductDto(
     bool IsActive,
     bool IsFeatured,
     bool IsAvailable,
+    int? Strength,
     DateTime CreatedAt,
     DateTime UpdatedAt,
     IReadOnlyList<AdminProductVariantDto> Variants);

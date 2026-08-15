@@ -19,6 +19,7 @@ import {
   pickCheapestVariant,
 } from '../../models/catalog.models';
 import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
+import { ProductStrengthComponent } from '../product-strength/product-strength.component';
 
 export type ProductCardAddEvent = {
   productId: number;
@@ -27,7 +28,7 @@ export type ProductCardAddEvent = {
 
 @Component({
   selector: 'app-product-card',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe, ProductStrengthComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'block h-full',
@@ -67,6 +68,7 @@ export type ProductCardAddEvent = {
           [routerLink]="locale.commands('catalog', product().slug)"
           class="line-clamp-2 min-h-[2.4em] font-bold leading-[1.2] text-[var(--espresso-900)] hover:text-[var(--cinnamon-700)] hover:no-underline sm:text-base lg:text-lg"
         >{{ product().name }}</a>
+        <app-product-strength [value]="product().strength" [size]="15" />
         @if (product().shortDescription) {
           <p class="hidden truncate text-sm text-[var(--text-muted)] lg:block">{{ product().shortDescription }}</p>
         }

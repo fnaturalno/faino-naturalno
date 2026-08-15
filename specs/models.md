@@ -16,6 +16,7 @@
 | IsActive | bool | default true |
 | IsFeatured | bool | homepage highlight |
 | IsAvailable | bool | default true; public catalog requires IsActive + IsAvailable + ≥1 active variant |
+| Strength | int? | optional 1–5 spice heat; null = not shown |
 | CategoryId | int | FK → Category |
 | CreatedAt | DateTime | |
 | UpdatedAt | DateTime | |

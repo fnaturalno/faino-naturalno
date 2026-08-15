@@ -17,6 +17,8 @@ public class Product
     /// <summary>When false, product is excluded from public catalog (with IsActive + active variants).</summary>
     public bool IsAvailable { get; set; } = true;
     public int CategoryId { get; set; }
+    /// <summary>Optional spice heat / strength, 1–5. Null = not shown.</summary>
+    public int? Strength { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

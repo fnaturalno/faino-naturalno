@@ -40,6 +40,8 @@ export interface CatalogProduct {
   isFeatured: boolean;
   /** False when the product cannot be added to cart. */
   isAvailable?: boolean;
+  /** Optional spice strength 1–5; omitted/null = hidden. */
+  strength?: number | null;
   createdAt: string;
   categoryId: number;
   categoryName: string;
@@ -59,6 +61,8 @@ export interface ProductDetail {
   isFeatured: boolean;
   /** False when the product cannot be added to cart. */
   isAvailable?: boolean;
+  /** Optional spice strength 1–5; omitted/null = hidden. */
+  strength?: number | null;
   createdAt: string;
   categoryId: number;
   categoryName: string;

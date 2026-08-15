@@ -162,7 +162,7 @@ On success, the response provides enough information to update the cart item-cou
 | Tablet | 3 columns | Collapsible filter bar with category chips and price summary | Simplified card |
 | Mobile | 2 columns | Sticky bottom button opens a bottom sheet | Simplified card |
 
-The full desktop card shows category eyebrow, name, short description, «від» price, optional «Новинка» badge, image, and split «В кошик» (weight dropdown when multiple variants).
+The full desktop card shows category eyebrow, name, optional 1–5 flame strength meter, short description, «від» price, optional «Новинка» badge, image, and split «В кошик» (weight dropdown when multiple variants).
 
 Tablet and mobile cards omit the category eyebrow and short description.
 
@@ -173,6 +173,7 @@ Tablet and mobile cards omit the category eyebrow and short description.
 - Product names occupy at most two lines and are then truncated.
 - Desktop short descriptions occupy one line and end with an ellipsis when necessary.
 - Price shows Transloco «від {{priceFrom}} ₴» / «from {{priceFrom}} ₴»; no crossed-out old price; no per-card weight line.
+- Optional `strength` (1–5) shows five flame icons; filled color is garden (1–2), marigold (3–4), or chili (5); empty = gray. Hidden when null.
 - Hover-capable devices show the designed card lift, stronger shadow, and button emphasis.
 - The card links to `/catalog/:slug`; «В кошик» performs only the cart action (cheapest or dropdown-selected variant).
 
