@@ -31,10 +31,8 @@ export class SeoService {
     const canonical = `${origin}/${current}${suffix}`;
     const brand = this.i18n.translate('brand');
     const title = pageTitle?.trim() || brand;
-    const description = (page?.description?.trim() || this.i18n.translate('seo.description')).slice(
-      0,
-      320,
-    );
+    const fallbackDescription = this.i18n.translate('seo.description') ?? '';
+    const description = (page?.description?.trim() || fallbackDescription).slice(0, 320);
     const image = this.absoluteImageUrl(page?.imageUrl, origin);
 
     this.document.documentElement.lang = hreflangFor(current);
