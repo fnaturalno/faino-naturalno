@@ -36,4 +36,33 @@ public sealed class UploadsController : ControllerBase
         var url = await _uploads.SaveProductImageAsync(file, cancellationToken);
         return Ok(ApiResponse<UploadedImageDto>.Ok(new UploadedImageDto(url)));
     }
+
+    [HttpGet("uncompressed")]
+    [ProducesResponseType(typeof(ApiResponse<List<string>>), StatusCodes.Status200OK)]
+    public ActionResult<ApiResponse<List<string>>> ListUncompressed()
+    {
+        var files = _uploads.ListUncompressedProductImages().ToList();
+        return Ok(ApiResponse<List<string>>.Ok(files));
+    }
+
+    [HttpPost("compress/{*fileName}")]
+    [ProducesResponseType(typeof(ApiResponse<CompressImageResultDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<CompressImageResultDto>>> CompressOne(
+        string fileName,
+        CancellationToken cancellationToken)
+    {
+        var result = await _uploads.CompressExistingProductImageAsync(fileName, cancellationToken);
+        return Ok(ApiResponse<CompressImageResultDto>.Ok(result));
+    }
+
+    [HttpPost("compress-all")]
+    [ProducesResponseType(typeof(ApiResponse<CompressAllImagesResultDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<CompressAllImagesResultDto>>> CompressAll(
+        CancellationToken cancellationToken)
+    {
+        var result = await _uploads.CompressAllUncompressedProductImagesAsync(cancellationToken);
+        return Ok(ApiResponse<CompressAllImagesResultDto>.Ok(result));
+    }
 }
