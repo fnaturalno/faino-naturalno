@@ -28,21 +28,7 @@ import { orderStatusLabel, orderStatusTone } from '../auth/auth.helpers';
   imports: [DecimalPipe, IconComponent, NavbarComponent, RouterLink, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './order-confirm.component.html',
-  styles: `
-    @keyframes fnConfirmPulse {
-      0%,
-      100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.45;
-      }
-    }
-    .fn-oc-sk {
-      background: var(--kraft-200);
-      animation: fnConfirmPulse 1.3s ease-in-out infinite;
-    }
-  `,
+  styleUrl: './order-confirm.component.css',
 })
 export class OrderConfirmComponent {
   /** Route param `:id` (string from router). */

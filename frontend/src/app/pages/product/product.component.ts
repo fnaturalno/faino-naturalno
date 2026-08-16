@@ -56,35 +56,7 @@ type CartUiStatus = 'idle' | 'adding' | 'added';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product.component.html',
-  styles: `
-    @keyframes fnPulse {
-      0%,
-      100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.45;
-      }
-    }
-    @keyframes fnToastIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .fn-sk {
-      background: var(--kraft-200);
-      border-radius: var(--radius-sm);
-      animation: fnPulse 1.3s ease-in-out infinite;
-    }
-    .fn-toast-in {
-      animation: fnToastIn 0.22s ease-out;
-    }
-  `,
+  styleUrl: './product.component.css',
 })
 export class ProductComponent {
   private readonly route = inject(ActivatedRoute);

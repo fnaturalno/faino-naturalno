@@ -1,0 +1,134 @@
+
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <p class="m-0 text-sm text-[var(--espresso-700)]">
+        @if (!loading() && !error()) {
+          <span>{{
+            'admin.shownRange'
+              | transloco: { first: first(), last: last(), total: page().totalCount }
+          }}</span>
+        }
+      </p>
+      <a
+        routerLink="/admin/news/new"
+        class="rounded-[10px] bg-[var(--marigold-400)] px-4 py-2.5 font-bold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
+      >
+        {{ 'admin.newsAdd' | transloco }}
+      </a>
+    </div>
+
+    @if (error()) {
+      <div class="rounded-[10px] border border-[var(--chili-500)] bg-[var(--chili-100)] p-4 text-[var(--espresso-800)]">
+        {{ error() }}
+        <button type="button" class="ml-2 underline" (click)="load()">{{ 'common.retry' | transloco }}</button>
+      </div>
+    } @else if (loading()) {
+      <div class="h-72 animate-pulse rounded-[14px] bg-[var(--kraft-100)]"></div>
+    } @else if (!posts().length) {
+      <div class="rounded-[14px] border border-[var(--border-subtle)] bg-white p-10 text-center shadow-sm">
+        <p class="mb-4 text-[var(--espresso-700)]">{{ 'admin.newsEmpty' | transloco }}</p>
+        <a routerLink="/admin/news/new" class="font-bold text-[var(--cinnamon-700)] underline">{{
+          'admin.newsAdd' | transloco
+        }}</a>
+      </div>
+    } @else {
+      <div
+        class="overflow-hidden rounded-[14px] border border-[var(--border-subtle)] bg-white shadow-[0_1px_2px_rgba(42,26,13,0.04)]"
+      >
+        <div
+          class="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_110px_140px_90px_100px] gap-3 border-b border-[var(--border-subtle)] bg-[var(--kraft-100)] px-5 py-3.5 lg:grid"
+        >
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.newsColTitle' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colSlug' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colStatus' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.newsColPublished' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.newsColFeatured' | transloco }}</span>
+          <span class="fn-eyebrow text-right text-[10px]">{{ 'admin.colActions' | transloco }}</span>
+        </div>
+
+        @for (post of posts(); track post.id) {
+          <div
+            class="ad-row grid grid-cols-1 gap-2 border-b border-[var(--border-subtle)] px-4 py-3.5 sm:gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_110px_140px_90px_100px] lg:items-center lg:px-5"
+          >
+            <div class="min-w-0">
+              <span class="truncate text-sm font-bold text-[var(--espresso-900)]" [title]="post.titleUk">{{
+                post.titleUk
+              }}</span>
+            </div>
+            <span class="truncate text-sm text-[var(--text-muted)]" [title]="post.slug">/{{ post.slug }}</span>
+            <span
+              class="inline-flex w-fit rounded-full px-2.5 py-0.5 text-xs font-bold"
+              [class.bg-[var(--garden-100,#e8f0dc)]]="post.isPublished"
+              [class.text-[var(--garden-700,#3d5a1f)]]="post.isPublished"
+              [class.bg-[var(--kraft-100)]]="!post.isPublished"
+              [class.text-[var(--kraft-500)]]="!post.isPublished"
+            >
+              {{
+                post.isPublished
+                  ? ('admin.newsStatusPublished' | transloco)
+                  : ('admin.newsStatusDraft' | transloco)
+              }}
+            </span>
+            <span class="text-sm text-[var(--espresso-700)]">
+              {{ post.publishedAt ? formatDate(post.publishedAt) : '—' }}
+            </span>
+            <span class="text-sm font-semibold">
+              {{ post.isFeatured ? ('common.yes' | transloco) : ('common.no' | transloco) }}
+            </span>
+            <div class="flex justify-end gap-2">
+              <a
+                class="ad-act"
+                [routerLink]="['/admin/news', post.id, 'edit']"
+                [attr.aria-label]="'admin.editAria' | transloco: { name: post.titleUk }"
+              >
+                <app-icon name="pencil" [size]="15" />
+              </a>
+              <button
+                type="button"
+                class="ad-act danger"
+                [attr.aria-label]="'admin.deleteAria' | transloco: { name: post.titleUk }"
+                (click)="remove(post)"
+              >
+                <app-icon name="trash" [size]="15" />
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (page().totalPages > 1) {
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            class="rounded-lg border border-[var(--border-subtle)] bg-white px-3 py-2 text-sm font-semibold disabled:opacity-40"
+            [disabled]="page().page <= 1"
+            (click)="goToPage(page().page - 1)"
+          >
+            ←
+          </button>
+          @for (n of pageNumbers(); track n) {
+            <button
+              type="button"
+              class="min-w-9 rounded-lg border px-3 py-2 text-sm font-semibold"
+              [class.border-[var(--espresso-800)]]="n === page().page"
+              [class.bg-[var(--espresso-800)]]="n === page().page"
+              [class.text-[var(--kraft-50)]]="n === page().page"
+              [class.border-[var(--border-subtle)]]="n !== page().page"
+              [class.bg-white]="n !== page().page"
+              [class.text-[var(--espresso-800)]]="n !== page().page"
+              (click)="goToPage(n)"
+            >
+              {{ n }}
+            </button>
+          }
+          <button
+            type="button"
+            class="rounded-lg border border-[var(--border-subtle)] bg-white px-3 py-2 text-sm font-semibold disabled:opacity-40"
+            [disabled]="page().page >= page().totalPages"
+            (click)="goToPage(page().page + 1)"
+          >
+            →
+          </button>
+        </div>
+      }
+    }
+  

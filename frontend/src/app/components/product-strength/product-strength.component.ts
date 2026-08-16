@@ -17,24 +17,8 @@ export function productStrengthColor(strength: number): string {
   imports: [IconComponent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex' },
-  template: `
-    @if (shown(); as strength) {
-      <div
-        class="inline-flex items-center gap-0.5"
-        role="img"
-        [attr.aria-label]="'product.strengthAria' | transloco: { value: strength }"
-      >
-        @for (level of levels; track level) {
-          <span
-            class="inline-flex"
-            [style.color]="level <= strength ? tone() : 'var(--kraft-300)'"
-          >
-            <app-icon name="flame" [size]="size()" [filled]="level <= strength" />
-          </span>
-        }
-      </div>
-    }
-  `,
+  templateUrl: './product-strength.component.html',
+  styleUrl: './product-strength.component.css',
 })
 export class ProductStrengthComponent {
   readonly value = input<number | null | undefined>(null);

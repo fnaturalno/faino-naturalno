@@ -1,0 +1,26 @@
+
+    .ad-act {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border-subtle);
+      background: white;
+      color: var(--espresso-700);
+      transition:
+        border-color 0.15s ease,
+        color 0.15s ease;
+    }
+    .ad-act:hover {
+      border-color: var(--border-strong);
+    }
+    .ad-act.danger:hover {
+      color: var(--chili-500);
+      border-color: var(--chili-500);
+    }
+    .ad-row:hover {
+      background: var(--kraft-100);
+    }
+  

@@ -28,6 +28,7 @@ You are a senior Angular 22 engineer working on Файно натурально 
 - Use `inject()` instead of constructor injection
 - HTTP via typed `HttpClient` with interfaces matching backend DTOs
 - Tailwind CSS utility classes for styling — no custom CSS unless unavoidable
+- Templates and styles in separate files: `templateUrl` + `styleUrl` (`*.component.html` / `*.component.css`). Never inline `template:` or `styles:`
 - Lazy-load all page routes
 
 ## Output

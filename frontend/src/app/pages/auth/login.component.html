@@ -1,0 +1,84 @@
+
+    <app-navbar />
+    <main class="flex min-h-[calc(100vh-60px)] items-start justify-center bg-[var(--bg-page)] px-4 py-10 sm:py-14">
+      <div [class]="cardClasses">
+        <div class="flex flex-col items-center text-center">
+          <a [routerLink]="locale.commands('catalog')" [attr.aria-label]="'brand' | transloco">
+            <img src="/logo.png" [alt]="'brand' | transloco" class="mb-5 h-14 w-auto sm:mb-6 sm:h-16" />
+          </a>
+          <h1 class="mb-1.5 text-xl sm:text-2xl">{{ 'auth.welcomeBack' | transloco }}</h1>
+          <p class="mb-7 text-[var(--espresso-700)] sm:mb-8">{{ 'auth.loginLead' | transloco }}</p>
+        </div>
+
+        <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
+          @if (formError()) {
+            <p role="alert" [class]="errorClasses">{{ formError() }}</p>
+          }
+
+          <div>
+            <label for="login-email" [class]="labelClasses">{{ 'auth.email' | transloco }}</label>
+            <input
+              id="login-email"
+              type="email"
+              autocomplete="email"
+              formControlName="email"
+              placeholder="olena@example.com"
+              [class]="fieldClasses"
+            />
+            @if (showError('email')) {
+              <p [class]="errorClasses">{{ 'auth.invalidEmail' | transloco }}</p>
+            }
+          </div>
+
+          <div>
+            <div class="mb-1.5 flex items-center justify-between gap-3">
+              <label for="login-password" [class]="labelClasses + ' !mb-0'">{{ 'auth.password' | transloco }}</label>
+              <a [routerLink]="locale.commands('auth', 'forgot-password')" [class]="linkClasses + ' text-sm'">{{
+                'auth.forgotLink' | transloco
+              }}</a>
+            </div>
+            <input
+              id="login-password"
+              type="password"
+              autocomplete="current-password"
+              formControlName="password"
+              placeholder="••••••••"
+              [class]="fieldClasses"
+            />
+            @if (showError('password')) {
+              <p [class]="errorClasses">{{ 'auth.enterPassword' | transloco }}</p>
+            }
+          </div>
+
+          <button type="submit" [class]="primaryBtn" [disabled]="submitting()">
+            @if (submitting()) {
+              <span
+                class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent"
+                aria-hidden="true"
+              ></span>
+              {{ 'common.wait' | transloco }}
+            } @else {
+              {{ 'auth.loginSubmit' | transloco }}
+            }
+          </button>
+        </form>
+
+        <div class="my-6 flex items-center gap-3.5">
+          <span class="h-px flex-1 bg-[var(--border-subtle)]"></span>
+          <span class="text-sm text-[var(--text-muted)]">{{ 'common.or' | transloco }}</span>
+          <span class="h-px flex-1 bg-[var(--border-subtle)]"></span>
+        </div>
+
+        <p class="text-center text-[var(--espresso-700)]">
+          {{ 'auth.noAccountQ' | transloco }}
+          <a
+            [routerLink]="locale.commands('auth', 'register')"
+            [queryParams]="registerLinkQuery()"
+            [class]="linkClasses"
+            >{{ 'auth.registerCta' | transloco }}</a
+          >
+        </p>
+      </div>
+    </main>
+    <app-toast-host />
+  

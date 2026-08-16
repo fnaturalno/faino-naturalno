@@ -70,6 +70,7 @@ function passwordsDiffer(group: AbstractControl): ValidationErrors | null {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html',
+  styleUrl: './profile.component.css',
 })
 export class ProfileComponent {
   private readonly fb = inject(FormBuilder);

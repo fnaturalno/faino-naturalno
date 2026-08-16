@@ -1,0 +1,15 @@
+
+    <div
+      class="fn-test-banner h-8 overflow-hidden border-b border-[var(--marigold-600)] bg-[var(--marigold-400)] text-[var(--espresso-900)]"
+      [attr.aria-label]="'common.testMode' | transloco"
+    >
+      <div class="fn-test-banner__track flex h-full w-max items-center whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.14em] sm:text-xs">
+        @for (i of copies; track i) {
+          <span class="inline-flex items-center gap-3 px-4">
+            <span aria-hidden="true">●</span>
+            {{ 'common.testMode' | transloco }}
+          </span>
+        }
+      </div>
+    </div>
+  

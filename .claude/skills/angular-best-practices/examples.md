@@ -72,6 +72,33 @@ private router = inject(Router);
 
 ---
 
+## Separate Template and Style Files
+
+```ts
+// BAD: inline template and styles
+@Component({
+  selector: 'app-product-card',
+  template: `<h2>{{ name() }}</h2>`,
+  styles: `:host { display: block; }`,
+})
+export class ProductCardComponent {}
+
+// GOOD: sibling files
+@Component({
+  selector: 'app-product-card',
+  templateUrl: './product-card.component.html',
+  styleUrl: './product-card.component.css',
+})
+export class ProductCardComponent {}
+```
+
+```html
+<!-- product-card.component.html -->
+<h2>{{ name() }}</h2>
+```
+
+---
+
 ## Smart / Dumb Split
 
 ```ts
@@ -84,17 +111,10 @@ export class CatalogComponent {
   }
 }
 
-// GOOD: Smart container with signal
+// GOOD: Smart container with signal + external template
 @Component({
-  template: `
-    @if (products().length) {
-      @for (p of products(); track p.id) {
-        <product-card [product]="p" />
-      }
-    } @else {
-      <empty-state />
-    }
-  `
+  templateUrl: './catalog.component.html',
+  styleUrl: './catalog.component.css',
 })
 export class CatalogComponent {
   private productService = inject(ProductService);

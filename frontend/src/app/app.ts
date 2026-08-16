@@ -10,12 +10,8 @@ import { CartService } from './services/cart.service';
   selector: 'app-root',
   imports: [RouterOutlet, CartDrawerComponent, ToastHostComponent, TestModeBannerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <app-test-mode-banner />
-    <router-outlet />
-    <app-cart-drawer />
-    <app-toast-host />
-  `,
+  templateUrl: './app.html',
+  styleUrl: './app.css',
 })
 export class App {
   constructor() {

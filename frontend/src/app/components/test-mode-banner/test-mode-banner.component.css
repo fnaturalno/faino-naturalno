@@ -1,0 +1,22 @@
+
+    .fn-test-banner__track {
+      animation: fn-test-marquee 28s linear infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fn-test-banner__track {
+        animation: none;
+        justify-content: center;
+        width: 100%;
+      }
+    }
+
+    @keyframes fn-test-marquee {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(-50%);
+      }
+    }
+  

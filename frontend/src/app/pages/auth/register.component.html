@@ -1,0 +1,76 @@
+
+    <app-navbar />
+    <main class="flex min-h-[calc(100vh-60px)] items-start justify-center bg-[var(--bg-page)] px-4 py-10 sm:py-14">
+      <div [class]="cardClasses">
+        <div class="flex flex-col items-center text-center">
+          <a [routerLink]="locale.commands('catalog')" [attr.aria-label]="'brand' | transloco">
+            <img src="/logo.png" [alt]="'brand' | transloco" class="mb-5 h-14 w-auto sm:mb-6 sm:h-16" />
+          </a>
+          <h1 class="mb-1.5 text-xl sm:text-2xl">{{ 'auth.joinTitle' | transloco }}</h1>
+          <p class="mb-7 text-[var(--espresso-700)] sm:mb-8">{{ 'auth.joinLead' | transloco }}</p>
+        </div>
+
+        <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
+          @if (formError()) {
+            <p role="alert" [class]="errorClasses">{{ formError() }}</p>
+          }
+
+          <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            <div>
+              <label for="reg-first" [class]="labelClasses">{{ 'auth.firstName' | transloco }}</label>
+              <input id="reg-first" type="text" autocomplete="given-name" formControlName="firstName" [placeholder]="'auth.firstNamePh' | transloco" [class]="fieldClasses" />
+              @if (showError('firstName')) {
+                <p [class]="errorClasses">{{ 'auth.reqFirstName' | transloco }}</p>
+              }
+            </div>
+            <div>
+              <label for="reg-last" [class]="labelClasses">{{ 'auth.lastName' | transloco }}</label>
+              <input id="reg-last" type="text" autocomplete="family-name" formControlName="lastName" [placeholder]="'auth.lastNamePh' | transloco" [class]="fieldClasses" />
+              @if (showError('lastName')) {
+                <p [class]="errorClasses">{{ 'auth.reqLastName' | transloco }}</p>
+              }
+            </div>
+          </div>
+
+          <div>
+            <label for="reg-email" [class]="labelClasses">{{ 'auth.email' | transloco }}</label>
+            <input id="reg-email" type="email" autocomplete="email" formControlName="email" placeholder="olena@example.com" [class]="fieldClasses" />
+            @if (showError('email')) {
+              <p [class]="errorClasses">{{ emailError() }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="reg-password" [class]="labelClasses">{{ 'auth.password' | transloco }}</label>
+            <input id="reg-password" type="password" autocomplete="new-password" formControlName="password" [placeholder]="'auth.passwordPlaceholder' | transloco" [class]="fieldClasses" />
+            @if (showError('password')) {
+              <p [class]="errorClasses">{{ 'auth.passwordMin8' | transloco }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="reg-confirm" [class]="labelClasses">{{ 'auth.confirmPasswordLabel' | transloco }}</label>
+            <input id="reg-confirm" type="password" autocomplete="new-password" formControlName="confirmPassword" placeholder="••••••••" [class]="fieldClasses" />
+            @if (form.hasError('passwordMismatch') && (form.controls.confirmPassword.dirty || form.controls.confirmPassword.touched)) {
+              <p [class]="errorClasses">{{ 'auth.passwordMismatch' | transloco }}</p>
+            }
+          </div>
+
+          <button type="submit" [class]="primaryBtn" [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="inline-block size-5 animate-spin rounded-full border-2 border-[var(--espresso-900)] border-t-transparent" aria-hidden="true"></span>
+              {{ 'common.wait' | transloco }}
+            } @else {
+              {{ 'auth.registerCta' | transloco }}
+            }
+          </button>
+        </form>
+
+        <p class="mt-6 text-center text-[var(--espresso-700)]">
+          {{ 'auth.hasAccountQ' | transloco }}
+          <a [routerLink]="locale.commands('auth', 'login')" [queryParams]="loginLinkQuery()" [class]="linkClasses">{{ 'auth.toLogin' | transloco }}</a>
+        </p>
+      </div>
+    </main>
+    <app-toast-host />
+  

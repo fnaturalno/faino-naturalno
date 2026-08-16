@@ -1,0 +1,311 @@
+
+    <div class="mb-5 flex flex-wrap items-center gap-3">
+      <div class="relative min-w-[200px] max-w-[340px] flex-1">
+        <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--kraft-500)]">
+          <app-icon name="search" [size]="16" />
+        </span>
+        <input
+          type="search"
+          class="w-full rounded-[10px] border border-[var(--border-strong)] bg-white py-2.5 pl-10 pr-3.5 text-sm text-[var(--espresso-800)] outline-none focus:border-[var(--marigold-500)]"
+          [placeholder]="'admin.searchProduct' | transloco"
+          [value]="search()"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </div>
+
+      <div class="relative">
+        <select
+          class="appearance-none rounded-[10px] border border-[var(--border-strong)] bg-white py-2.5 pl-3.5 pr-9 text-sm font-semibold text-[var(--espresso-800)] outline-none focus:border-[var(--marigold-500)]"
+          [value]="category()"
+          (change)="category.set($any($event.target).value); reload()"
+        >
+          <option value="">{{ 'common.allCategories' | transloco }}</option>
+          @for (item of categories(); track item.id) {
+            <option [value]="item.slug">{{ item.name }}</option>
+            @for (child of item.children; track child.id) {
+              <option [value]="child.slug">↳ {{ child.name }}</option>
+            }
+          }
+        </select>
+        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--espresso-700)]">
+          <app-icon name="chevron-down" [size]="15" />
+        </span>
+      </div>
+
+      <a
+        routerLink="/admin/products/new"
+        class="ml-auto rounded-[10px] bg-[var(--marigold-400)] px-4 py-2.5 font-bold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
+      >
+        {{ 'admin.addProduct' | transloco }}
+      </a>
+    </div>
+
+    @if (error()) {
+      <div class="rounded-[10px] border border-[var(--chili-500)] bg-[var(--chili-100)] p-4 text-[var(--espresso-800)]">
+        {{ error() }}
+        <button type="button" class="ml-2 underline" (click)="load()">{{ 'common.retry' | transloco }}</button>
+      </div>
+    } @else if (loading()) {
+      <div class="h-72 animate-pulse rounded-[14px] bg-[var(--kraft-100)]"></div>
+    } @else if (products().length === 0) {
+      <div class="rounded-[14px] border border-[var(--border-subtle)] bg-white p-10 text-center shadow-sm">
+        {{ 'admin.emptyProductsFound' | transloco }}
+        <a routerLink="/admin/products/new" class="font-bold text-[var(--cinnamon-700)] underline">{{ 'admin.addProductLink' | transloco }}</a>
+      </div>
+    } @else {
+      <!-- Desktop / tablet table -->
+      <div
+        class="hidden overflow-hidden rounded-[14px] border border-[var(--border-subtle)] bg-white shadow-[0_1px_2px_rgba(42,26,13,0.04)] md:block"
+      >
+        <div
+          class="grid gap-3 border-b border-[var(--border-subtle)] bg-[var(--kraft-100)] px-5 py-3.5"
+          [style.grid-template-columns]="tableCols"
+        >
+          <span class="fn-eyebrow text-[10px]"></span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colName' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colCategory' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colPrice' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colStatus' | transloco }}</span>
+          <span class="fn-eyebrow text-[10px]">{{ 'admin.colAvailable' | transloco }}</span>
+          <span class="fn-eyebrow text-right text-[10px]">{{ 'admin.colActions' | transloco }}</span>
+        </div>
+
+        @for (product of products(); track product.id) {
+          <div
+            class="ad-row grid min-h-14 items-center gap-3 border-b border-[var(--border-subtle)] bg-white px-5 py-3 last:border-0"
+            [style.grid-template-columns]="tableCols"
+          >
+            <div
+              class="grid size-12 place-items-center overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--kraft-100)] text-[10px] text-[var(--kraft-400)]"
+            >
+              @if (thumbUrl(product); as src) {
+                <img
+                  [src]="src"
+                  [alt]="product.name"
+                  class="h-full w-full object-cover"
+                  (error)="markImageFailed(product.id)"
+                />
+              } @else {
+                {{ 'common.photo' | transloco }}
+              }
+            </div>
+
+            <div class="min-w-0">
+              <p class="truncate text-sm font-bold leading-tight text-[var(--espresso-900)]" [title]="product.name">
+                {{ product.name }}
+              </p>
+              <p class="truncate text-xs text-[var(--text-muted)]" [title]="product.slug">{{ product.slug }}</p>
+            </div>
+
+            <span class="truncate text-sm text-[var(--espresso-700)]" [title]="product.categoryName">{{
+              product.categoryName
+            }}</span>
+            <span class="text-base font-bold text-[var(--espresso-900)]">
+              @if (product.priceFrom != null) {
+                {{ product.priceFrom }} ₴
+              } @else {
+                {{ 'admin.priceFromEmpty' | transloco }}
+              }
+            </span>
+
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 justify-self-start bg-transparent p-0"
+              [attr.aria-label]="'admin.toggleActiveAria' | transloco: { name: product.name }"
+              [disabled]="togglingId() === product.id"
+              (click)="toggleActive(product)"
+            >
+              <span
+                class="relative h-[22px] w-[38px] shrink-0 rounded-full transition-colors"
+                [class.bg-[var(--garden-500)]]="product.isActive"
+                [class.bg-[var(--kraft-300)]]="!product.isActive"
+              >
+                <span
+                  class="absolute top-0.5 size-[18px] rounded-full bg-white shadow transition-[left] duration-150"
+                  [style.left.px]="product.isActive ? 18 : 2"
+                ></span>
+              </span>
+              <span
+                class="text-xs font-semibold"
+                [class.text-[var(--garden-700)]]="product.isActive"
+                [class.text-[var(--text-muted)]]="!product.isActive"
+              >
+                {{ product.isActive ? ('common.active' | transloco) : ('common.hidden' | transloco) }}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 justify-self-start bg-transparent p-0"
+              [attr.aria-label]="'admin.toggleAvailableAria' | transloco: { name: product.name }"
+              [disabled]="togglingId() === product.id"
+              (click)="toggleAvailable(product)"
+            >
+              <span
+                class="relative h-[22px] w-[38px] shrink-0 rounded-full transition-colors"
+                [class.bg-[var(--marigold-500)]]="product.isAvailable !== false"
+                [class.bg-[var(--kraft-300)]]="product.isAvailable === false"
+              >
+                <span
+                  class="absolute top-0.5 size-[18px] rounded-full bg-white shadow transition-[left] duration-150"
+                  [style.left.px]="product.isAvailable !== false ? 18 : 2"
+                ></span>
+              </span>
+              <span
+                class="text-xs font-semibold"
+                [class.text-[var(--marigold-600)]]="product.isAvailable !== false"
+                [class.text-[var(--text-muted)]]="product.isAvailable === false"
+              >
+                {{ product.isAvailable !== false ? ('common.yes' | transloco) : ('common.no' | transloco) }}
+              </span>
+            </button>
+
+            <div class="flex justify-end gap-2">
+              <a
+                [routerLink]="['/admin/products', product.id, 'edit']"
+                class="ad-act"
+                [attr.aria-label]="'admin.editAria' | transloco: { name: product.name }"
+              >
+                <app-icon name="pencil" [size]="15" />
+              </a>
+              <button
+                type="button"
+                class="ad-act danger"
+                [attr.aria-label]="'admin.deleteAria' | transloco: { name: product.name }"
+                (click)="delete(product)"
+              >
+                <app-icon name="trash" [size]="15" />
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Mobile cards -->
+      <div class="flex flex-col gap-2.5 md:hidden">
+        @for (product of products(); track product.id) {
+          <article
+            class="flex items-center gap-3 rounded-[10px] border border-[var(--border-subtle)] bg-white p-3 shadow-sm"
+          >
+            <div
+              class="grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--kraft-100)] text-[10px] text-[var(--kraft-400)]"
+            >
+              @if (thumbUrl(product); as src) {
+                <img
+                  [src]="src"
+                  [alt]="product.name"
+                  class="h-full w-full object-cover"
+                  (error)="markImageFailed(product.id)"
+                />
+              } @else {
+                {{ 'common.photo' | transloco }}
+              }
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-bold text-[var(--espresso-900)]">{{ product.name }}</p>
+              <p class="text-xs text-[var(--text-muted)]">
+                {{ product.categoryName }} ·
+                @if (product.priceFrom != null) {
+                  {{ product.priceFrom }} ₴
+                } @else {
+                  {{ 'admin.priceFromEmpty' | transloco }}
+                }
+              </p>
+            </div>
+            <button
+              type="button"
+              class="shrink-0"
+              [attr.aria-label]="'admin.toggleActiveAria' | transloco: { name: product.name }"
+              [disabled]="togglingId() === product.id"
+              (click)="toggleActive(product)"
+            >
+              <span
+                class="relative block h-5 w-[34px] rounded-full"
+                [class.bg-[var(--garden-500)]]="product.isActive"
+                [class.bg-[var(--kraft-300)]]="!product.isActive"
+              >
+                <span
+                  class="absolute top-0.5 size-4 rounded-full bg-white shadow transition-[left] duration-150"
+                  [style.left.px]="product.isActive ? 16 : 2"
+                ></span>
+              </span>
+            </button>
+            <button
+              type="button"
+              class="shrink-0"
+              [attr.aria-label]="'admin.toggleAvailableAria' | transloco: { name: product.name }"
+              [disabled]="togglingId() === product.id"
+              (click)="toggleAvailable(product)"
+            >
+              <span
+                class="relative block h-5 w-[34px] rounded-full"
+                [class.bg-[var(--marigold-500)]]="product.isAvailable !== false"
+                [class.bg-[var(--kraft-300)]]="product.isAvailable === false"
+              >
+                <span
+                  class="absolute top-0.5 size-4 rounded-full bg-white shadow transition-[left] duration-150"
+                  [style.left.px]="product.isAvailable !== false ? 16 : 2"
+                ></span>
+              </span>
+            </button>
+            <a
+              [routerLink]="['/admin/products', product.id, 'edit']"
+              class="ad-act shrink-0"
+              [attr.aria-label]="'admin.editAria' | transloco: { name: product.name }"
+            >
+              <app-icon name="pencil" [size]="15" />
+            </a>
+            <button
+              type="button"
+              class="ad-act danger shrink-0"
+              [attr.aria-label]="'admin.deleteAria' | transloco: { name: product.name }"
+              (click)="delete(product)"
+            >
+              <app-icon name="trash" [size]="15" />
+            </button>
+          </article>
+        }
+      </div>
+
+      <div class="mt-[18px] flex flex-wrap items-center justify-between gap-3">
+        <span class="text-sm text-[var(--text-muted)]"
+          >{{ 'admin.shownRange' | transloco: { first: first(), last: last(), total: page().totalCount } }}</span
+        >
+        <div class="flex gap-1.5">
+          <button
+            type="button"
+            class="grid size-9 place-items-center rounded-lg border border-[var(--border-subtle)] bg-white text-[var(--espresso-700)] disabled:opacity-40"
+            [disabled]="page().page <= 1"
+            [attr.aria-label]="'admin.prevPage' | transloco"
+            (click)="goToPage(page().page - 1)"
+          >
+            <app-icon name="chevron-left" [size]="16" />
+          </button>
+          @for (n of pageNumbers(); track n) {
+            <button
+              type="button"
+              class="grid size-9 place-items-center rounded-lg border text-sm font-bold"
+              [class.border-[var(--espresso-800)]]="n === page().page"
+              [class.bg-[var(--espresso-800)]]="n === page().page"
+              [class.text-[var(--kraft-50)]]="n === page().page"
+              [class.border-[var(--border-subtle)]]="n !== page().page"
+              [class.bg-white]="n !== page().page"
+              [class.text-[var(--espresso-800)]]="n !== page().page"
+              (click)="goToPage(n)"
+            >
+              {{ n }}
+            </button>
+          }
+          <button
+            type="button"
+            class="grid size-9 place-items-center rounded-lg border border-[var(--border-subtle)] bg-white text-[var(--espresso-700)] disabled:opacity-40"
+            [disabled]="page().page >= page().totalPages"
+            [attr.aria-label]="'admin.nextPage' | transloco"
+            (click)="goToPage(page().page + 1)"
+          >
+            <app-icon name="chevron-right" [size]="16" />
+          </button>
+        </div>
+      </div>
+    }
+  

@@ -56,34 +56,7 @@ import {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './checkout.component.html',
-  styles: `
-    @keyframes fnCheckoutPulse {
-      0%,
-      100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.45;
-      }
-    }
-    .fn-co-sk {
-      background: var(--kraft-200);
-      animation: fnCheckoutPulse 1.3s ease-in-out infinite;
-    }
-    @keyframes fnSpin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-    .fn-co-spin {
-      width: 18px;
-      height: 18px;
-      border: 2.5px solid var(--kraft-300);
-      border-top-color: var(--cinnamon-700);
-      border-radius: 999px;
-      animation: fnSpin 0.7s linear infinite;
-    }
-  `,
+  styleUrl: './checkout.component.css',
 })
 export class CheckoutComponent {
   private readonly fb = inject(FormBuilder);

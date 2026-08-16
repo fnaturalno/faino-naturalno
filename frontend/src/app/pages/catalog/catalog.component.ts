@@ -33,6 +33,7 @@ import { CatalogStore } from './catalog.store';
   providers: [CatalogStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './catalog.component.html',
+  styleUrl: './catalog.component.css',
 })
 export class CatalogComponent {
   protected readonly store = inject(CatalogStore);

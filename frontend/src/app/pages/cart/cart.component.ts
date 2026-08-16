@@ -28,21 +28,7 @@ import { CartService } from '../../services/cart.service';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './cart.component.html',
-  styles: `
-    @keyframes fnCartPulse {
-      0%,
-      100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.45;
-      }
-    }
-    .fn-cart-sk {
-      background: var(--kraft-200);
-      animation: fnCartPulse 1.3s ease-in-out infinite;
-    }
-  `,
+  styleUrl: './cart.component.css',
 })
 export class CartComponent {
   protected readonly cart = inject(CartService);

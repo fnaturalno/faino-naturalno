@@ -21,6 +21,8 @@ Modern Angular conventions (2025-26). Covers what to do and what to avoid. For c
 - NEVER create a new NgModule — use `imports` array in component decorator instead
 - Import only what the component directly uses — no shared "mega-modules"
 - Lazy-load all page-level routes via `loadComponent`
+- ALWAYS put the template in a sibling `.component.html` and styles in a sibling `.component.css` (or `.scss`) — use `templateUrl` and `styleUrl`
+- NEVER use inline `template:` or `styles:` in the `@Component` decorator
 
 ## Signals & State (CRITICAL)
 
@@ -116,3 +118,4 @@ The #1 Angular signal anti-pattern.
 - Shared UI in `components/` — only generic, reusable pieces
 - Services in `services/` per domain: `product.service.ts`, `cart.service.ts`
 - Models/interfaces in `models/` matching backend DTOs exactly
+- One component = three files: `name.component.ts`, `name.component.html`, `name.component.css` (empty CSS file is fine when using only Tailwind in the template)

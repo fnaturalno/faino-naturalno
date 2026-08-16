@@ -1,0 +1,77 @@
+
+    <div class="mx-auto max-w-2xl space-y-6 text-[#2a1a0d]">
+      <h2 class="text-2xl font-black">Стиснення зображень</h2>
+
+      @if (files().length === 0) {
+        <p class="font-semibold text-green-700">Усі зображення вже стиснені ✓</p>
+      } @else {
+        <ul class="overflow-hidden rounded-xl border border-[#dac7a2] bg-white">
+          @for (name of files(); track name) {
+            <li>
+              <button
+                type="button"
+                class="w-full px-4 py-2 text-left font-medium hover:bg-[#fbf6ea]"
+                (click)="fileName.set(name)"
+              >
+                {{ name }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="flex gap-2">
+        <input
+          type="text"
+          class="min-w-0 flex-1 rounded-lg border border-[#c2ab80] bg-white p-3"
+          [value]="fileName()"
+          (input)="fileName.set($any($event.target).value)"
+          placeholder="ім'я файлу.jpg"
+        />
+        <button
+          type="button"
+          class="shrink-0 rounded-lg bg-[#f5b800] px-4 py-3 font-bold disabled:opacity-50"
+          [disabled]="loading() || !fileName().trim()"
+          (click)="compressOne()"
+        >
+          {{ loading() ? 'Обробка...' : 'Стиснути' }}
+        </button>
+      </div>
+
+      @if (singleResult(); as result) {
+        <p class="rounded-xl bg-green-50 px-4 py-3 font-medium text-green-800">
+          ✓ {{ result.originalFile }} → {{ result.compressedFile }} |
+          {{ result.originalKb }} KB → {{ result.compressedKb }} KB | оновлено записів у БД:
+          {{ result.dbUpdated }}
+        </p>
+      }
+
+      <hr class="border-[#dac7a2]" />
+
+      <button
+        type="button"
+        class="rounded-lg bg-[#f5b800] px-4 py-3 font-bold disabled:opacity-50"
+        [disabled]="loading() || files().length === 0"
+        (click)="compressAll()"
+      >
+        {{ loading() ? 'Обробка...' : 'Стиснути всі (' + files().length + ')' }}
+      </button>
+
+      @if (allResult(); as result) {
+        <div class="rounded-xl bg-green-50 px-4 py-3 font-medium text-green-800">
+          <p>✓ Оброблено: {{ result.processed }} | Звільнено: {{ formatSaved(result.savedKb) }}</p>
+          @if (result.errors.length > 0) {
+            <ul class="mt-2 list-disc pl-5 text-red-700">
+              @for (name of result.errors; track name) {
+                <li>{{ name }}</li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      @if (error(); as message) {
+        <p class="rounded-xl bg-red-50 px-4 py-3 font-medium text-red-800">{{ message }}</p>
+      }
+    </div>
+  
