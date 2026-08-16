@@ -175,13 +175,6 @@ export const routes: Routes = [
             (module) => module.AdminSettingsComponent,
           ),
       },
-      {
-        path: 'image-compress',
-        loadComponent: () =>
-          import('./pages/admin/admin-image-compress.component').then(
-            (module) => module.AdminImageCompressComponent,
-          ),
-      },
     ],
   },
   {

@@ -26,7 +26,6 @@ export class AdminShellComponent {
     const url = this.router.url;
     if (url.includes('/orders')) return this.i18n.translate('admin.orders');
     if (url.includes('/categories')) return this.i18n.translate('admin.categories');
-    if (url.includes('/image-compress')) return 'Стиснення фото';
     if (url.includes('/settings')) return this.i18n.translate('admin.settings');
     if (url.includes('/news')) {
       return url.includes('/new') || url.includes('/edit')
