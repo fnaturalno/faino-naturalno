@@ -9,6 +9,7 @@ using Microsoft.Extensions.FileProviders;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi();
 builder.Services.AddCatalogServices(builder.Configuration);
 builder.Services.AddAuthServices(builder.Configuration, builder.Environment);
@@ -60,6 +61,7 @@ app.UseCors("Frontend");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
