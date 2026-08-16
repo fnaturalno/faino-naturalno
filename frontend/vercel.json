@@ -5,6 +5,10 @@
       "destination": "https://faino-naturalno-production.up.railway.app/sitemap.xml"
     },
     {
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
