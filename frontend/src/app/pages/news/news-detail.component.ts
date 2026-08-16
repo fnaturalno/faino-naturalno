@@ -49,7 +49,10 @@ export class NewsDetailComponent {
       const article = this.post();
       if (article) {
         const brand = this.i18n.translate('brand');
-        this.seo.setAlternates(`news/${article.slug}`, `${article.title} · ${brand}`);
+        this.seo.setAlternates(`news/${article.slug}`, `${article.title} · ${brand}`, {
+          description: article.excerpt,
+          imageUrl: article.coverImageUrl,
+        });
       }
     });
     this.destroyRef.onDestroy(() => this.seo.clear());

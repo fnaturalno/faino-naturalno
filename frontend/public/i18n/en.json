@@ -1,5 +1,8 @@
 {
   "brand": "Fayno Naturalno",
+  "seo": {
+    "description": "Online shop of natural spices, signature blends, and teas. Delivery across Ukraine via Nova Poshta and Ukrposhta."
+  },
   "nav": {
     "language": "Language",
     "openMenu": "Open menu",

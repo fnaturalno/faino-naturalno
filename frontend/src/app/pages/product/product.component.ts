@@ -374,7 +374,10 @@ export class ProductComponent {
     });
     const cheapest = pickCheapestVariant(variants);
     this.selectedVariantId.set(cheapest?.id ?? null);
-    this.seo.setAlternates(`catalog/${detail.slug}`, detail.name);
+    this.seo.setAlternates(`catalog/${detail.slug}`, detail.name, {
+      description: detail.shortDescription,
+      imageUrl: detail.imageUrl ?? detail.imageUrls?.[0],
+    });
     this.quantity.set(1);
     this.status.set('ready');
   }

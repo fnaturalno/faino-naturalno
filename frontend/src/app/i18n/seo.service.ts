@@ -1,25 +1,43 @@
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
+import { TranslocoService } from '@jsverse/transloco';
 
 import { LOCALES, hreflangFor } from './locale.types';
 import { LocaleService } from './locale.service';
+import { sanitizeImageUrl } from '../utils/sanitize-image-url';
+
+export interface SeoPageMeta {
+  description?: string | null;
+  imageUrl?: string | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
   private readonly document = inject(DOCUMENT);
   private readonly title = inject(Title);
+  private readonly meta = inject(Meta);
   private readonly locale = inject(LocaleService);
+  private readonly i18n = inject(TranslocoService);
 
   /**
-   * Set canonical + hreflang (BCP 47 `uk`/`en`, x-default→`/ua/…`) for home/catalog/product.
+   * Set canonical + hreflang (BCP 47 `uk`/`en`, x-default→`/ua/…`) and shop meta tags.
    * `pathAfterLocale` is e.g. ``, `catalog`, `catalog/slug`.
    */
-  setAlternates(pathAfterLocale: string, pageTitle?: string): void {
+  setAlternates(pathAfterLocale: string, pageTitle?: string, page?: SeoPageMeta): void {
     const origin = this.document.location?.origin ?? '';
     const suffix = pathAfterLocale ? `/${pathAfterLocale.replace(/^\//, '')}` : '';
     const current = this.locale.lang();
     const canonical = `${origin}/${current}${suffix}`;
+    const brand = this.i18n.translate('brand');
+    const title = pageTitle?.trim() || brand;
+    const description = (page?.description?.trim() || this.i18n.translate('seo.description')).slice(
+      0,
+      320,
+    );
+    const image = this.absoluteImageUrl(page?.imageUrl, origin);
+
+    this.document.documentElement.lang = hreflangFor(current);
 
     this.upsertLink('canonical', canonical);
     this.clearHreflang();
@@ -29,14 +47,46 @@ export class SeoService {
     }
     this.upsertLink('alternate', `${origin}/ua${suffix}`, 'x-default');
 
-    if (pageTitle) {
-      this.title.setTitle(pageTitle);
-    }
+    this.title.setTitle(title);
+
+    this.meta.updateTag({ name: 'description', content: description });
+    this.meta.updateTag({ name: 'theme-color', content: '#f5b800' });
+
+    this.meta.updateTag({ property: 'og:type', content: 'website' });
+    this.meta.updateTag({ property: 'og:site_name', content: brand });
+    this.meta.updateTag({ property: 'og:title', content: title });
+    this.meta.updateTag({ property: 'og:description', content: description });
+    this.meta.updateTag({ property: 'og:url', content: canonical });
+    this.meta.updateTag({ property: 'og:image', content: image });
+    this.meta.updateTag({
+      property: 'og:locale',
+      content: current === 'en' ? 'en_US' : 'uk_UA',
+    });
+    this.meta.updateTag({
+      property: 'og:locale:alternate',
+      content: current === 'en' ? 'uk_UA' : 'en_US',
+    });
+
+    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.meta.updateTag({ name: 'twitter:title', content: title });
+    this.meta.updateTag({ name: 'twitter:description', content: description });
+    this.meta.updateTag({ name: 'twitter:image', content: image });
   }
 
   clear(): void {
     this.clearHreflang();
     this.document.querySelectorAll('link[rel="canonical"]').forEach((el) => el.remove());
+  }
+
+  private absoluteImageUrl(url: string | null | undefined, origin: string): string {
+    const sanitized = sanitizeImageUrl(url);
+    if (!sanitized) {
+      return `${origin}/logo.png`;
+    }
+    if (sanitized.startsWith('http://') || sanitized.startsWith('https://')) {
+      return sanitized;
+    }
+    return `${origin}${sanitized.startsWith('/') ? sanitized : `/${sanitized}`}`;
   }
 
   private clearHreflang(): void {

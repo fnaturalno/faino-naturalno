@@ -65,7 +65,9 @@ export class NewsListComponent {
   constructor() {
     effect(() => {
       this.locale.lang();
-      this.seo.setAlternates('news', this.i18n.translate('news.docTitle'));
+      this.seo.setAlternates('news', this.i18n.translate('news.docTitle'), {
+        description: this.i18n.translate('seo.description'),
+      });
     });
     this.destroyRef.onDestroy(() => this.seo.clear());
 
