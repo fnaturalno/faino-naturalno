@@ -551,8 +551,8 @@ public sealed class OrderService : IOrderService
         return method switch
         {
             DeliveryMethods.Pickup => DeliveryMethods.PickupAddressUa,
-            DeliveryMethods.City =>
-                $"Доставка по Береговому · {request.StreetAddress!.Trim()}",
+            DeliveryMethods.Ukrposhta =>
+                $"Укрпошта · {request.StreetAddress!.Trim()}",
             _ => $"{request.CityName.Trim()}, {request.BranchLabel.Trim()}"
         };
     }
@@ -563,6 +563,11 @@ public sealed class OrderService : IOrderService
         if (deliveryAddress.StartsWith("Самовивіз", StringComparison.Ordinal))
         {
             return "Самовивіз · Берегове";
+        }
+
+        if (deliveryAddress.StartsWith("Укрпошта", StringComparison.Ordinal))
+        {
+            return "Укрпошта";
         }
 
         if (deliveryAddress.StartsWith("Доставка по Береговому", StringComparison.Ordinal))

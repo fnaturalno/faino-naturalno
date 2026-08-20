@@ -66,6 +66,8 @@ export class OrderConfirmComponent {
     switch (method) {
       case 'pickup':
         return this.i18n.translate('order.methodPickup');
+      case 'ukrposhta':
+        return this.i18n.translate('order.methodUkrposhta');
       case 'city':
         return this.i18n.translate('order.methodCity');
       default:
@@ -77,6 +79,8 @@ export class OrderConfirmComponent {
     switch (this.order()?.deliveryMethod) {
       case 'pickup':
         return 'order.deliveryPickupNote';
+      case 'ukrposhta':
+        return 'order.deliveryUkrNote';
       case 'city':
         return 'order.deliveryCityNote';
       default:

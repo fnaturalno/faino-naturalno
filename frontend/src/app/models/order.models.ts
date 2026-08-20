@@ -3,7 +3,7 @@ import { ApiResponse } from './catalog.models';
 
 export type { ApiResponse, OrderStatusValue };
 
-export type DeliveryMethod = 'nova-poshta' | 'pickup' | 'city';
+export type DeliveryMethod = 'nova-poshta' | 'pickup' | 'ukrposhta';
 
 /** POST /api/orders body — lines/totals come from the server cart. */
 export interface PlaceOrderRequest {
@@ -17,7 +17,7 @@ export interface PlaceOrderRequest {
   cityRegion?: string | null;
   branchId: string;
   branchLabel: string;
-  /** Required when deliveryMethod is city. */
+  /** Required when deliveryMethod is ukrposhta. */
   streetAddress?: string | null;
   /** Optional client hint; server composes the stored address. */
   deliveryAddress: string;

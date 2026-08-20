@@ -325,11 +325,9 @@
             </div>
           }
 
-          @if (deliveryMethod() === 'city') {
+          @if (deliveryMethod() === 'ukrposhta') {
             <div class="flex flex-col gap-3">
-              <p class="m-0 text-sm text-[var(--espresso-700)]">
-                <span class="font-bold text-[var(--espresso-900)]">{{ 'checkout.cityFixed' | transloco }}</span>
-              </p>
+              <p class="m-0 text-sm font-bold text-[var(--espresso-900)]">{{ 'checkout.ukrposhtaHint' | transloco }}</p>
               <div class="flex flex-col gap-1.5">
                 <label for="co-street" [class]="labelClasses">{{ 'checkout.streetAddress' | transloco }}</label>
                 <input
@@ -464,18 +462,20 @@
             <ul class="mb-5 flex max-h-[360px] flex-col gap-3.5 overflow-y-auto">
               @for (line of items(); track line.cartItemId) {
                 <li class="flex items-center gap-3">
-                  <div
-                    class="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--kraft-100)]"
-                  >
-                    @if (lineImage(line.imageUrl); as src) {
-                      <img [src]="src" [alt]="line.name" class="size-full object-cover" />
-                    } @else {
-                      <span class="font-[var(--font-accent)] text-[10px] text-[var(--kraft-400)]"
-                        >{{ 'common.photo' | transloco }}</span
-                      >
-                    }
+                  <div class="relative size-14 shrink-0">
+                    <div
+                      class="grid size-full place-items-center overflow-hidden rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--kraft-100)]"
+                    >
+                      @if (lineImage(line.imageUrl); as src) {
+                        <img [src]="src" [alt]="line.name" class="size-full object-cover" />
+                      } @else {
+                        <span class="font-[var(--font-accent)] text-[10px] text-[var(--kraft-400)]"
+                          >{{ 'common.photo' | transloco }}</span
+                        >
+                      }
+                    </div>
                     <span
-                      class="absolute -top-1.5 -right-1.5 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-[var(--surface-cream)] bg-[var(--espresso-800)] px-1 text-[11px] font-extrabold text-[var(--kraft-50)]"
+                      class="absolute -top-1.5 -right-1.5 z-10 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-[var(--surface-cream)] bg-[var(--espresso-800)] px-1 text-[11px] font-extrabold text-[var(--kraft-50)]"
                       >{{ line.quantity }}</span
                     >
                   </div>

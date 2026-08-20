@@ -11,7 +11,7 @@ public sealed record TelegramOrderLine(string Name, int Quantity, decimal UnitPr
 /// <param name="OrderNumber">Human-readable number (e.g. FN-2026-0042).</param>
 /// <param name="CustomerName">Recipient full name.</param>
 /// <param name="CustomerPhone">Recipient phone.</param>
-/// <param name="DeliveryMethod">nova-poshta | pickup | city.</param>
+/// <param name="DeliveryMethod">nova-poshta | pickup | ukrposhta (legacy: city).</param>
 /// <param name="DeliveryAddress">Server-composed delivery summary.</param>
 /// <param name="Items">Order lines.</param>
 /// <param name="Total">Order total (subtotal; no delivery fee).</param>

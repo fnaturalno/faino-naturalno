@@ -51,6 +51,8 @@ export class AdminOrdersComponent {
     switch (method) {
       case 'pickup':
         return this.i18n.translate('order.methodPickup');
+      case 'ukrposhta':
+        return this.i18n.translate('order.methodUkrposhta');
       case 'city':
         return this.i18n.translate('order.methodCity');
       default:

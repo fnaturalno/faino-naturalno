@@ -5,7 +5,7 @@ public static class DeliveryMethods
 {
     public const string NovaPoshta = "nova-poshta";
     public const string Pickup = "pickup";
-    public const string City = "city";
+    public const string Ukrposhta = "ukrposhta";
 
     public const string PickupAddressUa =
         "Самовивіз · м. Берегове, Центральний ринок, овочевий павільйон";
@@ -14,7 +14,7 @@ public static class DeliveryMethods
     {
         NovaPoshta,
         Pickup,
-        City
+        Ukrposhta
     };
 
     public static bool IsKnown(string? value) =>

@@ -107,6 +107,7 @@ public sealed class TelegramNotificationService : ITelegramNotificationService
         method switch
         {
             "pickup" => "Самовивіз",
+            "ukrposhta" => "Укрпошта",
             "city" => "Доставка по Береговому",
             "nova-poshta" => "Нова Пошта",
             _ => method

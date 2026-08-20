@@ -7,7 +7,7 @@ public sealed class PlaceOrderRequest
     public string Phone { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
 
-    /// <summary><c>nova-poshta</c> | <c>pickup</c> | <c>city</c>.</summary>
+    /// <summary><c>nova-poshta</c> | <c>pickup</c> | <c>ukrposhta</c>.</summary>
     public string DeliveryMethod { get; set; } = string.Empty;
 
     public string CityId { get; set; } = string.Empty;
@@ -16,7 +16,7 @@ public sealed class PlaceOrderRequest
     public string BranchId { get; set; } = string.Empty;
     public string BranchLabel { get; set; } = string.Empty;
 
-    /// <summary>Street / building for city delivery (required when method is city).</summary>
+    /// <summary>Free-text address for Ukrposhta (required when method is ukrposhta).</summary>
     public string? StreetAddress { get; set; }
 
     /// <summary>Optional client hint; server composes the stored address.</summary>

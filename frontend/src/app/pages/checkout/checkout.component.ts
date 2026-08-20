@@ -162,8 +162,8 @@ export class CheckoutComponent {
     switch (this.deliveryMethod()) {
       case 'pickup':
         return 'checkout.deliveryFree';
-      case 'city':
-        return 'checkout.deliveryByArrangement';
+      case 'ukrposhta':
+        return 'checkout.deliveryUkrRates';
       default:
         return 'checkout.deliveryNpRates';
     }
@@ -189,8 +189,8 @@ export class CheckoutComponent {
 
   protected readonly deliveryOptions: { value: DeliveryMethod; labelKey: string }[] = [
     { value: 'nova-poshta', labelKey: 'checkout.methodNovaPoshta' },
+    { value: 'ukrposhta', labelKey: 'checkout.methodUkrposhta' },
     { value: 'pickup', labelKey: 'checkout.methodPickup' },
-    { value: 'city', labelKey: 'checkout.methodCity' },
   ];
 
   constructor() {
@@ -382,7 +382,7 @@ export class CheckoutComponent {
         deliveryAddress: '',
         comment: value.comment.trim() || null,
       };
-    } else if (method === 'city') {
+    } else if (method === 'ukrposhta') {
       const street = this.streetAddress().trim();
       if (!street) {
         this.streetError.set(this.i18n.translate('checkout.reqStreet'));
@@ -393,7 +393,7 @@ export class CheckoutComponent {
         lastName: value.lastName.trim(),
         phone: normalizePhone(value.phone.trim()),
         email: value.email.trim(),
-        deliveryMethod: 'city',
+        deliveryMethod: 'ukrposhta',
         cityId: '',
         cityName: '',
         cityRegion: null,

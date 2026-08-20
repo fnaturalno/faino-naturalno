@@ -59,7 +59,7 @@ public sealed class PlaceOrderRequestValidator : AbstractValidator<PlaceOrderReq
                 .MaximumLength(300);
         });
 
-        When(x => IsMethod(x, DeliveryMethods.City), () =>
+        When(x => IsMethod(x, DeliveryMethods.Ukrposhta), () =>
         {
             RuleFor(x => x.StreetAddress)
                 .NotEmpty().WithMessage("Вкажіть адресу доставки.")

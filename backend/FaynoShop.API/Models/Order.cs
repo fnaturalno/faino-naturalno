@@ -9,7 +9,7 @@ public class Order
     public required string RecipientName { get; set; }
     public required string Phone { get; set; }
     public required string Email { get; set; }
-    /// <summary><see cref="DeliveryMethods"/> value: nova-poshta | pickup | city.</summary>
+    /// <summary><see cref="DeliveryMethods"/> value: nova-poshta | pickup | ukrposhta (legacy city may exist on old rows).</summary>
     public required string DeliveryMethod { get; set; }
     public required string DeliveryAddress { get; set; }
     public string? Comment { get; set; }
