@@ -459,10 +459,10 @@
               </button>
             </div>
           } @else {
-            <ul class="mb-5 flex max-h-[360px] flex-col gap-3.5 overflow-y-auto">
+            <ul class="mb-5 flex max-h-[360px] flex-col gap-3.5 overflow-y-auto pt-1.5 pr-1.5">
               @for (line of items(); track line.cartItemId) {
                 <li class="flex items-center gap-3">
-                  <div class="relative size-14 shrink-0">
+                  <div class="relative size-14 shrink-0 overflow-visible">
                     <div
                       class="grid size-full place-items-center overflow-hidden rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--kraft-100)]"
                     >
@@ -475,7 +475,7 @@
                       }
                     </div>
                     <span
-                      class="absolute -top-1.5 -right-1.5 z-10 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-[var(--surface-cream)] bg-[var(--espresso-800)] px-1 text-[11px] font-extrabold text-[var(--kraft-50)]"
+                      class="pointer-events-none absolute -top-1.5 -right-1.5 z-10 grid size-5 place-items-center rounded-full border-2 border-[var(--surface-card)] bg-[var(--espresso-800)] text-[11px] leading-none font-extrabold text-[var(--kraft-50)]"
                       >{{ line.quantity }}</span
                     >
                   </div>
