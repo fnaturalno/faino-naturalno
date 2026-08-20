@@ -63,6 +63,7 @@ See `specs/features/subcategories.md` for hierarchy, counts, and filter expansio
 | Phone | string | |
 | Email | string | |
 | DeliveryAddress | string | |
+| DeliveryMethod | string | `nova-poshta` \| `pickup` \| `ukrposhta` |
 | Comment | string? | |
 | UserId | int? | null = guest order; FK → User |
 | CreatedAt | DateTime | |

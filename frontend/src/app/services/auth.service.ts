@@ -28,20 +28,22 @@ import {
   UpdateProfileRequest,
 } from '../models/auth.models';
 import { ApiResponse } from '../models/catalog.models';
+import { LOCAL_STORAGE } from '../utils/browser-storage';
 import { CartService } from './cart.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly cart = inject(CartService);
+  private readonly storage = inject(LOCAL_STORAGE);
   private readonly baseUrl = `${environment.apiBaseUrl}/api/auth`;
 
   private readonly userSignal = signal<AuthUser | null>(this.readStoredUser());
   private readonly accessTokenSignal = signal<string | null>(
-    localStorage.getItem(AUTH_STORAGE_KEYS.accessToken),
+    this.storage.getItem(AUTH_STORAGE_KEYS.accessToken),
   );
   private readonly refreshTokenSignal = signal<string | null>(
-    localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken),
+    this.storage.getItem(AUTH_STORAGE_KEYS.refreshToken),
   );
 
   private refreshInFlight: Observable<string | null> | null = null;
@@ -199,9 +201,9 @@ export class AuthService {
   }
 
   clearSession(): void {
-    localStorage.removeItem(AUTH_STORAGE_KEYS.accessToken);
-    localStorage.removeItem(AUTH_STORAGE_KEYS.refreshToken);
-    localStorage.removeItem(AUTH_STORAGE_KEYS.user);
+    this.storage.removeItem(AUTH_STORAGE_KEYS.accessToken);
+    this.storage.removeItem(AUTH_STORAGE_KEYS.refreshToken);
+    this.storage.removeItem(AUTH_STORAGE_KEYS.user);
     this.accessTokenSignal.set(null);
     this.refreshTokenSignal.set(null);
     this.userSignal.set(null);
@@ -228,19 +230,19 @@ export class AuthService {
   }
 
   private persistTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem(AUTH_STORAGE_KEYS.accessToken, accessToken);
-    localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, refreshToken);
+    this.storage.setItem(AUTH_STORAGE_KEYS.accessToken, accessToken);
+    this.storage.setItem(AUTH_STORAGE_KEYS.refreshToken, refreshToken);
     this.accessTokenSignal.set(accessToken);
     this.refreshTokenSignal.set(refreshToken);
   }
 
   private persistUser(user: AuthUser): void {
-    localStorage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(user));
+    this.storage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(user));
     this.userSignal.set(user);
   }
 
   private readStoredUser(): AuthUser | null {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEYS.user);
+    const raw = this.storage.getItem(AUTH_STORAGE_KEYS.user);
     if (!raw) {
       return null;
     }

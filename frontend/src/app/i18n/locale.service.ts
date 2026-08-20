@@ -3,6 +3,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 
+import { LOCAL_STORAGE } from '../utils/browser-storage';
 import {
   AppLocale,
   DEFAULT_LOCALE,
@@ -17,6 +18,7 @@ export class LocaleService {
   private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
+  private readonly storage = inject(LOCAL_STORAGE);
   private readonly active = signal<AppLocale>(this.readStoredOrDefault());
 
   readonly lang = this.active.asReadonly();
@@ -111,22 +113,14 @@ export class LocaleService {
     this.transloco.setActiveLang(locale);
     this.document.documentElement.lang = locale === 'ua' ? 'uk' : locale;
     if (persist) {
-      try {
-        localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-      } catch {
-        /* ignore quota / private mode */
-      }
+      this.storage.setItem(LOCALE_STORAGE_KEY, locale);
     }
   }
 
   private readStoredOrDefault(): AppLocale {
-    try {
-      const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
-      const normalized = normalizeAppLocale(stored);
-      if (normalized) return normalized;
-    } catch {
-      /* ignore */
-    }
+    const stored = this.storage.getItem(LOCALE_STORAGE_KEY);
+    const normalized = normalizeAppLocale(stored);
+    if (normalized) return normalized;
     return DEFAULT_LOCALE;
   }
 }

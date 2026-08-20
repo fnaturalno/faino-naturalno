@@ -190,7 +190,7 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | phone | varchar(20) | NOT NULL |
 | email | varchar(256) | NOT NULL |
 | delivery_address | varchar(500) | NOT NULL |
-| delivery_method | varchar(32) | NOT NULL — `nova-poshta` \| `pickup` \| `city` (existing rows defaulted to `nova-poshta`) |
+| delivery_method | varchar(32) | NOT NULL — `nova-poshta` \| `pickup` \| `ukrposhta` (existing rows defaulted to `nova-poshta`; legacy `city` removed) |
 | comment | varchar(1000) | nullable |
 | user_id | int | nullable; FK → users (ON DELETE SET NULL) — null = guest order |
 | confirmation_token_hash | varchar(128) | UNIQUE NOT NULL — SHA-256 hex of opaque confirmation token (plain returned once from POST) |
@@ -271,7 +271,7 @@ Seeded with `id=1`, `ukrposhta_free_from_amount=1300`.
 | `ProductVariantsSchema` (`20260804165448_ProductVariantsSchema`) | `product_variants` table; drop `products.price`/`old_price`/`weight`/`weight_unit` + `idx_products_price` (no price→variant data migration); cart lines keyed by `variant_id` (RESTRICT); order lines gain `variant_id` + weight snapshots; clears existing cart/order lines before FK retrofit |
 | `DropVariantOldPrice` | drop `product_variants.old_price` — selling price only; no crossed-out / discount price |
 | `NewsSchema` (`20260808161313_NewsSchema`) | `news_posts` table + indexes (`idx_news_posts_slug`, `idx_news_posts_is_published_published_at`, `idx_news_posts_is_featured`) — see `specs/features/news.md` |
-| `OrderDeliveryMethod` (`20260809102500_OrderDeliveryMethod`) | `orders.delivery_method` varchar(32) NOT NULL default `nova-poshta` — checkout methods: NP / pickup / city |
+| `OrderDeliveryMethod` (`20260809102500_OrderDeliveryMethod`) | `orders.delivery_method` varchar(32) NOT NULL default `nova-poshta` — checkout methods: NP / pickup / ukrposhta (no `city`) |
 | `ProductStrength` (`20260815100000_ProductStrength`) | nullable `products.strength` (int) + CHECK 1–5 |
 | `ShopSettings` (`20260815120000_ShopSettings`) | `shop_settings` singleton + Ukrposhta free-from amount (default 1300) |
 

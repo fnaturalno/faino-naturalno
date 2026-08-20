@@ -3,6 +3,12 @@
   "seo": {
     "description": "Online shop of natural spices, signature blends, and teas. Delivery across Ukraine via Nova Poshta and Ukrposhta."
   },
+  "notFound": {
+    "title": "Page not found",
+    "heading": "This page doesn’t exist",
+    "body": "The link may be outdated or the address mistyped. Head back to the catalog — there’s plenty of flavour waiting.",
+    "cta": "Back to catalog"
+  },
   "nav": {
     "language": "Language",
     "openMenu": "Open menu",

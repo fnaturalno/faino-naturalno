@@ -104,6 +104,11 @@ const storefrontChildren: Routes = [
         (module) => module.OrderConfirmComponent,
       ),
   },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./pages/not-found/not-found.component').then((module) => module.NotFoundComponent),
+  },
 ];
 
 export const routes: Routes = [

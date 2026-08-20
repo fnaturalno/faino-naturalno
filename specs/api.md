@@ -92,6 +92,23 @@ Hierarchy details: `specs/features/subcategories.md`.
 
 Default `ukrposhtaFreeFromAmount` is 1300. Shown on Payment & delivery via i18n `{{amount}}`. Checkout does not auto-apply free shipping.
 
+## Sitemap & health
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | `/sitemap.xml` | — | Public XML sitemap (not under `/api`); see below |
+| GET / HEAD | `/health` | — | Liveness for uptime monitors → `200` + `Healthy` |
+
+**`GET /sitemap.xml`**
+- `Content-Type: application/xml`
+- Canonical host: `https://f-n.fun` (must match frontend `environment.siteOrigin`)
+- Locales: every URL emitted for both `ua` and `en`
+- Static (no `lastmod`): `/`, `/catalog`, `/about`, `/contacts`, `/news`, `/payment-delivery`
+- Dynamic: active products (`IsActive`) → `/catalog/{slug}`; published news (`IsPublished`) → `/news/{slug}` with `lastmod` from `UpdatedAt` (`yyyy-MM-dd`)
+- **Not included:** category query URLs (`?category=`), cart/checkout/auth/profile/admin
+- Each `<url>` includes reciprocal `<xhtml:link rel="alternate">` for `hreflang="uk"`, `hreflang="en"`, and `hreflang="x-default"` (→ `/ua/...`). Namespace: `xmlns:xhtml="http://www.w3.org/1999/xhtml"`
+- No `changefreq` / `priority` (ignored by Google)
+- Vercel proxies `https://f-n.fun/sitemap.xml` to this endpoint
+
 ## Uploads
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|

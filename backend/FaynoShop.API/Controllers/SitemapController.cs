@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Xml;
 using FaynoShop.API.Data;
@@ -13,6 +14,7 @@ namespace FaynoShop.API.Controllers;
 public sealed class SitemapController : ControllerBase
 {
     private const string SiteOrigin = "https://f-n.fun";
+    private const string XhtmlNs = "http://www.w3.org/1999/xhtml";
     private static readonly string[] Locales = ["ua", "en"];
 
     private readonly AppDbContext _db;
@@ -26,34 +28,29 @@ public sealed class SitemapController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        var productSlugs = await _db.Products
+        var products = await _db.Products
             .AsNoTracking()
             .Where(p => p.IsActive)
-            .Select(p => p.Slug)
-            .OrderBy(s => s)
+            .Select(p => new { p.Slug, p.UpdatedAt })
+            .OrderBy(p => p.Slug)
             .ToListAsync(cancellationToken);
 
-        var categorySlugs = await _db.Categories
-            .AsNoTracking()
-            .Select(c => c.Slug)
-            .OrderBy(s => s)
-            .ToListAsync(cancellationToken);
-
-        var newsSlugs = await _db.NewsPosts
+        var news = await _db.NewsPosts
             .AsNoTracking()
             .Where(n => n.IsPublished)
-            .Select(n => n.Slug)
-            .OrderBy(s => s)
+            .Select(n => new { n.Slug, n.UpdatedAt })
+            .OrderBy(n => n.Slug)
             .ToListAsync(cancellationToken);
 
-        var xml = BuildSitemap(productSlugs, categorySlugs, newsSlugs);
+        var xml = BuildSitemap(
+            products.Select(p => (p.Slug, (DateTime?)p.UpdatedAt)).ToList(),
+            news.Select(n => (n.Slug, (DateTime?)n.UpdatedAt)).ToList());
         return Content(xml, "application/xml", Encoding.UTF8);
     }
 
     private static string BuildSitemap(
-        IReadOnlyList<string> productSlugs,
-        IReadOnlyList<string> categorySlugs,
-        IReadOnlyList<string> newsSlugs)
+        IReadOnlyList<(string Slug, DateTime? UpdatedAt)> products,
+        IReadOnlyList<(string Slug, DateTime? UpdatedAt)> news)
     {
         var settings = new XmlWriterSettings
         {
@@ -68,38 +65,31 @@ public sealed class SitemapController : ControllerBase
         {
             writer.WriteStartDocument();
             writer.WriteStartElement("urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
+            writer.WriteAttributeString("xmlns:xhtml", XhtmlNs);
 
             foreach (var locale in Locales)
             {
-                WriteUrl(writer, $"{SiteOrigin}/{locale}", "1.0");
-                WriteUrl(writer, $"{SiteOrigin}/{locale}/catalog", "0.9");
-                WriteUrl(writer, $"{SiteOrigin}/{locale}/about", "0.5");
-                WriteUrl(writer, $"{SiteOrigin}/{locale}/contacts", "0.5");
-                WriteUrl(writer, $"{SiteOrigin}/{locale}/news", "0.6");
-                WriteUrl(writer, $"{SiteOrigin}/{locale}/payment-delivery", "0.5");
+                WriteUrl(writer, locale, path: "");
+                WriteUrl(writer, locale, path: "catalog");
+                WriteUrl(writer, locale, path: "about");
+                WriteUrl(writer, locale, path: "contacts");
+                WriteUrl(writer, locale, path: "news");
+                WriteUrl(writer, locale, path: "payment-delivery");
             }
 
-            foreach (var slug in productSlugs)
+            foreach (var (slug, updatedAt) in products)
             {
                 foreach (var locale in Locales)
                 {
-                    WriteUrl(writer, $"{SiteOrigin}/{locale}/catalog/{slug}", "0.8");
+                    WriteUrl(writer, locale, path: $"catalog/{slug}", lastmod: updatedAt);
                 }
             }
 
-            foreach (var slug in categorySlugs)
+            foreach (var (slug, updatedAt) in news)
             {
                 foreach (var locale in Locales)
                 {
-                    WriteUrl(writer, $"{SiteOrigin}/{locale}/catalog?category={slug}", "0.9");
-                }
-            }
-
-            foreach (var slug in newsSlugs)
-            {
-                foreach (var locale in Locales)
-                {
-                    WriteUrl(writer, $"{SiteOrigin}/{locale}/news/{slug}", "0.6");
+                    WriteUrl(writer, locale, path: $"news/{slug}", lastmod: updatedAt);
                 }
             }
 
@@ -110,12 +100,38 @@ public sealed class SitemapController : ControllerBase
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static void WriteUrl(XmlWriter writer, string loc, string priority)
+    private static void WriteUrl(
+        XmlWriter writer,
+        string locale,
+        string path,
+        DateTime? lastmod = null)
     {
+        var suffix = string.IsNullOrEmpty(path) ? "" : $"/{path}";
+        var loc = $"{SiteOrigin}/{locale}{suffix}";
+
         writer.WriteStartElement("url");
         writer.WriteElementString("loc", loc);
-        writer.WriteElementString("changefreq", "weekly");
-        writer.WriteElementString("priority", priority);
+
+        if (lastmod is { } when)
+        {
+            writer.WriteElementString(
+                "lastmod",
+                when.ToUniversalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        }
+
+        WriteAlternate(writer, "uk", $"{SiteOrigin}/ua{suffix}");
+        WriteAlternate(writer, "en", $"{SiteOrigin}/en{suffix}");
+        WriteAlternate(writer, "x-default", $"{SiteOrigin}/ua{suffix}");
+
+        writer.WriteEndElement();
+    }
+
+    private static void WriteAlternate(XmlWriter writer, string hreflang, string href)
+    {
+        writer.WriteStartElement("xhtml", "link", XhtmlNs);
+        writer.WriteAttributeString("rel", "alternate");
+        writer.WriteAttributeString("hreflang", hreflang);
+        writer.WriteAttributeString("href", href);
         writer.WriteEndElement();
     }
 }

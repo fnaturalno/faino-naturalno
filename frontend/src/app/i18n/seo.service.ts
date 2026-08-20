@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
 
+import { environment } from '../../environments/environment';
 import { LOCALES, hreflangFor } from './locale.types';
 import { LocaleService } from './locale.service';
 import { sanitizeImageUrl } from '../utils/sanitize-image-url';
@@ -23,9 +24,10 @@ export class SeoService {
   /**
    * Set canonical + hreflang (BCP 47 `uk`/`en`, x-default→`/ua/…`) and shop meta tags.
    * `pathAfterLocale` is e.g. ``, `catalog`, `catalog/slug`.
+   * Canonical origin always comes from `environment.siteOrigin` (never document.location).
    */
   setAlternates(pathAfterLocale: string, pageTitle?: string, page?: SeoPageMeta): void {
-    const origin = this.document.location?.origin ?? '';
+    const origin = environment.siteOrigin.replace(/\/$/, '');
     const suffix = pathAfterLocale ? `/${pathAfterLocale.replace(/^\//, '')}` : '';
     const current = this.locale.lang();
     const canonical = `${origin}/${current}${suffix}`;
@@ -36,6 +38,8 @@ export class SeoService {
     const image = this.absoluteImageUrl(page?.imageUrl, origin);
 
     this.document.documentElement.lang = hreflangFor(current);
+
+    this.meta.removeTag('name="robots"');
 
     this.upsertLink('canonical', canonical);
     this.clearHreflang();

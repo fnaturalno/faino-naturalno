@@ -14,6 +14,7 @@ import {
   cartLineMaxQuantity,
 } from '../models/cart.models';
 import { AddCartItemResponse, ApiResponse } from '../models/catalog.models';
+import { LOCAL_STORAGE } from '../utils/browser-storage';
 import { extractApiError } from './auth.service';
 import { ToastService } from './toast.service';
 
@@ -26,7 +27,9 @@ export class CartService {
   private readonly toasts = inject(ToastService);
   private readonly i18n = inject(TranslocoService);
   private readonly locale = inject(LocaleService);
-  private sessionId = this.resolveSessionId();
+  private readonly storage = inject(LOCAL_STORAGE);
+  /** Lazy — never mint UUID in a field initializer (SSR-safe). */
+  private sessionId: string | null = null;
 
   private readonly itemsSignal = signal<CartLineDto[]>([]);
   private readonly itemCountSignal = signal(0);
@@ -67,7 +70,7 @@ export class CartService {
   }
 
   getSessionId(): string {
-    return this.sessionId;
+    return this.ensureSessionId();
   }
 
   /**
@@ -76,7 +79,7 @@ export class CartService {
    */
   rotateSessionId(): void {
     const created = crypto.randomUUID();
-    localStorage.setItem(SESSION_KEY, created);
+    this.storage.setItem(SESSION_KEY, created);
     this.sessionId = created;
   }
 
@@ -374,22 +377,27 @@ export class CartService {
   }
 
   private sessionHeaders(): HttpHeaders {
-    // Re-read storage so other tabs' rotateSessionId is picked up.
-    const stored = localStorage.getItem(SESSION_KEY);
-    if (stored && stored !== this.sessionId) {
-      this.sessionId = stored;
-    }
-    return new HttpHeaders().set(SESSION_HEADER, this.sessionId);
+    return new HttpHeaders().set(SESSION_HEADER, this.ensureSessionId());
   }
 
-  private resolveSessionId(): string {
-    const existing = localStorage.getItem(SESSION_KEY);
-    if (existing && isUuid(existing)) {
-      return existing;
+  /**
+   * Resolve guest cart session when storage is available.
+   * On the server, LOCAL_STORAGE is a no-op — callers should avoid cart HTTP during SSR.
+   */
+  private ensureSessionId(): string {
+    // Re-read storage so other tabs' rotateSessionId is picked up.
+    const stored = this.storage.getItem(SESSION_KEY);
+    if (stored && isUuid(stored)) {
+      this.sessionId = stored;
+      return stored;
+    }
+    if (this.sessionId && isUuid(this.sessionId)) {
+      return this.sessionId;
     }
 
     const created = crypto.randomUUID();
-    localStorage.setItem(SESSION_KEY, created);
+    this.storage.setItem(SESSION_KEY, created);
+    this.sessionId = created;
     return created;
   }
 }

@@ -1,4 +1,4 @@
-import { DecimalPipe, Location } from '@angular/common';
+import { DecimalPipe, DOCUMENT, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -24,6 +24,7 @@ import {
   tap,
 } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
 import { IconComponent } from '../../components/icon/icon.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
@@ -42,6 +43,9 @@ import { sanitizeImageUrl } from '../../utils/sanitize-image-url';
 
 type PageStatus = 'loading' | 'ready' | 'not-found' | 'error';
 type CartUiStatus = 'idle' | 'adding' | 'added';
+
+const PRODUCT_JSON_LD_ID = 'fayno-product-jsonld';
+const BREADCRUMB_JSON_LD_ID = 'fayno-breadcrumb-jsonld';
 
 @Component({
   selector: 'app-product',
@@ -68,6 +72,7 @@ export class ProductComponent {
   private readonly i18n = inject(TranslocoService);
   private readonly seo = inject(SeoService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
 
   private readonly retry$ = new Subject<void>();
   private toastTimer?: ReturnType<typeof setTimeout>;
@@ -168,6 +173,8 @@ export class ProductComponent {
       clearTimeout(this.toastTimer);
       clearTimeout(this.addedTimer);
       this.clearSimilarAddedTimers();
+      this.removeJsonLd();
+      this.seo.clear();
       this.retry$.complete();
     });
 
@@ -186,18 +193,21 @@ export class ProductComponent {
         switchMap((slug) => {
           if (!slug) {
             this.status.set('not-found');
+            this.removeJsonLd();
             return of(null);
           }
           return this.productsApi.getBySlug(slug).pipe(
             map((response) => {
               if (!response.success || !response.data) {
                 this.status.set('not-found');
+                this.removeJsonLd();
                 return null;
               }
               return response.data;
             }),
             catchError((error) => {
               this.status.set(mapProductLoadStatus(error));
+              this.removeJsonLd();
               return of(null);
             }),
           );
@@ -362,6 +372,7 @@ export class ProductComponent {
     clearTimeout(this.toastTimer);
     clearTimeout(this.addedTimer);
     this.clearSimilarAddedTimers();
+    this.removeJsonLd();
   }
 
   private applyProductDetail(detail: ProductDetail): void {
@@ -378,8 +389,97 @@ export class ProductComponent {
       description: detail.shortDescription,
       imageUrl: detail.imageUrl ?? detail.imageUrls?.[0],
     });
+    this.upsertProductJsonLd({ ...detail, variants });
     this.quantity.set(1);
     this.status.set('ready');
+  }
+
+  private upsertProductJsonLd(detail: ProductDetail): void {
+    const origin = environment.siteOrigin.replace(/\/$/, '');
+    const lang = this.locale.lang();
+    const productUrl = `${origin}/${lang}/catalog/${detail.slug}`;
+    const brandName = lang === 'en' ? 'Fayno Naturalno' : 'Файно натурально';
+    const inStock = detail.isAvailable !== false;
+    const availability = inStock
+      ? 'https://schema.org/InStock'
+      : 'https://schema.org/OutOfStock';
+
+    const images = [
+      ...((detail.imageUrls?.length ? detail.imageUrls : [detail.imageUrl]).filter(
+        Boolean,
+      ) as string[]),
+    ]
+      .map((url) => sanitizeImageUrl(url))
+      .filter((url): url is string => !!url)
+      .map((url) =>
+        url.startsWith('http://') || url.startsWith('https://')
+          ? url
+          : `${origin}${url.startsWith('/') ? url : `/${url}`}`,
+      );
+
+    const productLd = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: detail.name,
+      description: detail.shortDescription || detail.description || detail.name,
+      image: images.length === 1 ? images[0] : images,
+      brand: {
+        '@type': 'Brand',
+        name: brandName,
+      },
+      offers: (detail.variants ?? []).map((variant) => ({
+        '@type': 'Offer',
+        priceCurrency: 'UAH',
+        price: variant.price,
+        availability,
+        url: productUrl,
+        sku: String(variant.id),
+      })),
+    };
+
+    const breadcrumbLd = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: brandName,
+          item: `${origin}/${lang}`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: this.i18n.translate('nav.catalog'),
+          item: `${origin}/${lang}/catalog`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: detail.name,
+          item: productUrl,
+        },
+      ],
+    };
+
+    this.upsertJsonLdScript(PRODUCT_JSON_LD_ID, productLd);
+    this.upsertJsonLdScript(BREADCRUMB_JSON_LD_ID, breadcrumbLd);
+  }
+
+  private upsertJsonLdScript(id: string, data: object): void {
+    let script = this.document.getElementById(id) as HTMLScriptElement | null;
+    if (!script) {
+      script = this.document.createElement('script');
+      script.type = 'application/ld+json';
+      script.id = id;
+      this.document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(data);
+  }
+
+  private removeJsonLd(): void {
+    this.document.getElementById(PRODUCT_JSON_LD_ID)?.remove();
+    this.document.getElementById(BREADCRUMB_JSON_LD_ID)?.remove();
   }
 
   private setSimilarStatus(id: number, status: CartUiStatus): void {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, afterNextRender, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
@@ -15,6 +15,9 @@ import { CartService } from './services/cart.service';
 })
 export class App {
   constructor() {
-    inject(CartService).hydrateOnInit();
+    const cart = inject(CartService);
+    afterNextRender(() => {
+      cart.hydrateOnInit();
+    });
   }
 }

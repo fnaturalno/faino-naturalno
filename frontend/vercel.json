@@ -1,16 +1,39 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/ua",
+      "statusCode": 301
+    },
+    {
+      "source": "/uk",
+      "destination": "/ua",
+      "statusCode": 301
+    },
+    {
+      "source": "/uk/:path*",
+      "destination": "/ua/:path*",
+      "statusCode": 301
+    }
+  ],
   "rewrites": [
     {
       "source": "/sitemap.xml",
       "destination": "https://faino-naturalno-production.up.railway.app/sitemap.xml"
     },
     {
-      "source": "/robots.txt",
-      "destination": "/robots.txt"
+      "source": "/",
+      "destination": "/api"
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/api"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.mjs": {
+      "includeFiles": "dist/frontend/**",
+      "maxDuration": 30
+    }
+  }
 }

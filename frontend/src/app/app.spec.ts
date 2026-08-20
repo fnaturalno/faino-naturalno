@@ -1,5 +1,8 @@
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { TRANSLOCO_LOADER, provideTransloco } from '@jsverse/transloco';
+import { of } from 'rxjs';
 
 import { App } from './app';
 
@@ -7,7 +10,30 @@ describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(withFetch()),
+        provideTransloco({
+          config: {
+            availableLangs: ['ua', 'en'],
+            defaultLang: 'ua',
+            fallbackLang: 'ua',
+            reRenderOnLangChange: true,
+            prodMode: true,
+          },
+          loader: class {
+            getTranslation() {
+              return of({});
+            }
+          },
+        }),
+        {
+          provide: TRANSLOCO_LOADER,
+          useValue: {
+            getTranslation: () => of({}),
+          },
+        },
+      ],
     }).compileComponents();
   });
 

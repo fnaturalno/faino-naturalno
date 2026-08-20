@@ -21,7 +21,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL.
 - Публічний API: список лише опублікованих (пагінація, sort), деталь за slug.
 - Admin CRUD: список (включно з чернетками), створення, редагування, видалення; cover через існуючий upload.
 - Navbar: пункт «Новини» / «News» поруч із «Про нас»; далі «Оплата і доставка» → `/:locale/payment-delivery`; «Контакти» → `/:locale/contacts`.
-- Базовий SEO для CSR: document `<title>` (і meta description, де практично в Angular) з title + excerpt.
+- SEO via `SeoService` + SSR: unique `<title>`, meta description (title + excerpt on detail; Transloco on list), canonical, hreflang.
 - Locale resolution як у товарів (`?locale=` / `Accept-Language` / default `ua`).
 
 ### Out of scope
@@ -31,7 +31,6 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL.
 - Scheduled publish окремо від `publishedAt` + `isPublished` (немає фонового джоба «опублікувати о N»).
 - Multi-author / окремий профіль автора.
 - Rich HTML editor або Markdown-рендер (v1 — звичайний багаторядковий текст).
-- SSR / prerender для SEO (follow-up; зараз CSR).
 - Зміна сторінки About / заміна Contacts.
 - Зовнішні фіди (Instagram, Telegram тощо) як джерело постів.
 
@@ -42,7 +41,7 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL.
 - API conventions: `specs/api.md` (секція News — додано / уточнити під час імплементації)
 - Frontend architecture: `specs/frontend.md` (маршрути оновлено)
 - Database schema: `specs/db.md` (таблиця `news_posts` — додано / уточнити під час імплементації)
-- Related (sidebar / nav — **оновити під час імплементації**): `specs/features/admin.md`, `specs/features/i18n.md` (hreflang для news за бажанням)
+- Related (sidebar / nav): `specs/features/admin.md`, `specs/features/i18n.md` (hreflang for news via SSR + `SeoService`)
 - Design: text-only for v1; візуальна мова kraft / marigold / espresso як About і каталог (без card-heavy dashboard)
 - About (unchanged narrative): storefront «Про нас»
 
@@ -204,10 +203,12 @@ Admin list may include search by title/slug and filter published/draft (nice-to-
 - Control «Назад до новин» / «Back to news» → list (same locale).
 - Optional: featured badge if featured (not required on detail).
 
-### 2.5 SEO (CSR-realistic)
+### 2.5 SEO
 
-- Set document `<title>` from post title (detail) or Transloco page title (list), including brand suffix if used elsewhere.
-- Where the app already sets meta description, use excerpt (detail) or a static Transloco description (list). No SSR requirement in v1.
+- List and detail are **server-rendered** (see `specs/frontend.md`).
+- `<title>` from post title (detail) or Transloco page title (list), plus brand suffix if used elsewhere.
+- Meta description: excerpt (detail) or static Transloco description (list).
+- Canonical + reciprocal hreflang via `SeoService` and fixed `siteOrigin`.
 
 ---
 
@@ -217,9 +218,9 @@ Admin list may include search by title/slug and filter published/draft (nice-to-
 
 | Path | Purpose |
 |------|---------|
-| `/:locale/admin/news` | Admin news list |
-| `/:locale/admin/news/new` | Create |
-| `/:locale/admin/news/:id/edit` | Edit |
+| `/admin/news` | Admin news list |
+| `/admin/news/new` | Create |
+| `/admin/news/:id/edit` | Edit |
 
 Admin shell + `adminGuard` (JWT + `IsAdmin`), same pattern as products/categories/orders.
 
@@ -313,11 +314,11 @@ Admin shell + `adminGuard` (JWT + `IsAdmin`), same pattern as products/categorie
 - [ ] List shows cover, title, excerpt, date, optional Featured badge; pagination 9.
 - [ ] Detail shows title, date, cover, body; back link to list.
 - [ ] Loading, empty, and error states behave as specified.
-- [ ] Document title (and meta description when available) set from list/detail content.
+- [ ] Document title, meta description, canonical, and hreflang set via `SeoService` (SSR initial HTML for list/detail).
 
 ### Admin UI
 
-- [ ] Admin list + create/edit under `/admin/news` (locale-prefixed shell as other admin pages).
+- [ ] Admin list + create/edit under `/admin/news` (no locale prefix; same shell as other admin pages).
 - [ ] Bilingual form fields; publish/unpublish; featured; delete with confirmation.
 - [ ] Non-admins cannot access admin news routes/APIs.
 

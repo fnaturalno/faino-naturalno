@@ -18,6 +18,19 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "ssr": {
+              "entry": "src/server.ts"
+            },
+            "security": {
+              "allowedHosts": [
+                "f-n.fun",
+                "www.f-n.fun",
+                ".vercel.app",
+                "localhost"
+              ]
+            },
             "assets": [
               {
                 "glob": "**/*",

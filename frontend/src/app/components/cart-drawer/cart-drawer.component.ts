@@ -1,9 +1,11 @@
 import { A11yModule } from '@angular/cdk/a11y';
-import { DecimalPipe } from '@angular/common';
+import { DOCUMENT, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  PLATFORM_ID,
   effect,
   inject,
 } from '@angular/core';
@@ -12,7 +14,6 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { fromEvent } from 'rxjs';
 
-import { cartItemCountLabel } from '../../models/cart.models';
 import { LocaleService } from '../../i18n/locale.service';
 import { CartService } from '../../services/cart.service';
 import { CartLineComponent } from '../cart-line/cart-line.component';
@@ -38,25 +39,34 @@ export class CartDrawerComponent {
   private readonly i18n = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
+  private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly skeletonSlots = [0, 1, 2];
 
   constructor() {
     effect(() => {
       const open = this.cart.drawerOpen();
-      document.body.style.overflow = open ? 'hidden' : '';
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+      this.document.body.style.overflow = open ? 'hidden' : '';
     });
 
-    fromEvent<KeyboardEvent>(document, 'keydown')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((event) => {
-        if (event.key === 'Escape' && this.cart.drawerOpen()) {
-          this.cart.closeDrawer();
-        }
-      });
+    afterNextRender(() => {
+      fromEvent<KeyboardEvent>(this.document, 'keydown')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((event) => {
+          if (event.key === 'Escape' && this.cart.drawerOpen()) {
+            this.cart.closeDrawer();
+          }
+        });
+    });
 
     this.destroyRef.onDestroy(() => {
-      document.body.style.overflow = '';
+      if (isPlatformBrowser(this.platformId)) {
+        this.document.body.style.overflow = '';
+      }
     });
   }
 

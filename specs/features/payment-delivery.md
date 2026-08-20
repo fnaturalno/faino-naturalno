@@ -27,7 +27,7 @@
 
 ### Out of scope
 
-- Changing checkout carriers (Ukrposhta is **informational** on this page only; checkout methods remain NP / pickup / city per `checkout.md`).
+- Changing checkout carriers on this page alone (checkout methods are NP / pickup / ukrposhta per `checkout.md`; this page is informational copy).
 - Automatic free-shipping calculation at checkout.
 - Online payment gateway.
 - CMS for the rest of the page copy (the free-from amount for NP and Ukrposhta is admin-editable).

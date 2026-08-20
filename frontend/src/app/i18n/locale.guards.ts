@@ -34,6 +34,7 @@ export const rootLocaleRedirect: CanActivateFn = () => {
 /**
  * Legacy unprefixed storefront URLs → `/ua` + same path + query.
  * Also redirects old `/uk/...` prefixes to `/ua/...`.
+ * If the first segment is already a valid locale, do not prefix again.
  */
 export const legacyUkRedirect: CanActivateFn = (_route, state) => {
   const router = inject(Router);
@@ -53,6 +54,14 @@ export const legacyUkRedirect: CanActivateFn = (_route, state) => {
         : `/${DEFAULT_LOCALE}/${rest}`;
     return new RedirectCommand(router.parseUrl(target), { replaceUrl: true });
   }
+
+  const pathOnly = url.split('?')[0] ?? url;
+  const firstSegment = pathOnly.split('/').filter(Boolean)[0];
+  // Already locale-prefixed (e.g. unmatched /ua/…) — do not create /ua/ua/….
+  if (isAppLocale(firstSegment)) {
+    return true;
+  }
+
   const target = url.startsWith('/') ? `/${DEFAULT_LOCALE}${url}` : `/${DEFAULT_LOCALE}/${url}`;
   return new RedirectCommand(router.parseUrl(target), { replaceUrl: true });
 };

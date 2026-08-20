@@ -1,5 +1,9 @@
 import { isDevMode, ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import {
+  provideClientHydration,
+  withHttpTransferCacheOptions,
+} from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideTransloco, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom, forkJoin } from 'rxjs';
@@ -10,9 +14,30 @@ import { LocaleService } from './i18n/locale.service';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { localeInterceptor } from './interceptors/locale.interceptor';
 
+/** Transfer-cache only public catalog/content APIs — never cart, auth, or orders. */
+function isPublicApiTransferCacheUrl(url: string): boolean {
+  try {
+    const path = new URL(url, 'http://local').pathname.toLowerCase();
+    return (
+      path.includes('/api/products') ||
+      path.includes('/api/categories') ||
+      path.includes('/api/news') ||
+      path.includes('/api/settings') ||
+      path.includes('/api/shipping')
+    );
+  } catch {
+    return false;
+  }
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideClientHydration(
+      withHttpTransferCacheOptions({
+        filter: (req) => isPublicApiTransferCacheUrl(req.url),
+      }),
+    ),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, localeInterceptor])),
     provideRouter(routes, withComponentInputBinding()),
     provideTransloco({

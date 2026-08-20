@@ -15,10 +15,11 @@
 | Backend | ASP.NET Core 10 Web API |
 | ORM | Entity Framework Core 10 + Npgsql |
 | База даних | PostgreSQL 16 |
-| Frontend | Angular 22 (standalone, signals) |
+| Frontend | Angular 22 (standalone, signals, **SSR**) |
 | Стилі | Tailwind CSS |
 | Auth | JWT (access + refresh tokens) |
-| Контейнери | Docker Compose |
+| Хостинг | Frontend: Vercel (`f-n.fun`); API: Railway |
+| Контейнери | Docker Compose (local DB) |
 | CI/CD | GitHub Actions |
 
 ---
@@ -50,7 +51,7 @@
 
 - API відповідь < 200ms для GET запитів
 - Mobile-first дизайн
-- SEO: SSR або pre-rendering для сторінок каталогу та товару
+- SEO: Angular SSR для публічних сторінок (каталог, товар, новини, about/contacts/payment-delivery); `sitemap.xml` + `robots.txt`; session/admin — client render (див. `specs/frontend.md`)
 - Всі форми — валідація на frontend і backend
 - HTTPS в production
 - Логування помилок (Serilog)

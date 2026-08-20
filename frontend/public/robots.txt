@@ -1,4 +1,26 @@
 User-agent: *
 Allow: /
 
+Disallow: /admin
+Disallow: /ua/admin
+Disallow: /en/admin
+Disallow: /ua/cart
+Disallow: /en/cart
+Disallow: /ua/checkout
+Disallow: /en/checkout
+Disallow: /ua/auth
+Disallow: /en/auth
+Disallow: /ua/profile
+Disallow: /en/profile
+Disallow: /ua/order
+Disallow: /en/order
+
+Disallow: /*/catalog?*
+Disallow: /*?*category=
+Disallow: /*?*search=
+Disallow: /*?*minPrice=
+Disallow: /*?*maxPrice=
+Disallow: /*?*sortBy=
+Disallow: /*?*page=
+
 Sitemap: https://f-n.fun/sitemap.xml

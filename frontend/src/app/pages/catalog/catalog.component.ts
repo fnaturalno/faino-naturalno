@@ -1,10 +1,12 @@
 import { A11yModule } from '@angular/cdk/a11y';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
+  PLATFORM_ID,
   ViewChild,
   computed,
   effect,
@@ -43,6 +45,8 @@ export class CatalogComponent {
   protected readonly locale = inject(LocaleService);
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
+  private readonly document = inject(DOCUMENT);
+  private readonly platformId = inject(PLATFORM_ID);
   private toastTimer?: ReturnType<typeof setTimeout>;
   private loadMoreObserver?: IntersectionObserver;
 
@@ -83,7 +87,9 @@ export class CatalogComponent {
 
     this.destroyRef.onDestroy(() => {
       clearTimeout(this.toastTimer);
-      document.body.style.overflow = '';
+      if (isPlatformBrowser(this.platformId)) {
+        this.document.body.style.overflow = '';
+      }
       this.seo.clear();
       this.loadMoreObserver?.disconnect();
     });
@@ -151,14 +157,18 @@ export class CatalogComponent {
     this.pendingFilters.set(pending);
     this.store.preview(pending);
     this.sheetOpen.set(true);
-    document.body.style.overflow = 'hidden';
+    if (isPlatformBrowser(this.platformId)) {
+      this.document.body.style.overflow = 'hidden';
+    }
   }
 
   protected closeSheet(): void {
     this.sheetOpen.set(false);
     this.pendingFilters.set(null);
     this.store.clearPreview();
-    document.body.style.overflow = '';
+    if (isPlatformBrowser(this.platformId)) {
+      this.document.body.style.overflow = '';
+    }
     setTimeout(() => this.mobileFilterButton?.nativeElement.focus());
   }
 

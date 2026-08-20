@@ -1,0 +1,17 @@
+<app-navbar />
+
+<main class="min-h-[calc(100vh-76px)] bg-[var(--bg-page)]">
+  <div class="mx-auto grid max-w-[1200px] place-items-center px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+    <div class="max-w-md text-center">
+      <p class="fn-eyebrow mb-3">404</p>
+      <h1 class="mb-3 text-2xl sm:text-3xl">{{ 'notFound.heading' | transloco }}</h1>
+      <p class="mb-8 text-[var(--espresso-700)]">{{ 'notFound.body' | transloco }}</p>
+      <a
+        [routerLink]="locale.commands()"
+        class="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--marigold-400)] px-6 font-extrabold text-[var(--espresso-900)] hover:bg-[var(--marigold-500)]"
+      >
+        {{ 'notFound.cta' | transloco }}
+      </a>
+    </div>
+  </div>
+</main>
