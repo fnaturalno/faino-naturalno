@@ -44,6 +44,7 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .Validate(
                 o => environment.IsDevelopment()
+                    || environment.IsEnvironment("Testing")
                     || (!o.Key.Contains("Dev-Only", StringComparison.OrdinalIgnoreCase)
                         && !o.Key.Contains("Change-In-Production", StringComparison.OrdinalIgnoreCase)),
                 "Jwt:Key must be a production secret (env/user-secrets), not the local Dev-Only key.")

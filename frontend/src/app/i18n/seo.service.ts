@@ -13,6 +13,23 @@ export interface SeoPageMeta {
   imageUrl?: string | null;
 }
 
+/** Prefer short → full body snippet → shop fallback. Never return text that duplicates `title`. */
+export function resolveSeoDescription(
+  shortDescription: string | null | undefined,
+  fullDescription: string | null | undefined,
+  title: string | null | undefined,
+  shopFallback: string,
+): string {
+  const normalizedTitle = (title ?? '').trim().toLowerCase();
+  for (const candidate of [shortDescription, fullDescription]) {
+    const text = candidate?.trim();
+    if (!text) continue;
+    if (normalizedTitle && text.toLowerCase() === normalizedTitle) continue;
+    return text.slice(0, 320);
+  }
+  return (shopFallback ?? '').trim().slice(0, 320);
+}
+
 @Injectable({ providedIn: 'root' })
 export class SeoService {
   private readonly document = inject(DOCUMENT);
@@ -34,7 +51,10 @@ export class SeoService {
     const brand = this.i18n.translate('brand');
     const title = pageTitle?.trim() || brand;
     const fallbackDescription = this.i18n.translate('seo.description') ?? '';
-    const description = (page?.description?.trim() || fallbackDescription).slice(0, 320);
+    let description = (page?.description?.trim() || fallbackDescription).slice(0, 320);
+    if (description.trim().toLowerCase() === title.trim().toLowerCase()) {
+      description = fallbackDescription.slice(0, 320);
+    }
     const image = this.absoluteImageUrl(page?.imageUrl, origin);
 
     this.document.documentElement.lang = hreflangFor(current);
@@ -104,10 +124,12 @@ export class SeoService {
     let link = this.document.querySelector(selector) as HTMLLinkElement | null;
     if (!link) {
       link = this.document.createElement('link');
-      link.rel = rel;
-      if (hreflang) link.hreflang = hreflang;
+      link.setAttribute('rel', rel);
+      if (hreflang) {
+        link.setAttribute('hreflang', hreflang);
+      }
       this.document.head.appendChild(link);
     }
-    link.href = href;
+    link.setAttribute('href', href);
   }
 }

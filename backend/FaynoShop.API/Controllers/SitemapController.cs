@@ -48,7 +48,8 @@ public sealed class SitemapController : ControllerBase
         return Content(xml, "application/xml", Encoding.UTF8);
     }
 
-    private static string BuildSitemap(
+    /// <summary>XML builder (internal for unit tests that assert write-time exceptions).</summary>
+    internal static string BuildSitemap(
         IReadOnlyList<(string Slug, DateTime? UpdatedAt)> products,
         IReadOnlyList<(string Slug, DateTime? UpdatedAt)> news)
     {
@@ -65,7 +66,9 @@ public sealed class SitemapController : ControllerBase
         {
             writer.WriteStartDocument();
             writer.WriteStartElement("urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
-            writer.WriteAttributeString("xmlns:xhtml", XhtmlNs);
+            // Do not WriteAttributeString("xmlns:xhtml", …) — XmlWriter treats the first
+            // arg as a local name; a colon is illegal and throws at runtime (HTTP 500).
+            // xhtml:link elements declare the namespace themselves.
 
             foreach (var locale in Locales)
             {

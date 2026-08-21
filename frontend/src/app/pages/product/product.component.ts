@@ -30,7 +30,7 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { ProductStrengthComponent } from '../../components/product-strength/product-strength.component';
 import { LocaleService } from '../../i18n/locale.service';
-import { SeoService } from '../../i18n/seo.service';
+import { resolveSeoDescription, SeoService } from '../../i18n/seo.service';
 import {
   ProductDetail,
   ProductVariantDto,
@@ -386,7 +386,12 @@ export class ProductComponent {
     const cheapest = pickCheapestVariant(variants);
     this.selectedVariantId.set(cheapest?.id ?? null);
     this.seo.setAlternates(`catalog/${detail.slug}`, detail.name, {
-      description: detail.shortDescription,
+      description: resolveSeoDescription(
+        detail.shortDescription,
+        detail.description,
+        detail.name,
+        this.i18n.translate('seo.description') ?? '',
+      ),
       imageUrl: detail.imageUrl ?? detail.imageUrls?.[0],
     });
     this.upsertProductJsonLd({ ...detail, variants });
@@ -421,7 +426,12 @@ export class ProductComponent {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: detail.name,
-      description: detail.shortDescription || detail.description || detail.name,
+      description: resolveSeoDescription(
+        detail.shortDescription,
+        detail.description,
+        detail.name,
+        this.i18n.translate('seo.description') ?? '',
+      ),
       image: images.length === 1 ? images[0] : images,
       brand: {
         '@type': 'Brand',

@@ -16,9 +16,19 @@ builder.Services.AddAuthServices(builder.Configuration, builder.Environment);
 builder.Services.AddAuthRateLimiting();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    if (builder.Environment.IsEnvironment("Testing"))
+    {
+        options
+            .UseInMemoryDatabase("FaynoShopTests")
+            .UseSnakeCaseNamingConvention();
+        return;
+    }
+
     options
         .UseNpgsql(DatabaseConnection.Resolve(builder.Configuration, builder.Environment))
-        .UseSnakeCaseNamingConvention());
+        .UseSnakeCaseNamingConvention();
+});
 
 builder.Services.AddCors(options =>
 {
@@ -66,8 +76,11 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.MigrateAsync();
+    }
 }
 
 app.Run();

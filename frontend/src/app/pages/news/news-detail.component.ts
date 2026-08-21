@@ -15,7 +15,7 @@ import { Subject, catchError, finalize, merge, of, switchMap } from 'rxjs';
 
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { LocaleService } from '../../i18n/locale.service';
-import { SeoService } from '../../i18n/seo.service';
+import { resolveSeoDescription, SeoService } from '../../i18n/seo.service';
 import { NewsDetail } from '../../models/news.models';
 import { extractApiError } from '../../services/auth.service';
 import { NewsService } from '../../services/news.service';
@@ -50,7 +50,12 @@ export class NewsDetailComponent {
       if (article) {
         const brand = this.i18n.translate('brand');
         this.seo.setAlternates(`news/${article.slug}`, `${article.title} · ${brand}`, {
-          description: article.excerpt,
+          description: resolveSeoDescription(
+            article.excerpt,
+            article.body,
+            article.title,
+            this.i18n.translate('seo.description') ?? '',
+          ),
           imageUrl: article.coverImageUrl,
         });
       }
