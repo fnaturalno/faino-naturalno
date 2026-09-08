@@ -8,7 +8,7 @@
 
 ## Summary
 
-Публічний чекаут дозволяє гостю або авторизованому покупцю оформити поточний кошик без реєстрації: контактні дані, вибір способу доставки (Нова Пошта, Укрпошта, самовивіз), необовʼязковий коментар, підсумок замовлення, створення замовлення та перехід на сторінку підтвердження.
+Публічний чекаут дозволяє гостю або авторизованому покупцю оформити поточний кошик без реєстрації: контактні дані, вибір способу доставки (Нова Пошта, Укрпошта, самовивіз), вибір способу оплати для доставки перевізником, необовʼязковий коментар, підсумок замовлення, створення замовлення та перехід на сторінку підтвердження.
 
 ## Scope
 
@@ -23,12 +23,14 @@ Full-stack: ASP.NET Core API + Angular UI + PostgreSQL data access.
 - Guest checkout без логіну; для залогіненого — підстановка профілю та збереженої NP-адреси.
 - Пошук міста / вибір відділення Нової Пошти (reuse NP API з auth) — коли обрано метод `nova-poshta`.
 - Самовивіз на фіксовану адресу магазину в Береговому; Укрпошта з одним полем адреси клієнта (без числової вартості).
+- Вибір способу оплати (картка Приватбанку / картка іншого банку) для `nova-poshta` і `ukrposhta` — від нього залежить, які реквізити менеджер надішле покупцю.
 - Валідація активності товарів при оформленні; очищення кошика після успіху.
 - Стани: порожній кошик, завантаження, валідація полів, помилки NP/оформлення.
 
 ### Out of scope
 
-- Платіжний шлюз / онлайн-оплата.
+- Платіжний шлюз / онлайн-оплата (обирається лише банк для переказу, списання не відбувається).
+- Зберігання та автоматична розсилка реквізитів — менеджер надсилає їх вручну після підтвердження замовлення.
 - Промокоди та знижки.
 - Розрахунок вартості доставки (лише текст: НП — «за тарифами НП»; Укрпошта — «за тарифами Укрпошти»; самовивіз — «безкоштовно»).
 - Адмін CRUD / зміна статусів замовлень.
@@ -102,6 +104,7 @@ The body includes everything needed to create the order (not a cart-id-only call
 - When `ukrposhta`: `StreetAddress` — free-text address (required)
 - When `pickup`: no NP or street fields required
 - Client may send a `DeliveryAddress` hint; **server composes and stores** the canonical `DeliveryAddress` (and persists `DeliveryMethod`)
+- `PaymentMethod` — `privat-card` | `other-bank-card`; required when `DeliveryMethod` is `nova-poshta` or `ukrposhta`, ignored (stored as `null`) for `pickup`
 - Optional `Comment`
 
 Line items and totals are taken from the **current server cart** for the session (and user after merge), not invented by the client.
@@ -113,6 +116,15 @@ Line items and totals are taken from the **current server cart** for the session
 | `nova-poshta` | `{CityName}, {BranchLabel}` |
 | `pickup` | `Самовивіз · м. Берегове, Центральний ринок, овочевий павільйон` |
 | `ukrposhta` | `Укрпошта · {StreetAddress}` |
+
+#### Payment method rules (server)
+
+| Delivery method | Stored `PaymentMethod` |
+|-----------------|------------------------|
+| `nova-poshta`, `ukrposhta` | `privat-card` or `other-bank-card` (validated; missing or unknown → 400) |
+| `pickup` | `null` — paid on the spot; any client-sent value is dropped |
+
+Замовлення до цієї фічі та самовивіз мають `null`, тому весь UI має коректно рендеритися без способу оплати.
 
 #### Server rules on place
 
@@ -153,6 +165,7 @@ Response data includes:
 - `id`, `orderNumber`, `status`, `totalAmount`, `createdAt`
 - Recipient name, phone, email
 - Delivery address summary (Nova Poshta text)
+- `paymentMethod` when present (null for pickup and pre-feature orders)
 - Optional comment when present
 - Line items: product name, quantity, unit price, weight/unit snapshots, line total (and category / image when available for a richer confirmation)
 
@@ -238,6 +251,14 @@ The pages are public for guests and logged-in buyers. There is no admin checkout
   - Optional link to contacts / map
 - Prefill of saved NP address applies **only** when method is `nova-poshta`
 
+**Payment method** (same step, below the delivery editors):
+
+- Показується лише для `nova-poshta` і `ukrposhta`; для самовивозу блок приховано, бо оплата на місці.
+- Заголовок «Спосіб оплати»; radiogroup з двох опцій: «Картка Приватбанку», «Картка іншого банку».
+- Без дефолтного вибору — покупець має обрати свідомо; без вибору сабміт блокується з помилкою «Оберіть спосіб оплати».
+- Підпис під опціями: «Реквізити надішлемо після підтвердження замовлення.»
+- Перехід на самовивіз скидає вибір і помилку.
+
 ### 2.5 Comment block (step 3)
 
 - Heading «Коментар до замовлення» with «— необовʼязково»
@@ -279,9 +300,10 @@ Minimal, coherent with the shop language:
 - Status label (Pending shown in Ukrainian, e.g. «Очікує підтвердження» / equivalent badge wording aligned with profile status labels when they exist)
 - Short list of lines (name × qty, line totals) and «Разом»
 - Delivery summary and contact when useful
+- Обраний спосіб оплати (коли він є) + примітка «Реквізити для оплати надішле менеджер після підтвердження замовлення.»
 - CTA back to catalog (e.g. «Продовжити покупки» → `/catalog`)
 
-No payment instructions beyond optional plain text that delivery is paid per Nova Poshta tariffs (optional; keep light).
+Самі реквізити (номер картки / IBAN) на сторінці не показуються і не надсилаються автоматично.
 
 ---
 
@@ -414,6 +436,7 @@ No payment instructions beyond optional plain text that delivery is paid per Nov
 
 - [ ] `POST /api/orders` places an order from the current cart for guest or authenticated buyer in the common API envelope.
 - [ ] Place requires recipient name (first + last), `+380` phone, email, NP city + branch, optional comment; lines/totals come from the server cart.
+- [ ] Place requires a known `PaymentMethod` for `nova-poshta` / `ukrposhta` and stores `null` for `pickup`.
 - [ ] Empty cart or inactive products fail without creating an order; cart is not cleared on failure.
 - [ ] Successful place creates Pending order with snapshot line prices, `TotalAmount` = goods subtotal, unique `OrderNumber`, and clears the cart; stock is not checked or reduced.
 - [ ] `GET /api/orders/:id` returns confirmation data when `?token=` matches (or JWT owner); unknown / unauthorized fails cleanly without leaking existence.
@@ -426,7 +449,8 @@ No payment instructions beyond optional plain text that delivery is paid per Nov
 - [ ] Contact, NP delivery (including saved-address banner + «Змінити»), optional comment, and «Оформити замовлення» behave as specified.
 - [ ] Summary shows lines, «Сума товарів», delivery copy «за тарифами Нової Пошти», «Разом» = subtotal; «Редагувати» goes to cart.
 - [ ] `/order/:id` shows order number, status, and a simple summary with a path back to the catalog.
-- [ ] Payment gateway, promo codes, admin, and full order history are absent from this feature.
+- [ ] Payment method radiogroup appears only for carrier delivery, blocks submit until chosen, and is shown on `/order/:id` and in the admin order detail.
+- [ ] Payment gateway, stored requisites, promo codes, admin, and full order history are absent from this feature.
 
 ### Interactions
 
@@ -443,4 +467,5 @@ No payment instructions beyond optional plain text that delivery is paid per Nov
 ### Edge cases and scope
 
 - [ ] Long names, many lines, missing images, price races, guest vs logged-in linkage, and accessibility basics behave as specified.
-- [ ] The feature does not implement payment, delivery fee calculation, promo codes, admin status tools, or profile address save-from-checkout.
+- [ ] The feature does not implement online payment, delivery fee calculation, promo codes, admin status tools, or profile address save-from-checkout.
+- [ ] Orders created before this feature (and all pickup orders) have `payment_method = NULL` and render without a payment line.

@@ -291,6 +291,11 @@
     "streetAddress": "Delivery address",
     "streetPlaceholder": "City, branch, or street and building…",
     "reqStreet": "Enter the delivery address",
+    "paymentMethod": "Payment method",
+    "methodPrivatCard": "Privatbank card",
+    "methodOtherBankCard": "Card of another bank",
+    "paymentHint": "We will send the payment details after the order is confirmed.",
+    "reqPayment": "Select a payment method",
     "city": "City",
     "cityPlaceholder": "Start typing a city…",
     "branch": "Branch",
@@ -362,6 +367,10 @@
     "methodPickup": "Pickup",
     "methodUkrposhta": "Ukrposhta",
     "methodCity": "Berehove delivery",
+    "paymentPrefix": "Payment:",
+    "paymentPrivatCard": "Privatbank card",
+    "paymentOtherBankCard": "Card of another bank",
+    "paymentNote": "The manager will send the payment details after the order is confirmed.",
     "continueShopping": "Continue shopping"
   },
   "orderStatus": {

@@ -28,7 +28,7 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { LocaleService } from '../../i18n/locale.service';
 import { DeliveryAddressDto, NpBranch, NpCity } from '../../models/auth.models';
 import { cartItemCountLabel } from '../../models/cart.models';
-import { PlaceOrderRequest, DeliveryMethod } from '../../models/order.models';
+import { PlaceOrderRequest, DeliveryMethod, PaymentMethod } from '../../models/order.models';
 import { AuthService, extractApiError } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
 import { OrderService } from '../../services/order.service';
@@ -105,6 +105,8 @@ export class CheckoutComponent {
   protected readonly deliveryMethod = signal<DeliveryMethod>('nova-poshta');
   protected readonly streetAddress = signal('');
   protected readonly streetError = signal<string | null>(null);
+  protected readonly paymentMethod = signal<PaymentMethod | null>(null);
+  protected readonly paymentError = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(50)]],
@@ -158,6 +160,11 @@ export class CheckoutComponent {
       (!this.savedAddress() || this.editingDelivery()),
   );
 
+  /** Pickup is paid on the spot, so the bank choice is only asked for shipped orders. */
+  protected readonly showPayment = computed(
+    () => this.deliveryMethod() !== 'pickup',
+  );
+
   protected readonly deliveryFeeLabelKey = computed(() => {
     switch (this.deliveryMethod()) {
       case 'pickup':
@@ -191,6 +198,11 @@ export class CheckoutComponent {
     { value: 'nova-poshta', labelKey: 'checkout.methodNovaPoshta' },
     { value: 'ukrposhta', labelKey: 'checkout.methodUkrposhta' },
     { value: 'pickup', labelKey: 'checkout.methodPickup' },
+  ];
+
+  protected readonly paymentOptions: { value: PaymentMethod; labelKey: string }[] = [
+    { value: 'privat-card', labelKey: 'checkout.methodPrivatCard' },
+    { value: 'other-bank-card', labelKey: 'checkout.methodOtherBankCard' },
   ];
 
   constructor() {
@@ -340,6 +352,16 @@ export class CheckoutComponent {
     this.cityError.set(null);
     this.branchError.set(null);
     this.streetError.set(null);
+    this.paymentError.set(null);
+
+    if (method === 'pickup') {
+      this.paymentMethod.set(null);
+    }
+  }
+
+  protected setPaymentMethod(method: PaymentMethod): void {
+    this.paymentMethod.set(method);
+    this.paymentError.set(null);
   }
 
   protected onStreetInput(value: string): void {
@@ -354,11 +376,17 @@ export class CheckoutComponent {
     this.cityError.set(null);
     this.branchError.set(null);
     this.streetError.set(null);
+    this.paymentError.set(null);
 
     this.form.markAllAsTouched();
 
     const method = this.deliveryMethod();
     const value = this.form.getRawValue();
+    const payment = method === 'pickup' ? null : this.paymentMethod();
+
+    if (method !== 'pickup' && !payment) {
+      this.paymentError.set(this.i18n.translate('checkout.reqPayment'));
+    }
 
     if (this.form.invalid) {
       return;
@@ -380,12 +408,15 @@ export class CheckoutComponent {
         branchLabel: '',
         streetAddress: null,
         deliveryAddress: '',
+        paymentMethod: null,
         comment: value.comment.trim() || null,
       };
     } else if (method === 'ukrposhta') {
       const street = this.streetAddress().trim();
       if (!street) {
         this.streetError.set(this.i18n.translate('checkout.reqStreet'));
+      }
+      if (!street || !payment) {
         return;
       }
       payload = {
@@ -401,6 +432,7 @@ export class CheckoutComponent {
         branchLabel: '',
         streetAddress: street,
         deliveryAddress: '',
+        paymentMethod: payment,
         comment: value.comment.trim() || null,
       };
     } else {
@@ -421,7 +453,7 @@ export class CheckoutComponent {
         this.editingDelivery.set(true);
       }
 
-      if (!city || !branch) {
+      if (!city || !branch || !payment) {
         return;
       }
 
@@ -443,6 +475,7 @@ export class CheckoutComponent {
         branchLabel: branch.label,
         streetAddress: null,
         deliveryAddress,
+        paymentMethod: payment,
         comment: value.comment.trim() || null,
       };
     }

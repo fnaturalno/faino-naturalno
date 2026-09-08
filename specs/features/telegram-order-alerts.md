@@ -8,7 +8,7 @@
 
 ## Summary
 
-After a successful `POST /api/orders`, the API sends a one-way Telegram HTML message to the configured admin chat with order number, recipient, phone, delivery, lines, and total. Failures never fail the place-order response.
+After a successful `POST /api/orders`, the API sends a one-way Telegram HTML message to the configured admin chat with order number, recipient, phone, delivery, payment method, lines, and total. Failures never fail the place-order response.
 
 ## Config
 
@@ -24,6 +24,7 @@ Empty token or chat id → warning log, no send.
 - No webhook; only `sendMessage`.
 - Fire-and-forget after DB commit via `IServiceScopeFactory` (typed `HttpClient` not tied to the request scope).
 - Product names from `NameUk` at place time.
+- Payment line («💳 Оплата: Картка Приватбанку» / «Картка іншого банку») is included only when the order has a payment method — pickup orders omit it. The admin uses it to send the matching requisites manually.
 
 ## References
 

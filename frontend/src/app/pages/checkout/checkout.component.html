@@ -347,6 +347,46 @@
               </div>
             </div>
           }
+
+          @if (showPayment()) {
+            <fieldset
+              class="m-0 mt-6 border-0 border-t border-[var(--border-subtle)] p-0 pt-5"
+              [disabled]="formLocked()"
+            >
+              <legend class="sr-only">{{ 'checkout.paymentMethod' | transloco }}</legend>
+              <p class="m-0 mb-3 text-sm font-bold text-[var(--espresso-900)]">{{ 'checkout.paymentMethod' | transloco }}</p>
+              <div
+                class="grid gap-2 sm:grid-cols-2"
+                role="radiogroup"
+                [attr.aria-label]="'checkout.paymentMethod' | transloco"
+                [attr.aria-invalid]="!!paymentError()"
+              >
+                @for (opt of paymentOptions; track opt.value) {
+                  <label
+                    class="flex cursor-pointer items-center gap-2.5 rounded-[var(--radius-md)] border px-3 py-3 text-sm font-semibold transition"
+                    [class.border-[var(--marigold-400)]]="paymentMethod() === opt.value"
+                    [class.bg-[var(--marigold-100)]]="paymentMethod() === opt.value"
+                    [class.border-[var(--border-strong)]]="paymentMethod() !== opt.value"
+                    [class.bg-white]="paymentMethod() !== opt.value"
+                  >
+                    <input
+                      type="radio"
+                      class="accent-[var(--cinnamon-700)]"
+                      name="paymentMethod"
+                      [value]="opt.value"
+                      [checked]="paymentMethod() === opt.value"
+                      (change)="setPaymentMethod(opt.value)"
+                    />
+                    <span>{{ opt.labelKey | transloco }}</span>
+                  </label>
+                }
+              </div>
+              @if (paymentError()) {
+                <p role="alert" [class]="errorClasses">{{ paymentError() }}</p>
+              }
+              <p class="mt-3 mb-0 text-sm text-[var(--espresso-700)]">{{ 'checkout.paymentHint' | transloco }}</p>
+            </fieldset>
+          }
         </section>
 
         <!-- Comment -->

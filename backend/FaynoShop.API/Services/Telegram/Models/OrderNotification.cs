@@ -13,6 +13,7 @@ public sealed record TelegramOrderLine(string Name, int Quantity, decimal UnitPr
 /// <param name="CustomerPhone">Recipient phone.</param>
 /// <param name="DeliveryMethod">nova-poshta | pickup | ukrposhta (legacy: city).</param>
 /// <param name="DeliveryAddress">Server-composed delivery summary.</param>
+/// <param name="PaymentMethod">privat-card | other-bank-card; null for pickup (paid on the spot).</param>
 /// <param name="Items">Order lines.</param>
 /// <param name="Total">Order total (subtotal; no delivery fee).</param>
 public sealed record OrderNotification(
@@ -22,5 +23,6 @@ public sealed record OrderNotification(
     string CustomerPhone,
     string DeliveryMethod,
     string DeliveryAddress,
+    string? PaymentMethod,
     IReadOnlyList<TelegramOrderLine> Items,
     decimal Total);

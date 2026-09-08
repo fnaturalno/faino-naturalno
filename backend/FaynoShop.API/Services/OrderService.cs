@@ -104,6 +104,7 @@ public sealed class OrderService : IOrderService
         var phone = request.Phone.Trim();
         var email = request.Email.Trim().ToLowerInvariant();
         var method = DeliveryMethods.Normalize(request.DeliveryMethod);
+        var paymentMethod = ResolvePaymentMethod(method, request.PaymentMethod);
         var deliveryAddress = ComposeDeliveryAddress(method, request);
         if (deliveryAddress.Length > 500)
         {
@@ -224,6 +225,7 @@ public sealed class OrderService : IOrderService
             Email = email,
             DeliveryMethod = method,
             DeliveryAddress = deliveryAddress,
+            PaymentMethod = paymentMethod,
             Comment = comment,
             UserId = userId,
             ConfirmationTokenHash = confirmationHash,
@@ -300,6 +302,7 @@ public sealed class OrderService : IOrderService
             order.Phone,
             order.DeliveryMethod,
             order.DeliveryAddress,
+            order.PaymentMethod,
             lines,
             order.TotalAmount);
 
@@ -342,6 +345,7 @@ public sealed class OrderService : IOrderService
                 o.Email,
                 o.DeliveryMethod,
                 o.DeliveryAddress,
+                o.PaymentMethod,
                 o.Comment,
                 o.UserId,
                 o.ConfirmationTokenHash,
@@ -396,6 +400,7 @@ public sealed class OrderService : IOrderService
             order.Email,
             order.DeliveryMethod,
             order.DeliveryAddress,
+            order.PaymentMethod,
             order.Comment,
             items);
     }
@@ -480,6 +485,7 @@ public sealed class OrderService : IOrderService
                 o.Email,
                 o.DeliveryMethod,
                 o.DeliveryAddress,
+                o.PaymentMethod,
                 o.Comment,
                 Items = o.Items.OrderBy(i => i.Id).Select(i => new
                 {
@@ -506,7 +512,8 @@ public sealed class OrderService : IOrderService
 
         return new OrderDetailDto(
             order.Id, order.OrderNumber, order.Status, order.TotalAmount, order.CreatedAt,
-            order.RecipientName, order.Phone, order.Email, order.DeliveryMethod, order.DeliveryAddress, order.Comment, items);
+            order.RecipientName, order.Phone, order.Email, order.DeliveryMethod, order.DeliveryAddress,
+            order.PaymentMethod, order.Comment, items);
     }
 
     public async Task<OrderDetailDto> UpdateStatusAsync(
@@ -545,6 +552,17 @@ public sealed class OrderService : IOrderService
             (OrderStatus.Shipped, OrderStatus.Cancelled) => true,
             _ => false
         };
+
+    /// <summary>Pickup is paid on the spot, so the client-sent payment method is dropped for it.</summary>
+    private static string? ResolvePaymentMethod(string deliveryMethod, string? paymentMethod)
+    {
+        if (deliveryMethod == DeliveryMethods.Pickup || !PaymentMethods.IsKnown(paymentMethod))
+        {
+            return null;
+        }
+
+        return PaymentMethods.Normalize(paymentMethod!);
+    }
 
     private static string ComposeDeliveryAddress(string method, PlaceOrderRequest request)
     {

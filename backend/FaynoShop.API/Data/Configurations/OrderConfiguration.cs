@@ -45,6 +45,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasMaxLength(500)
             .IsRequired();
 
+        builder.Property(o => o.PaymentMethod)
+            .HasMaxLength(32);
+
         builder.Property(o => o.Comment)
             .HasMaxLength(1000);
 

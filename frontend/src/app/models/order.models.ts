@@ -5,6 +5,9 @@ export type { ApiResponse, OrderStatusValue };
 
 export type DeliveryMethod = 'nova-poshta' | 'pickup' | 'ukrposhta';
 
+/** Bank whose requisites the manager sends after the order is confirmed. */
+export type PaymentMethod = 'privat-card' | 'other-bank-card';
+
 /** POST /api/orders body — lines/totals come from the server cart. */
 export interface PlaceOrderRequest {
   firstName: string;
@@ -21,6 +24,8 @@ export interface PlaceOrderRequest {
   streetAddress?: string | null;
   /** Optional client hint; server composes the stored address. */
   deliveryAddress: string;
+  /** Required when deliveryMethod is nova-poshta or ukrposhta; null for pickup. */
+  paymentMethod?: PaymentMethod | null;
   comment?: string | null;
 }
 
@@ -63,6 +68,7 @@ export interface OrderDetailDto {
   email: string;
   deliveryMethod: DeliveryMethod | string;
   deliveryAddress: string;
+  paymentMethod?: string | null;
   comment?: string | null;
   items: OrderLineDto[];
 }

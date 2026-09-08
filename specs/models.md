@@ -64,6 +64,7 @@ See `specs/features/subcategories.md` for hierarchy, counts, and filter expansio
 | Email | string | |
 | DeliveryAddress | string | |
 | DeliveryMethod | string | `nova-poshta` \| `pickup` \| `ukrposhta` |
+| PaymentMethod | string? | `privat-card` \| `other-bank-card`; null для `pickup` і замовлень до фічі |
 | Comment | string? | |
 | UserId | int? | null = guest order; FK → User |
 | CreatedAt | DateTime | |

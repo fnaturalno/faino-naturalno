@@ -21,5 +21,9 @@ public sealed class PlaceOrderRequest
 
     /// <summary>Optional client hint; server composes the stored address.</summary>
     public string DeliveryAddress { get; set; } = string.Empty;
+
+    /// <summary><c>privat-card</c> | <c>other-bank-card</c>. Required for nova-poshta and ukrposhta, unused for pickup.</summary>
+    public string? PaymentMethod { get; set; }
+
     public string? Comment { get; set; }
 }

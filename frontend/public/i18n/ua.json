@@ -291,6 +291,11 @@
     "streetAddress": "Адреса доставки",
     "streetPlaceholder": "Місто, відділення або вулиця, будинок…",
     "reqStreet": "Вкажіть адресу доставки",
+    "paymentMethod": "Спосіб оплати",
+    "methodPrivatCard": "Картка Приватбанку",
+    "methodOtherBankCard": "Картка іншого банку",
+    "paymentHint": "Реквізити надішлемо після підтвердження замовлення.",
+    "reqPayment": "Оберіть спосіб оплати",
     "city": "Місто",
     "cityPlaceholder": "Почніть вводити місто…",
     "branch": "Відділення",
@@ -362,6 +367,10 @@
     "methodPickup": "Самовивіз",
     "methodUkrposhta": "Укрпошта",
     "methodCity": "Доставка по Береговому",
+    "paymentPrefix": "Оплата:",
+    "paymentPrivatCard": "Картка Приватбанку",
+    "paymentOtherBankCard": "Картка іншого банку",
+    "paymentNote": "Реквізити для оплати надішле менеджер після підтвердження замовлення.",
     "continueShopping": "Продовжити покупки"
   },
   "orderStatus": {

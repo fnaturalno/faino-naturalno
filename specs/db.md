@@ -191,6 +191,7 @@ Minimal schema for profile `GET /api/orders` and checkout confirmation (`GET /ap
 | email | varchar(256) | NOT NULL |
 | delivery_address | varchar(500) | NOT NULL |
 | delivery_method | varchar(32) | NOT NULL — `nova-poshta` \| `pickup` \| `ukrposhta` (existing rows defaulted to `nova-poshta`; legacy `city` removed) |
+| payment_method | varchar(32) | nullable — `privat-card` \| `other-bank-card`; NULL for `pickup` (paid on the spot) and pre-feature rows |
 | comment | varchar(1000) | nullable |
 | user_id | int | nullable; FK → users (ON DELETE SET NULL) — null = guest order |
 | confirmation_token_hash | varchar(128) | UNIQUE NOT NULL — SHA-256 hex of opaque confirmation token (plain returned once from POST) |
@@ -274,6 +275,7 @@ Seeded with `id=1`, `ukrposhta_free_from_amount=1300`.
 | `OrderDeliveryMethod` (`20260809102500_OrderDeliveryMethod`) | `orders.delivery_method` varchar(32) NOT NULL default `nova-poshta` — checkout methods: NP / pickup / ukrposhta (no `city`) |
 | `ProductStrength` (`20260815100000_ProductStrength`) | nullable `products.strength` (int) + CHECK 1–5 |
 | `ShopSettings` (`20260815120000_ShopSettings`) | `shop_settings` singleton + Ukrposhta free-from amount (default 1300) |
+| `OrderPaymentMethod` (`20260908150000_OrderPaymentMethod`) | nullable `orders.payment_method` varchar(32) — `privat-card` / `other-bank-card` for carrier delivery; NULL for pickup and existing rows |
 
 ### Connection String
 ```

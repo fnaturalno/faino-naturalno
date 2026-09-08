@@ -81,6 +81,14 @@ public sealed class TelegramNotificationService : ITelegramNotificationService
         sb.Append("📞 ").Append(Escape(order.CustomerPhone)).Append("\n\n");
         sb.Append("🚚 ").Append(Escape(FormatMethod(order.DeliveryMethod))).Append('\n');
         sb.Append(Escape(order.DeliveryAddress)).Append("\n\n");
+
+        if (order.PaymentMethod is not null)
+        {
+            sb.Append("💳 <b>Оплата:</b> ")
+                .Append(Escape(FormatPayment(order.PaymentMethod)))
+                .Append("\n\n");
+        }
+
         sb.Append("📦 <b>Товари:</b>\n");
 
         foreach (var item in order.Items)
@@ -110,6 +118,14 @@ public sealed class TelegramNotificationService : ITelegramNotificationService
             "ukrposhta" => "Укрпошта",
             "city" => "Доставка по Береговому",
             "nova-poshta" => "Нова Пошта",
+            _ => method
+        };
+
+    private static string FormatPayment(string method) =>
+        method switch
+        {
+            "privat-card" => "Картка Приватбанку",
+            "other-bank-card" => "Картка іншого банку",
             _ => method
         };
 

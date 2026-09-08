@@ -75,6 +75,13 @@
             <span class="font-semibold text-[var(--espresso-900)]">{{ deliveryMethodLabel() }} · </span>
             {{ o.deliveryAddress }}
           </p>
+          @if (paymentMethodLabel(); as payment) {
+            <p class="mt-2 mb-0 text-sm text-[var(--espresso-700)]">
+              <span class="font-semibold text-[var(--espresso-900)]">{{ 'order.paymentPrefix' | transloco }} </span>
+              {{ payment }}
+            </p>
+            <p class="mt-1 mb-0 text-sm text-[var(--text-muted)]">{{ 'order.paymentNote' | transloco }}</p>
+          }
           @if (o.comment) {
             <p class="mt-2 mb-0 text-sm text-[var(--text-muted)]">{{ 'order.commentPrefix' | transloco }} {{ o.comment }}</p>
           }

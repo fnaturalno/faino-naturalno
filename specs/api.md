@@ -61,12 +61,14 @@ Hierarchy details: `specs/features/subcategories.md`.
 ## Orders
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| POST | /orders | — | Place order (`deliveryMethod`: `nova-poshta` \| `pickup` \| `ukrposhta`; returns confirmationToken) |
+| POST | /orders | — | Place order (`deliveryMethod`: `nova-poshta` \| `pickup` \| `ukrposhta`; `paymentMethod`: `privat-card` \| `other-bank-card`, required unless `pickup`; returns confirmationToken) |
 | GET | /orders/:id | — (token or owner) | Get order confirmation (`?token=` or JWT owner); `?locale=` for line product names from live Product |
 | GET | /orders | User | User's orders (no product names) |
 | GET | /admin/orders | Admin | All orders (search / status / pagination) |
 | GET | /admin/orders/:id | Admin | Order detail for admin drawer; `?locale=` |
 | PUT | /admin/orders/:id/status | Admin | Update status; `?locale=` on returned detail |
+
+Order detail responses include `paymentMethod` (`null` for pickup and orders created before the payment-method feature). Requisites themselves are never stored or sent by the API — the manager forwards them manually after confirming the order.
 
 ## News
 | Method | Route | Auth | Description |

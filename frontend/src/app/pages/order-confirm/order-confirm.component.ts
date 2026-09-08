@@ -75,6 +75,17 @@ export class OrderConfirmComponent {
     }
   });
 
+  protected readonly paymentMethodLabel = computed(() => {
+    switch (this.order()?.paymentMethod) {
+      case 'privat-card':
+        return this.i18n.translate('order.paymentPrivatCard');
+      case 'other-bank-card':
+        return this.i18n.translate('order.paymentOtherBankCard');
+      default:
+        return null;
+    }
+  });
+
   protected readonly deliveryNoteKey = computed(() => {
     switch (this.order()?.deliveryMethod) {
       case 'pickup':

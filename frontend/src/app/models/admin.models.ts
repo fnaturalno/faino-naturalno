@@ -122,6 +122,7 @@ export interface AdminOrderDetail extends AdminOrderSummary {
   email: string;
   deliveryMethod?: string | null;
   deliveryAddress: string;
+  paymentMethod?: string | null;
   comment?: string | null;
   items: OrderLineDto[];
 }

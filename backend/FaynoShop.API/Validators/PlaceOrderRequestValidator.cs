@@ -66,10 +66,21 @@ public sealed class PlaceOrderRequestValidator : AbstractValidator<PlaceOrderReq
                 .MaximumLength(300).WithMessage("Адреса не може перевищувати 300 символів.");
         });
 
+        // Pickup is paid on the spot, so the payment method is only asked for shipped orders.
+        When(RequiresPaymentMethod, () =>
+        {
+            RuleFor(x => x.PaymentMethod)
+                .NotEmpty().WithMessage("Оберіть спосіб оплати.")
+                .Must(PaymentMethods.IsKnown).WithMessage("Невідомий спосіб оплати.");
+        });
+
         RuleFor(x => x.Comment)
             .MaximumLength(1000).WithMessage("Коментар не може перевищувати 1000 символів.")
             .When(x => x.Comment is not null);
     }
+
+    private static bool RequiresPaymentMethod(PlaceOrderRequest request) =>
+        IsMethod(request, DeliveryMethods.NovaPoshta) || IsMethod(request, DeliveryMethods.Ukrposhta);
 
     private static bool IsMethod(PlaceOrderRequest request, string method) =>
         DeliveryMethods.IsKnown(request.DeliveryMethod)

@@ -47,6 +47,17 @@ export class AdminOrdersComponent {
     return this.i18n.translate(keys[status]);
   }
 
+  paymentMethodLabel(method: string): string {
+    switch (method) {
+      case 'privat-card':
+        return this.i18n.translate('order.paymentPrivatCard');
+      case 'other-bank-card':
+        return this.i18n.translate('order.paymentOtherBankCard');
+      default:
+        return method;
+    }
+  }
+
   deliveryMethodLabel(method: string): string {
     switch (method) {
       case 'pickup':

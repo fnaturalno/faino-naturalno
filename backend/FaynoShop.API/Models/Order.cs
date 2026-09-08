@@ -12,6 +12,8 @@ public class Order
     /// <summary><see cref="DeliveryMethods"/> value: nova-poshta | pickup | ukrposhta (legacy city may exist on old rows).</summary>
     public required string DeliveryMethod { get; set; }
     public required string DeliveryAddress { get; set; }
+    /// <summary><see cref="PaymentMethods"/> value: privat-card | other-bank-card. Null for pickup (paid on the spot) and legacy rows.</summary>
+    public string? PaymentMethod { get; set; }
     public string? Comment { get; set; }
     public int? UserId { get; set; }
     /// <summary>SHA-256 hex of the opaque confirmation token returned once from POST /api/orders.</summary>

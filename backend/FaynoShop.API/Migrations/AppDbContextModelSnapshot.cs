@@ -313,6 +313,11 @@ namespace FaynoShop.API.Migrations
                         .HasColumnType("character varying(32)")
                         .HasColumnName("order_number");
 
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("payment_method");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(20)

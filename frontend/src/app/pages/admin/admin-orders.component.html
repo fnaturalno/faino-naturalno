@@ -107,6 +107,11 @@
                 <p class="mt-2 text-sm font-bold text-[#6a4425]">{{ deliveryMethodLabel(detail()!.deliveryMethod!) }}</p>
               }
               <p>{{ detail()!.deliveryAddress }}</p>
+              @if (detail()!.paymentMethod) {
+                <p class="mt-2 text-sm font-bold text-[#6a4425]">
+                  {{ 'order.paymentPrefix' | transloco }} {{ paymentMethodLabel(detail()!.paymentMethod!) }}
+                </p>
+              }
             </div>
           </section>
           <section>

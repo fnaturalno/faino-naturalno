@@ -11,6 +11,7 @@ public sealed record OrderDetailDto(
     string Email,
     string DeliveryMethod,
     string DeliveryAddress,
+    string? PaymentMethod,
     string? Comment,
     IReadOnlyList<OrderDetailItemDto> Items);
 
