@@ -11,6 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi();
+builder.Services.AddOutputCache(options =>
+{
+    options.AddPolicy("Sitemap", policy => policy.Expire(TimeSpan.FromHours(1)));
+});
 builder.Services.AddCatalogServices(builder.Configuration);
 builder.Services.AddAuthServices(builder.Configuration, builder.Environment);
 builder.Services.AddAuthRateLimiting();
@@ -71,6 +75,7 @@ app.UseCors("Frontend");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseOutputCache();
 app.MapHealthChecks("/health");
 app.MapControllers();
 

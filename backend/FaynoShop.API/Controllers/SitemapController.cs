@@ -4,6 +4,7 @@ using System.Xml;
 using FaynoShop.API.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 
 namespace FaynoShop.API.Controllers;
@@ -13,6 +14,9 @@ namespace FaynoShop.API.Controllers;
 [Produces("application/xml")]
 public sealed class SitemapController : ControllerBase
 {
+    internal const string CacheControlValue =
+        "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400";
+
     private const string SiteOrigin = "https://f-n.fun";
     private const string XhtmlNs = "http://www.w3.org/1999/xhtml";
     private static readonly string[] Locales = ["ua", "en"];
@@ -25,9 +29,13 @@ public sealed class SitemapController : ControllerBase
     }
 
     [HttpGet("/sitemap.xml")]
+    [HttpHead("/sitemap.xml")]
+    [OutputCache(PolicyName = "Sitemap")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
+        Response.Headers.CacheControl = CacheControlValue;
+
         var products = await _db.Products
             .AsNoTracking()
             .Where(p => p.IsActive)
@@ -45,6 +53,13 @@ public sealed class SitemapController : ControllerBase
         var xml = BuildSitemap(
             products.Select(p => (p.Slug, (DateTime?)p.UpdatedAt)).ToList(),
             news.Select(n => (n.Slug, (DateTime?)n.UpdatedAt)).ToList());
+
+        if (HttpMethods.IsHead(Request.Method))
+        {
+            Response.ContentType = "application/xml; charset=utf-8";
+            return Ok();
+        }
+
         return Content(xml, "application/xml", Encoding.UTF8);
     }
 

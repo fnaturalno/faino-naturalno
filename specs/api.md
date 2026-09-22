@@ -97,10 +97,10 @@ Default `ukrposhtaFreeFromAmount` is 1300. Shown on Payment & delivery via i18n 
 ## Sitemap & health
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| GET | `/sitemap.xml` | — | Public XML sitemap (not under `/api`); see below |
+| GET / HEAD | `/sitemap.xml` | — | Public XML sitemap (not under `/api`); see below |
 | GET / HEAD | `/health` | — | Liveness for uptime monitors → `200` + `Healthy` |
 
-**`GET /sitemap.xml`**
+**`GET /sitemap.xml` and `HEAD /sitemap.xml`**
 - `Content-Type: application/xml`
 - Canonical host: `https://f-n.fun` (must match frontend `environment.siteOrigin`)
 - Locales: every URL emitted for both `ua` and `en`
@@ -110,6 +110,13 @@ Default `ukrposhtaFreeFromAmount` is 1300. Shown on Payment & delivery via i18n 
 - Each `<url>` includes reciprocal `<xhtml:link rel="alternate">` for `hreflang="uk"`, `hreflang="en"`, and `hreflang="x-default"` (→ `/ua/...`). Namespace: `xmlns:xhtml="http://www.w3.org/1999/xhtml"`
 - No `changefreq` / `priority` (ignored by Google)
 - Vercel proxies `https://f-n.fun/sitemap.xml` to this endpoint
+- `HEAD` returns HTTP 200 and the same relevant headers as `GET` (`Content-Type`, `Cache-Control`) with an empty body — crawlers use it as a cheap reachability check
+- Server output cache (ASP.NET Core Output Cache, policy `Sitemap` only — not applied to `/api`, auth, cart, checkout, or admin): 1 hour
+- `Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400`
+  - `max-age=300` — browser cache, 5 minutes
+  - `s-maxage=3600` — Vercel/CDN cache, 1 hour
+  - `stale-while-revalidate=86400` — serve the previous sitemap while it is being refreshed
+- Purpose: a fast, stable response for search crawlers (Google Search Console) so a Railway cold start or DB work on `/sitemap.xml` does not surface as «Не вдалося отримати». Sitemap stays dynamic (active products and published news from the DB); it is not a static file.
 
 ## Uploads
 | Method | Route | Auth | Description |

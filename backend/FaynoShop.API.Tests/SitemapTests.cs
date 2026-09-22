@@ -33,6 +33,8 @@ public sealed class SitemapTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await client.GetAsync("/sitemap.xml");
 
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/xml", response.Content.Headers.ContentType?.MediaType);
+        AssertCacheControl(response);
 
         var body = await response.Content.ReadAsStringAsync();
         var doc = XDocument.Parse(body);
@@ -71,6 +73,25 @@ public sealed class SitemapTests : IClassFixture<WebApplicationFactory<Program>>
             urls,
             u => (u.Element(sm + "loc")?.Value ?? "").EndsWith("/ua/about", StringComparison.Ordinal)
                 && u.Element(sm + "lastmod") is null);
+    }
+
+    [Fact]
+    public async Task Head_sitemap_xml_returns_200_with_cache_headers_and_no_body()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await SeedAsync(db);
+
+        var client = _factory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Head, "/sitemap.xml");
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/xml", response.Content.Headers.ContentType?.MediaType);
+        AssertCacheControl(response);
+
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(string.IsNullOrEmpty(body));
     }
 
     [Fact]
@@ -121,5 +142,19 @@ public sealed class SitemapTests : IClassFixture<WebApplicationFactory<Program>>
             UpdatedAt = new DateTime(2026, 8, 2, 0, 0, 0, DateTimeKind.Utc),
         });
         await db.SaveChangesAsync();
+    }
+
+    private static void AssertCacheControl(HttpResponseMessage response)
+    {
+        Assert.True(
+            response.Headers.TryGetValues("Cache-Control", out var values)
+            || response.Content.Headers.TryGetValues("Cache-Control", out values),
+            "Cache-Control header is missing.");
+
+        var header = string.Join(",", values);
+        Assert.Contains("public", header, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("max-age=300", header, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("s-maxage=3600", header, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("stale-while-revalidate=86400", header, StringComparison.OrdinalIgnoreCase);
     }
 }
