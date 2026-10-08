@@ -55,4 +55,3 @@
 - Всі форми — валідація на frontend і backend
 - HTTPS в production
 - Логування помилок (Serilog)
-- Поки сайт у тестовому режимі — sticky жовта біжуча стрічка зверху («Сайт працює в тестовому режимі» / EN equivalent); див. `specs/frontend.md`

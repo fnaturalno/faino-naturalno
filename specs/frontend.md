@@ -72,7 +72,6 @@ Cache only public responses: `/api/products`, `/api/categories`, `/api/news`, `/
 | `/admin/settings` | AdminSettingsComponent | Shop settings |
 
 ## Shared Components
-- `TestModeBannerComponent` — sticky test-mode marquee (appears in SSR HTML until removed/controlled)
 - `NavbarComponent` — logo, nav, cart, auth, language switcher; mobile catalog category tree
 - `ProductCardComponent` — `priceFrom`, variants dropdown, optional strength meter
 - `ProductStrengthComponent` — flames 1–5

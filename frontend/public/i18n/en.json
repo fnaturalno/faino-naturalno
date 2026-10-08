@@ -131,8 +131,7 @@
     "photo": "photo",
     "hidden": "Hidden",
     "allCategories": "All categories",
-    "closeToast": "Dismiss notification",
-    "testMode": "The site is running in test mode"
+    "closeToast": "Dismiss notification"
   },
   "plural": {
     "products": {
