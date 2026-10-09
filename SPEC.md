@@ -51,7 +51,7 @@
 
 - API відповідь < 200ms для GET запитів
 - Mobile-first дизайн
-- SEO: Angular SSR для публічних сторінок (каталог, товар, новини, about/contacts/payment-delivery); `sitemap.xml` + `robots.txt`; session/admin — client render (див. `specs/frontend.md`)
+- SEO: Angular SSR для публічних сторінок (каталог, товар, новини, about/contacts/payment-delivery); публічний `sitemap.xml` — статичний файл на Vercel (оновлення щодня з Railway через GitHub Actions, див. `specs/frontend.md` / `specs/api.md`) + `robots.txt`; session/admin — client render
 - Всі форми — валідація на frontend і backend
 - HTTPS в production
 - Логування помилок (Serilog)

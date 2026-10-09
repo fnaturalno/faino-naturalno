@@ -97,10 +97,16 @@ Default `ukrposhtaFreeFromAmount` is 1300. Shown on Payment & delivery via i18n 
 ## Sitemap & health
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| GET / HEAD | `/sitemap.xml` | — | Public XML sitemap (not under `/api`); see below |
+| GET / HEAD | `/sitemap.xml` | — | XML sitemap source on the API host (Railway); public storefront URL is a static file — see below |
 | GET / HEAD | `/health` | — | Liveness for uptime monitors → `200` + `Healthy` |
 
-**`GET /sitemap.xml` and `HEAD /sitemap.xml`**
+**Public URL `https://f-n.fun/sitemap.xml` (Vercel static file)**
+- Served from `frontend/public/sitemap.xml` (copied into the Angular browser build). Not rewritten to Railway and not handled by the Angular SSR function.
+- `Cache-Control: public, max-age=300, s-maxage=86400, stale-while-revalidate=604800` (set in `frontend/vercel.json`)
+- Generated from the backend endpoint by `scripts/update-sitemap.mjs`, committed by GitHub Actions (daily cron + `workflow_dispatch`). A newly published product/news URL can take up to 24 hours to appear.
+- If a run fails, the previously committed valid file stays on Vercel unchanged.
+
+**Backend `GET` / `HEAD` `/sitemap.xml` (Railway — generation source)**
 - `Content-Type: application/xml`
 - Canonical host: `https://f-n.fun` (must match frontend `environment.siteOrigin`)
 - Locales: every URL emitted for both `ua` and `en`
@@ -109,14 +115,9 @@ Default `ukrposhtaFreeFromAmount` is 1300. Shown on Payment & delivery via i18n 
 - **Not included:** category query URLs (`?category=`), cart/checkout/auth/profile/admin
 - Each `<url>` includes reciprocal `<xhtml:link rel="alternate">` for `hreflang="uk"`, `hreflang="en"`, and `hreflang="x-default"` (→ `/ua/...`). Namespace: `xmlns:xhtml="http://www.w3.org/1999/xhtml"`
 - No `changefreq` / `priority` (ignored by Google)
-- Vercel proxies `https://f-n.fun/sitemap.xml` to this endpoint
-- `HEAD` returns HTTP 200 and the same relevant headers as `GET` (`Content-Type`, `Cache-Control`) with an empty body — crawlers use it as a cheap reachability check
+- `HEAD` returns HTTP 200 and the same relevant headers as `GET` (`Content-Type`, `Cache-Control`) with an empty body
 - Server output cache (ASP.NET Core Output Cache, policy `Sitemap` only — not applied to `/api`, auth, cart, checkout, or admin): 1 hour
-- `Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400`
-  - `max-age=300` — browser cache, 5 minutes
-  - `s-maxage=3600` — Vercel/CDN cache, 1 hour
-  - `stale-while-revalidate=86400` — serve the previous sitemap while it is being refreshed
-- Purpose: a fast, stable response for search crawlers (Google Search Console) so a Railway cold start or DB work on `/sitemap.xml` does not surface as «Не вдалося отримати». Sitemap stays dynamic (active products and published news from the DB); it is not a static file.
+- `Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400` on the API response (for the generator / direct Railway hits; the public storefront URL uses the Vercel header above)
 
 ## Uploads
 | Method | Route | Auth | Description |

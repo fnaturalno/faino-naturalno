@@ -16,11 +16,18 @@
       "statusCode": 301
     }
   ],
-  "rewrites": [
+  "headers": [
     {
       "source": "/sitemap.xml",
-      "destination": "https://faino-naturalno-production.up.railway.app/sitemap.xml"
-    },
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, s-maxage=86400, stale-while-revalidate=604800"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
     {
       "source": "/",
       "destination": "/api"

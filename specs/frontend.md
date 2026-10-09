@@ -12,7 +12,9 @@
 - SSR via serverless `frontend/api/index.mjs` importing the built server bundle
 - Static assets from the browser build (CDN); dynamic routes → `/api` SSR function
 - Platform redirects: `/` → `/ua` (301), `/uk` and `/uk/*` → `/ua` / `/ua/*` (301)
-- Proxy: `/sitemap.xml` → Railway API `GET /sitemap.xml`
+- `https://f-n.fun/sitemap.xml` is the static file `frontend/public/sitemap.xml` (same as `robots.txt`): Vercel filesystem serves it; it must not hit the SSR rewrite `/(.*)` → `/api` or Railway
+- `Cache-Control` for `/sitemap.xml`: `public, max-age=300, s-maxage=86400, stale-while-revalidate=604800`
+- Sitemap XML is produced by Railway `GET /sitemap.xml` and refreshed into `frontend/public/sitemap.xml` by GitHub Actions (daily + manual `workflow_dispatch`). Failed runs leave the last valid file in place. New catalog/news URLs can take up to 24 hours.
 - Node on Vercel must be ≥ **22.22.3** (Angular 22 CLI requirement)
 
 ## Locale

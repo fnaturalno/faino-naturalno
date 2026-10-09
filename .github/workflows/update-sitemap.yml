@@ -1,0 +1,40 @@
+name: Update sitemap
+
+on:
+  schedule:
+    - cron: "15 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: update-sitemap
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+
+      - name: Fetch and validate sitemap
+        run: node scripts/update-sitemap.mjs
+
+      - name: Commit sitemap if changed
+        run: |
+          git add -- frontend/public/sitemap.xml
+          if git diff --cached --quiet -- frontend/public/sitemap.xml; then
+            echo "No sitemap changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(seo): update sitemap"
+          git push
